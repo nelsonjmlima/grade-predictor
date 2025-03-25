@@ -1,0 +1,143 @@
+
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ChevronRight, GitlabIcon, LogIn, UserPlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
+
+export function AuthForm() {
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    // Simulate login process
+    setTimeout(() => {
+      setIsLoading(false);
+      toast.success("Successfully logged in");
+      navigate("/dashboard");
+    }, 1000);
+  };
+  
+  const handleSignup = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    // Simulate signup process
+    setTimeout(() => {
+      setIsLoading(false);
+      toast.success("Account created successfully");
+      navigate("/dashboard");
+    }, 1000);
+  };
+
+  return (
+    <Card className="w-full max-w-md mx-auto overflow-hidden animate-scale-in glassmorphism">
+      <Tabs defaultValue="login" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="login" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Login
+          </TabsTrigger>
+          <TabsTrigger value="signup" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Sign Up
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="login">
+          <CardHeader>
+            <CardTitle className="text-2xl font-medium">Welcome back</CardTitle>
+            <CardDescription>
+              Sign in to access your repositories and student data
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" placeholder="m.scott@example.com" required />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <Button type="button" variant="link" className="px-0 text-xs" onClick={() => navigate("/reset-password")}>
+                    Forgot password?
+                  </Button>
+                </div>
+                <Input id="password" type="password" required />
+              </div>
+              <Button type="submit" className="w-full group" disabled={isLoading}>
+                {isLoading ? "Signing in..." : (
+                  <>
+                    Sign In <LogIn className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </Button>
+            </form>
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t"></div>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+              </div>
+            </div>
+            <Button variant="outline" className="w-full" type="button">
+              <GitlabIcon className="mr-2 h-4 w-4" /> GitLab
+            </Button>
+          </CardContent>
+        </TabsContent>
+        
+        <TabsContent value="signup">
+          <CardHeader>
+            <CardTitle className="text-2xl font-medium">Create an account</CardTitle>
+            <CardDescription>
+              Enter your details to get started
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <form onSubmit={handleSignup} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First name</Label>
+                  <Input id="firstName" placeholder="Michael" required />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last name</Label>
+                  <Input id="lastName" placeholder="Scott" required />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" placeholder="m.scott@example.com" required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input id="password" type="password" required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input id="confirmPassword" type="password" required />
+              </div>
+              <Button type="submit" className="w-full group" disabled={isLoading}>
+                {isLoading ? "Creating account..." : (
+                  <>
+                    Create Account <UserPlus className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </TabsContent>
+      </Tabs>
+      <CardFooter className="flex justify-center py-4 text-xs text-muted-foreground">
+        By continuing, you agree to our Terms of Service and Privacy Policy
+      </CardFooter>
+    </Card>
+  );
+}
