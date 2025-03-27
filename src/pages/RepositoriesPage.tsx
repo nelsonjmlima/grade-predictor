@@ -21,9 +21,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
 
 // Sample repository data
 const allRepositories = [
+  {
+    name: "Programming Fundamentals 2023",
+    description: "Course repository for first-year programming fundamentals",
+    lastActivity: "Today at 10:15",
+    commitCount: 215,
+    mergeRequestCount: 32,
+    branchCount: 8,
+    progress: 78,
+    predictedGrade: "B+",
+    id: "programming-fundamentals"
+  },
   {
     name: "Team Alpha Project",
     description: "Software Engineering final project for Team Alpha",
@@ -128,11 +140,57 @@ const sampleStudents = [
   }
 ];
 
+// New student data for Programming Fundamentals repository
+const programmingStudents = [
+  { 
+    id: "1", 
+    name: "Ines Silva", 
+    email: "ines.silva@university.edu", 
+    commitCount: 45, 
+    grade: "A-", 
+    lastActivity: "Today at 09:30" 
+  },
+  { 
+    id: "2", 
+    name: "Carolina Pereira", 
+    email: "carolina.p@university.edu", 
+    commitCount: 38, 
+    grade: "B+", 
+    lastActivity: "Yesterday at 14:20" 
+  },
+  { 
+    id: "3", 
+    name: "Bruna Costa", 
+    email: "bruna.c@university.edu", 
+    commitCount: 52, 
+    grade: "A", 
+    lastActivity: "Today at 11:45" 
+  },
+  { 
+    id: "4", 
+    name: "Luis Santos", 
+    email: "luis.s@university.edu", 
+    commitCount: 31, 
+    grade: "C+", 
+    lastActivity: "3 days ago" 
+  },
+  { 
+    id: "5", 
+    name: "Nelson Oliveira", 
+    email: "nelson.o@university.edu", 
+    commitCount: 41, 
+    grade: "B", 
+    lastActivity: "Yesterday at 08:15" 
+  }
+];
+
 export default function RepositoriesPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('recent');
   const [showGradesTemplate, setShowGradesTemplate] = useState(false);
+  const [selectedRepository, setSelectedRepository] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
   
   const filteredRepositories = allRepositories.filter(repo => 
     repo.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -150,6 +208,11 @@ export default function RepositoriesPage() {
     }
     return 0;
   });
+
+  const handleRepositorySelect = (repoId: string) => {
+    setSelectedRepository(repoId);
+    setShowGradesTemplate(true);
+  };
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -169,7 +232,7 @@ export default function RepositoriesPage() {
                 <GitlabIcon className="h-4 w-4 mr-2" />
                 Sync Repositories
               </Button>
-              <Button size="sm" className="h-9 px-4">
+              <Button size="sm" className="h-9 px-4" onClick={() => setDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Repository
               </Button>
@@ -234,12 +297,14 @@ export default function RepositoriesPage() {
           {showGradesTemplate ? (
             <div className="animate-fade-in mb-8">
               <RepositoryGradesView 
-                repositoryName="Advanced Programming Course" 
-                students={sampleStudents} 
+                repositoryName={selectedRepository === 'programming-fundamentals' ? "Programming Fundamentals 2023" : "Advanced Programming Course"} 
+                students={selectedRepository === 'programming-fundamentals' ? programmingStudents : sampleStudents} 
               />
               <div className="mt-6 p-3 bg-muted rounded-md">
                 <p className="text-sm text-muted-foreground">
-                  This is a template view showing how repositories with student grades would appear. 
+                  {selectedRepository === 'programming-fundamentals' 
+                    ? "Showing detailed student data for Programming Fundamentals 2023." 
+                    : "This is a template view showing how repositories with student grades would appear."} 
                   Click the <SlidersHorizontal className="h-3 w-3 inline mx-1" /> button to toggle back to the regular repository view.
                 </p>
               </div>
@@ -250,7 +315,12 @@ export default function RepositoriesPage() {
               : "space-y-4"
             }>
               {sortedRepositories.map((repo, index) => (
-                <div key={repo.name} className="animate-fade-in opacity-0" style={{ animationDelay: `${index * 100}ms` }}>
+                <div 
+                  key={repo.name} 
+                  className="animate-fade-in opacity-0" 
+                  style={{ animationDelay: `${index * 100}ms` }}
+                  onClick={() => repo.id === 'programming-fundamentals' ? handleRepositorySelect(repo.id) : null}
+                >
                   <RepositoryCard {...repo} />
                 </div>
               ))}
@@ -258,6 +328,11 @@ export default function RepositoriesPage() {
           )}
         </div>
       </main>
+
+      <CreateRepositoryDialog 
+        open={dialogOpen} 
+        onOpenChange={setDialogOpen} 
+      />
     </div>
   );
 }
