@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -6,7 +5,6 @@ import {
   Home,
   GitBranch,
   BarChart2,
-  Users,
   Settings,
   LogOut
 } from "lucide-react";
@@ -130,14 +128,6 @@ export function SideNav() {
             active={activeItem === "Analytics"} 
             collapsed={collapsed}
             onClick={() => setActiveItem("Analytics")}
-          />
-          <NavItem 
-            icon={Users} 
-            label="Students" 
-            to="/students"
-            active={activeItem === "Students"} 
-            collapsed={collapsed}
-            onClick={() => setActiveItem("Students")}
           />
           <NavItem 
             icon={Settings} 
