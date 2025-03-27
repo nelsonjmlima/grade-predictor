@@ -5,7 +5,7 @@ import { MetricsPanel } from "@/components/dashboard/MetricsPanel";
 import { StudentComparisonChart } from "@/components/dashboard/StudentComparisonChart";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, FolderPlus } from "lucide-react";
 
 // Sample repository data
 const repositories = [
@@ -40,7 +40,12 @@ const repositories = [
   }
 ];
 
+// Uncomment this line to show empty state
+// const repositories = [];
+
 export default function DashboardPage() {
+  const repositoryCount = repositories.length;
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <SideNav />
@@ -58,7 +63,13 @@ export default function DashboardPage() {
           </div>
           
           <div className="flex items-center justify-between mb-8">
-            <div className="flex-1"></div>
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">
+                {repositoryCount === 0 
+                  ? "You don't have any repositories yet. Create your first repository to get started." 
+                  : `You have ${repositoryCount} ${repositoryCount === 1 ? 'repository' : 'repositories'}.`}
+              </p>
+            </div>
             <div className="flex items-center gap-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -67,29 +78,47 @@ export default function DashboardPage() {
                   className="pl-9 w-[240px] h-9"
                 />
               </div>
-              <Button size="sm" className="h-9">
-                <Plus className="h-4 w-4 mr-2" />
+              <Button size="lg" className="h-10 px-5">
+                <Plus className="h-5 w-5 mr-2" />
                 New Repository
               </Button>
             </div>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            {repositories.map((repo, index) => (
-              <div key={repo.name} className="animate-fade-in opacity-0" style={{ animationDelay: `${index * 100 + 200}ms` }}>
-                <RepositoryCard {...repo} />
+          {repositories.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                {repositories.map((repo, index) => (
+                  <div key={repo.name} className="animate-fade-in opacity-0" style={{ animationDelay: `${index * 100 + 200}ms` }}>
+                    <RepositoryCard {...repo} />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="animate-fade-in opacity-0" style={{ animationDelay: "500ms" }}>
-              <StudentComparisonChart />
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="animate-fade-in opacity-0" style={{ animationDelay: "500ms" }}>
+                  <StudentComparisonChart />
+                </div>
+                <div className="animate-fade-in opacity-0" style={{ animationDelay: "600ms" }}>
+                  <MetricsPanel />
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-16 animate-fade-in opacity-0" style={{ animationDelay: "200ms" }}>
+              <div className="bg-muted/50 p-8 rounded-lg flex flex-col items-center max-w-md">
+                <FolderPlus className="h-16 w-16 text-muted-foreground mb-4" />
+                <h3 className="text-xl font-medium mb-2">No repositories found</h3>
+                <p className="text-center text-muted-foreground mb-6">
+                  Create your first repository to start tracking student progress and analyzing their performance.
+                </p>
+                <Button size="lg" className="w-full">
+                  <Plus className="h-5 w-5 mr-2" />
+                  Create New Repository
+                </Button>
+              </div>
             </div>
-            <div className="animate-fade-in opacity-0" style={{ animationDelay: "600ms" }}>
-              <MetricsPanel />
-            </div>
-          </div>
+          )}
         </div>
       </main>
     </div>
