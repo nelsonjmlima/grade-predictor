@@ -3,7 +3,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BookOpen, Users, GitBranch } from "lucide-react";
+import { BookOpen, Users, GitBranch, Link, Key, User } from "lucide-react";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -17,6 +17,9 @@ const formSchema = z.object({
   description: z.string().min(10, { message: "Description must be at least 10 characters" }),
   type: z.enum(["course", "project", "thesis"], { required_error: "Please select a repository type" }),
   students: z.string().optional(),
+  link: z.string().url({ message: "Please enter a valid URL" }).optional().or(z.literal("")),
+  apiKey: z.string().optional(),
+  userId: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -41,6 +44,9 @@ export function CreateRepositoryDialog({
       description: "",
       type: undefined,
       students: "",
+      link: "",
+      apiKey: "",
+      userId: "",
     },
   });
 
@@ -141,6 +147,57 @@ export function CreateRepositoryDialog({
                       </SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="link"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Repository Link</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center space-x-2">
+                      <Link className="h-4 w-4 text-muted-foreground" />
+                      <Input placeholder="https://github.com/username/repository" {...field} />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="apiKey"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>API Key</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center space-x-2">
+                      <Key className="h-4 w-4 text-muted-foreground" />
+                      <Input placeholder="Enter repository API key" type="password" {...field} />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="userId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>User ID</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center space-x-2">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <Input placeholder="Enter user ID" {...field} />
+                    </div>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
