@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ChevronRight,
   Home,
@@ -13,6 +14,16 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface NavItemProps {
   icon: React.ElementType;
@@ -61,6 +72,14 @@ function NavItem({ icon: Icon, label, to, active, collapsed, onClick }: NavItemP
 export function SideNav() {
   const [collapsed, setCollapsed] = useState(false);
   const [activeItem, setActiveItem] = useState("Dashboard");
+  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSignOut = () => {
+    // Navigate to index/login page
+    navigate("/");
+    setShowSignOutDialog(false);
+  };
 
   return (
     <div className={cn(
@@ -139,15 +158,36 @@ export function SideNav() {
           </Avatar>
           {!collapsed && (
             <div className="flex-1 overflow-hidden">
-              <p className="text-sm font-medium truncate">Professor Nuno Seixas</p>
-              <p className="text-xs text-muted-foreground truncate">n.seixas@university.edu</p>
+              <p className="text-xs text-muted-foreground font-medium">Professor</p>
+              <p className="text-sm font-medium truncate">Nuno Seixas</p>
+              <p className="text-xs text-muted-foreground">n.seixas@university.edu</p>
             </div>
           )}
-          <Button variant="ghost" size="icon" className="rounded-full">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="rounded-full"
+            onClick={() => setShowSignOutDialog(true)}
+          >
             <LogOut className="h-4 w-4 text-muted-foreground" />
           </Button>
         </div>
       </div>
+
+      <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sign Out</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to sign out of your account?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSignOut}>Sign Out</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
