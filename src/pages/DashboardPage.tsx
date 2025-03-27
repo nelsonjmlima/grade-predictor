@@ -5,7 +5,7 @@ import { MetricsPanel } from "@/components/dashboard/MetricsPanel";
 import { StudentComparisonChart } from "@/components/dashboard/StudentComparisonChart";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, GitlabIcon, Plus } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 
 // Sample repository data
 const repositories = [
@@ -62,10 +62,6 @@ export default function DashboardPage() {
                   className="pl-9 w-[240px] h-9"
                 />
               </div>
-              <Button variant="outline" size="sm" className="h-9">
-                <GitlabIcon className="h-4 w-4 mr-2" />
-                Connect GitLab
-              </Button>
               <Button size="sm" className="h-9">
                 <Plus className="h-4 w-4 mr-2" />
                 New Repository
