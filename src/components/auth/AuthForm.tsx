@@ -8,10 +8,14 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export function AuthForm() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [userType, setUserType] = useState("student");
+  const [termsAgreed, setTermsAgreed] = useState(false);
   
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +31,12 @@ export function AuthForm() {
   
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!termsAgreed) {
+      toast.error("You must agree to the terms and conditions");
+      return;
+    }
+    
     setIsLoading(true);
     
     // Simulate signup process
@@ -106,19 +116,65 @@ export function AuthForm() {
                   <Input id="lastName" placeholder="Scott" required />
                 </div>
               </div>
+              
+              <div className="space-y-2">
+                <Label>I am a</Label>
+                <RadioGroup 
+                  defaultValue="student" 
+                  className="flex space-x-4"
+                  onValueChange={setUserType}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="student" id="student" />
+                    <Label htmlFor="student">Student</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="professor" id="professor" />
+                    <Label htmlFor="professor">Professor</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="idNumber">{userType === "student" ? "Student" : "Professor"} Number</Label>
+                <Input id="idNumber" placeholder={userType === "student" ? "S12345" : "P12345"} required />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="institution">Institution</Label>
+                <Input id="institution" placeholder="University name" required />
+              </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" type="email" placeholder="m.scott@example.com" required />
               </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <Input id="password" type="password" required />
               </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <Input id="confirmPassword" type="password" required />
               </div>
-              <Button type="submit" className="w-full group" disabled={isLoading}>
+              
+              <div className="flex items-center space-x-2 pt-2">
+                <Checkbox 
+                  id="terms" 
+                  checked={termsAgreed} 
+                  onCheckedChange={(checked) => setTermsAgreed(checked === true)} 
+                />
+                <Label 
+                  htmlFor="terms" 
+                  className="text-sm font-normal cursor-pointer"
+                >
+                  I agree to the Terms and Conditions and Privacy Policy
+                </Label>
+              </div>
+              
+              <Button type="submit" className="w-full group" disabled={isLoading || !termsAgreed}>
                 {isLoading ? "Creating account..." : (
                   <>
                     Create Account <UserPlus className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
