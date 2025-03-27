@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
+import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -83,10 +84,55 @@ const allRepositories = [
   }
 ];
 
+// Sample student data for the grades view template
+const sampleStudents = [
+  { 
+    id: "1", 
+    name: "Emma Johnson", 
+    email: "emma.j@university.edu", 
+    commitCount: 34, 
+    grade: "A", 
+    lastActivity: "Today at 10:15" 
+  },
+  { 
+    id: "2", 
+    name: "Liam Smith", 
+    email: "l.smith@university.edu", 
+    commitCount: 27, 
+    grade: "B+", 
+    lastActivity: "Yesterday at 15:30" 
+  },
+  { 
+    id: "3", 
+    name: "Olivia Davis", 
+    email: "o.davis@university.edu", 
+    commitCount: 42, 
+    grade: "A-", 
+    lastActivity: "2 days ago" 
+  },
+  { 
+    id: "4", 
+    name: "Noah Wilson", 
+    email: "n.wilson@university.edu", 
+    commitCount: 18, 
+    grade: "C+", 
+    lastActivity: "3 days ago" 
+  },
+  { 
+    id: "5", 
+    name: "Sophia Martinez", 
+    email: "s.martinez@university.edu", 
+    commitCount: 31, 
+    grade: undefined, 
+    lastActivity: "5 days ago" 
+  }
+];
+
 export default function RepositoriesPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('recent');
+  const [showGradesTemplate, setShowGradesTemplate] = useState(false);
   
   const filteredRepositories = allRepositories.filter(repo => 
     repo.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -123,7 +169,7 @@ export default function RepositoriesPage() {
                 <GitlabIcon className="h-4 w-4 mr-2" />
                 Sync Repositories
               </Button>
-              <Button size="sm" className="h-9">
+              <Button size="sm" className="h-9 px-4">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Repository
               </Button>
@@ -154,7 +200,12 @@ export default function RepositoriesPage() {
                 </SelectContent>
               </Select>
               
-              <Button variant="outline" size="icon" className="h-10 w-10">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-10 w-10"
+                onClick={() => setShowGradesTemplate(!showGradesTemplate)}
+              >
                 <SlidersHorizontal className="h-4 w-4" />
               </Button>
               
@@ -179,16 +230,32 @@ export default function RepositoriesPage() {
             </div>
           </div>
           
-          <div className={viewMode === 'grid' 
-            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
-            : "space-y-4"
-          }>
-            {sortedRepositories.map((repo, index) => (
-              <div key={repo.name} className="animate-fade-in opacity-0" style={{ animationDelay: `${index * 100}ms` }}>
-                <RepositoryCard {...repo} />
+          {/* Show grades template view when toggled */}
+          {showGradesTemplate ? (
+            <div className="animate-fade-in mb-8">
+              <RepositoryGradesView 
+                repositoryName="Advanced Programming Course" 
+                students={sampleStudents} 
+              />
+              <div className="mt-6 p-3 bg-muted rounded-md">
+                <p className="text-sm text-muted-foreground">
+                  This is a template view showing how repositories with student grades would appear. 
+                  Click the <SlidersHorizontal className="h-3 w-3 inline mx-1" /> button to toggle back to the regular repository view.
+                </p>
               </div>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <div className={viewMode === 'grid' 
+              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
+              : "space-y-4"
+            }>
+              {sortedRepositories.map((repo, index) => (
+                <div key={repo.name} className="animate-fade-in opacity-0" style={{ animationDelay: `${index * 100}ms` }}>
+                  <RepositoryCard {...repo} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </main>
     </div>
