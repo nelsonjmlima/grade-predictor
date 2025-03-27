@@ -65,7 +65,12 @@ export function AuthForm() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
-                  <Button type="button" variant="link" className="px-0 text-xs" onClick={() => navigate("/reset-password")}>
+                  <Button 
+                    type="button" 
+                    variant="link" 
+                    className="px-0 text-xs" 
+                    onClick={() => navigate("/reset-password")}
+                  >
                     Forgot password?
                   </Button>
                 </div>
