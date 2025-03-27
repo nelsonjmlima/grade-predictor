@@ -47,13 +47,18 @@ export default function DashboardPage() {
       
       <main className="flex-1 overflow-y-auto">
         <div className="p-6">
+          <div className="flex flex-col mb-8">
+            <h1 className="text-2xl font-semibold tracking-tight animate-fade-in">Dashboard</h1>
+            <p className="text-muted-foreground animate-fade-in opacity-0" style={{ animationDelay: "100ms" }}>
+              Manage your repositories and analyze student performance
+            </p>
+            <p className="text-xl font-medium text-primary animate-fade-in opacity-0" style={{ animationDelay: "150ms" }}>
+              Bem-vindo Sr. Professor
+            </p>
+          </div>
+          
           <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight animate-fade-in">Dashboard</h1>
-              <p className="text-muted-foreground animate-fade-in opacity-0" style={{ animationDelay: "100ms" }}>
-                Manage your repositories and analyze student performance
-              </p>
-            </div>
+            <div className="flex-1"></div>
             <div className="flex items-center gap-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />

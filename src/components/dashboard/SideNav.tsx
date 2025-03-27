@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -136,12 +135,12 @@ export function SideNav() {
         <div className="flex items-center gap-3">
           <Avatar className="h-8 w-8">
             <AvatarImage src="" />
-            <AvatarFallback>JS</AvatarFallback>
+            <AvatarFallback>NS</AvatarFallback>
           </Avatar>
           {!collapsed && (
             <div className="flex-1 overflow-hidden">
-              <p className="text-sm font-medium truncate">John Smith</p>
-              <p className="text-xs text-muted-foreground truncate">j.smith@university.edu</p>
+              <p className="text-sm font-medium truncate">Professor Nuno Seixas</p>
+              <p className="text-xs text-muted-foreground truncate">n.seixas@university.edu</p>
             </div>
           )}
           <Button variant="ghost" size="icon" className="rounded-full">
