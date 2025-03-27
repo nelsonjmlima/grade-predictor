@@ -1,8 +1,10 @@
 
+import { useState } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
 import { MetricsPanel } from "@/components/dashboard/MetricsPanel";
 import { StudentComparisonChart } from "@/components/dashboard/StudentComparisonChart";
+import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Plus, FolderPlus } from "lucide-react";
@@ -44,7 +46,12 @@ const repositories = [
 // const repositories = [];
 
 export default function DashboardPage() {
+  const [dialogOpen, setDialogOpen] = useState(false);
   const repositoryCount = repositories.length;
+
+  const handleCreateRepository = () => {
+    setDialogOpen(true);
+  };
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -78,7 +85,7 @@ export default function DashboardPage() {
                   className="pl-9 w-[240px] h-9"
                 />
               </div>
-              <Button size="lg" className="h-10 px-5">
+              <Button size="lg" className="h-10 px-5" onClick={handleCreateRepository}>
                 <Plus className="h-5 w-5 mr-2" />
                 New Repository
               </Button>
@@ -112,7 +119,7 @@ export default function DashboardPage() {
                 <p className="text-center text-muted-foreground mb-6">
                   Create your first repository to start tracking student progress and analyzing their performance.
                 </p>
-                <Button size="lg" className="w-full">
+                <Button size="lg" className="w-full" onClick={handleCreateRepository}>
                   <Plus className="h-5 w-5 mr-2" />
                   Create New Repository
                 </Button>
@@ -121,6 +128,11 @@ export default function DashboardPage() {
           )}
         </div>
       </main>
+
+      <CreateRepositoryDialog 
+        open={dialogOpen} 
+        onOpenChange={setDialogOpen} 
+      />
     </div>
   );
 }
