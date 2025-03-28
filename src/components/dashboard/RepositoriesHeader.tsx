@@ -31,8 +31,7 @@ export function RepositoriesHeader({ onAddRepository }: RepositoriesHeaderProps)
       <div className="bg-muted/50 p-3 rounded-md flex items-center border border-muted">
         <Star className="h-4 w-4 text-yellow-500 mr-2" />
         <p className="text-sm">
-          <span className="font-medium">Featured Repository:</span> Programming Fundamentals 2023 - Contains data for students Ines, Carolina, Bruna, Luis, and Nelson. 
-          <span className="text-primary ml-1 font-medium">Click on it to view student grades.</span>
+          <span className="font-medium">Featured Repository: Programming Fundamentals 2023</span>
         </p>
       </div>
     </div>

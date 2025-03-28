@@ -1,5 +1,5 @@
 
-import { GitBranch, GitCommit, GitMerge, ExternalLink, BarChart } from "lucide-react";
+import { GitBranch, GitCommit, GitMerge, ExternalLink, BarChart, Star } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,12 @@ export function RepositoryCard({
         <div className="flex justify-between items-start">
           <CardTitle className={`font-medium text-lg ${isProgrammingFundamentals ? 'text-primary' : ''}`}>
             {name}
-            {isProgrammingFundamentals && <span className="ml-2 text-xs bg-primary text-white px-2 py-0.5 rounded-full">Featured</span>}
+            {isProgrammingFundamentals && (
+              <span className="ml-2 text-xs bg-primary text-white px-2 py-0.5 rounded-full flex items-center">
+                <Star className="h-3 w-3 mr-1" />
+                Featured
+              </span>
+            )}
           </CardTitle>
           <div className="flex space-x-2">
             <Button variant="outline" size="sm" className="h-8">
