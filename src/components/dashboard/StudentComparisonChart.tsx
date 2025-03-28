@@ -67,20 +67,20 @@ export function StudentComparisonChart() {
 
   return (
     <Card className="animate-fade-in">
-      <CardHeader>
+      <CardHeader className="pb-1 pt-2">
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle>Student Performance Comparison</CardTitle>
-            <CardDescription>Compare students across different metrics</CardDescription>
+            <CardTitle className="text-base">Student Performance Comparison</CardTitle>
+            <CardDescription className="text-xs">Compare students across different metrics</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <Select value={selectedMetric} onValueChange={setSelectedMetric}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-[140px] h-7 text-xs">
                 <SelectValue placeholder="Select metric" />
               </SelectTrigger>
               <SelectContent>
                 {metrics.map(metric => (
-                  <SelectItem key={metric.id} value={metric.id}>
+                  <SelectItem key={metric.id} value={metric.id} className="text-xs">
                     {metric.name}
                   </SelectItem>
                 ))}
@@ -89,18 +89,18 @@ export function StudentComparisonChart() {
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  Students <ChevronDown className="ml-1 h-4 w-4" />
+                <Button variant="outline" size="sm" className="h-7 text-xs px-2">
+                  Students <ChevronDown className="ml-1 h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="text-xs">
                 {students.map(student => (
                   <DropdownMenuItem 
                     key={student.id} 
                     onClick={() => toggleStudent(student.id)}
-                    className="flex items-center"
+                    className="flex items-center text-xs"
                   >
-                    <div className={`w-3 h-3 rounded-full mr-2 ${selectedStudents.includes(student.id) ? 'bg-primary' : 'bg-muted'}`} />
+                    <div className={`w-2 h-2 rounded-full mr-2 ${selectedStudents.includes(student.id) ? 'bg-primary' : 'bg-muted'}`} />
                     {student.name}
                   </DropdownMenuItem>
                 ))}
@@ -109,7 +109,7 @@ export function StudentComparisonChart() {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="h-[500px]">
+      <CardContent className="h-[450px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={data}
@@ -124,19 +124,19 @@ export function StudentComparisonChart() {
               ))}
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
-            <XAxis dataKey="name" fontSize={12} />
-            <YAxis fontSize={12} />
+            <XAxis dataKey="name" fontSize={11} />
+            <YAxis fontSize={11} />
             <Tooltip 
               contentStyle={{ 
                 borderRadius: '8px', 
                 border: 'none', 
                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                padding: '8px 12px',
-                fontSize: '12px'
+                padding: '6px 10px',
+                fontSize: '11px'
               }} 
               itemStyle={{ padding: '2px 0' }}
             />
-            <Legend wrapperStyle={{ fontSize: '12px' }} />
+            <Legend wrapperStyle={{ fontSize: '11px' }} />
             {students
               .filter(student => selectedStudents.includes(student.id))
               .map((student, index) => (
@@ -147,8 +147,8 @@ export function StudentComparisonChart() {
                   stroke={colors[index % colors.length]}
                   fillOpacity={1}
                   fill={`url(#color${student.id})`}
-                  activeDot={{ r: 6 }}
-                  strokeWidth={2}
+                  activeDot={{ r: 5 }}
+                  strokeWidth={1.5}
                 />
               ))}
           </AreaChart>
