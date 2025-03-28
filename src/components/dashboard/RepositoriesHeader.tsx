@@ -1,5 +1,5 @@
 
-import { Plus, GitlabIcon, Star } from "lucide-react";
+import { Plus, GitlabIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface RepositoriesHeaderProps {
@@ -26,13 +26,6 @@ export function RepositoriesHeader({ onAddRepository }: RepositoriesHeaderProps)
             Add Repository
           </Button>
         </div>
-      </div>
-      
-      <div className="bg-muted/50 p-3 rounded-md flex items-center border border-muted">
-        <Star className="h-4 w-4 text-yellow-500 mr-2" />
-        <p className="text-sm">
-          <span className="font-medium">Featured Repository: Programming Fundamentals 2023</span>
-        </p>
       </div>
     </div>
   );

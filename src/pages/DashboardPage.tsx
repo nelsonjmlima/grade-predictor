@@ -7,7 +7,7 @@ import { StudentComparisonChart } from "@/components/dashboard/StudentComparison
 import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, FolderPlus, Star } from "lucide-react";
+import { Search, Plus, FolderPlus } from "lucide-react";
 
 // Sample repository data
 const repositories = [
@@ -66,13 +66,6 @@ export default function DashboardPage() {
             </p>
             <p className="text-xl font-medium text-primary mt-2">
               Bem-vindo Sr. Professor
-            </p>
-          </div>
-          
-          <div className="bg-muted/50 p-3 rounded-md flex items-center border border-muted mb-6">
-            <Star className="h-4 w-4 text-yellow-500 mr-2" />
-            <p className="text-sm">
-              <span className="font-medium">Featured Repository: Programming Fundamentals 2023</span>
             </p>
           </div>
           
