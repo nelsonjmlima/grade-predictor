@@ -2,6 +2,7 @@
 import { SlidersHorizontal } from "lucide-react";
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
 import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Repository {
   name: string;
@@ -62,21 +63,32 @@ export function RepositoriesList({
     );
   }
 
+  // Find the Programming Fundamentals repository to display it first
+  const programmingFundamentalsRepo = repositories.find(repo => repo.id === 'programming-fundamentals');
+  const otherRepositories = repositories.filter(repo => repo.id !== 'programming-fundamentals');
+  
+  // Combine repositories with Programming Fundamentals first if it exists
+  const orderedRepositories = programmingFundamentalsRepo 
+    ? [programmingFundamentalsRepo, ...otherRepositories] 
+    : repositories;
+
   return (
-    <div className={viewMode === 'grid' 
-      ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
-      : "space-y-4"
-    }>
-      {repositories.map((repo, index) => (
-        <div 
-          key={repo.name} 
-          className="animate-fade-in opacity-0" 
-          style={{ animationDelay: `${index * 100}ms` }}
-          onClick={() => repo.id === 'programming-fundamentals' ? onRepositorySelect(repo.id) : null}
-        >
-          <RepositoryCard {...repo} />
-        </div>
-      ))}
-    </div>
+    <ScrollArea className="h-full">
+      <div className={viewMode === 'grid' 
+        ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
+        : "space-y-4"
+      }>
+        {orderedRepositories.map((repo, index) => (
+          <div 
+            key={repo.name} 
+            className={`animate-fade-in opacity-0 ${repo.id === 'programming-fundamentals' ? 'cursor-pointer transform transition-transform hover:scale-[1.02]' : ''}`}
+            style={{ animationDelay: `${index * 100}ms` }}
+            onClick={() => repo.id === 'programming-fundamentals' ? onRepositorySelect(repo.id) : null}
+          >
+            <RepositoryCard {...repo} />
+          </div>
+        ))}
+      </div>
+    </ScrollArea>
   );
 }

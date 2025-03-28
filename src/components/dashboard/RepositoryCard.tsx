@@ -13,6 +13,7 @@ interface RepositoryCardProps {
   branchCount: number;
   progress: number;
   predictedGrade?: string;
+  id?: string;
 }
 
 export function RepositoryCard({
@@ -23,13 +24,20 @@ export function RepositoryCard({
   mergeRequestCount,
   branchCount,
   progress,
-  predictedGrade
+  predictedGrade,
+  id
 }: RepositoryCardProps) {
+  const isProgrammingFundamentals = id === 'programming-fundamentals';
+  
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-md animate-fade-in">
+    <Card className={`overflow-hidden transition-all duration-300 hover:shadow-md animate-fade-in 
+      ${isProgrammingFundamentals ? 'border-2 border-primary' : ''}`}>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
-          <CardTitle className="font-medium text-lg">{name}</CardTitle>
+          <CardTitle className={`font-medium text-lg ${isProgrammingFundamentals ? 'text-primary' : ''}`}>
+            {name}
+            {isProgrammingFundamentals && <span className="ml-2 text-xs bg-primary text-white px-2 py-0.5 rounded-full">Featured</span>}
+          </CardTitle>
           <div className="flex space-x-2">
             <Button variant="outline" size="sm" className="h-8">
               <BarChart className="h-4 w-4 mr-1" />
@@ -42,6 +50,7 @@ export function RepositoryCard({
         </div>
         <p className="text-sm text-muted-foreground">{description}</p>
       </CardHeader>
+      
       <CardContent className="pb-2">
         <div className="grid grid-cols-3 gap-4 mt-2">
           <div className="flex flex-col items-center p-2 rounded-md bg-secondary/50">
@@ -81,6 +90,9 @@ export function RepositoryCard({
       <CardFooter className="pt-2">
         <div className="w-full flex justify-between items-center">
           <span className="text-xs text-muted-foreground">Last activity: {lastActivity}</span>
+          {isProgrammingFundamentals && (
+            <span className="text-xs text-primary font-medium cursor-pointer">Click to view student grades →</span>
+          )}
         </div>
       </CardFooter>
     </Card>
