@@ -23,7 +23,7 @@ export function AuthForm() {
     setTimeout(() => {
       setIsLoading(false);
       toast.success("Successfully logged in");
-      navigate("/dashboard");
+      navigate("/verification");
     }, 1000);
   };
   
@@ -35,7 +35,7 @@ export function AuthForm() {
     setTimeout(() => {
       setIsLoading(false);
       toast.success("Account created successfully");
-      navigate("/dashboard");
+      navigate("/verification");
     }, 1000);
   };
 

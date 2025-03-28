@@ -15,6 +15,7 @@ import RepositoryDetailsPage from "./pages/RepositoryDetailsPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
+import VerificationPage from "./pages/VerificationPage";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<LoginPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/verification" element={<VerificationPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/repositories" element={<RepositoriesPage />} />
             <Route path="/repositories/:id" element={<RepositoryDetailsPage />} />
