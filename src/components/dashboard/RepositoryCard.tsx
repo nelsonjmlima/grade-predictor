@@ -3,6 +3,8 @@ import { GitBranch, GitCommit, GitMerge, ExternalLink, BarChart, Star } from "lu
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { GradeAnalyticsDialog } from "./GradeAnalyticsDialog";
 
 interface RepositoryCardProps {
   name: string;
@@ -28,22 +30,27 @@ export function RepositoryCard({
   id
 }: RepositoryCardProps) {
   const isProgrammingFundamentals = id === 'programming-fundamentals';
+  const [showAnalytics, setShowAnalytics] = useState(false);
   
   return (
-    <Card className={`overflow-hidden transition-all duration-300 hover:shadow-md animate-fade-in 
-      ${isProgrammingFundamentals ? 'border-2 border-primary' : ''}`}>
+    <Card className={`overflow-hidden transition-all duration-300 hover:shadow-md`}>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
-          <CardTitle className={`font-medium text-lg ${isProgrammingFundamentals ? 'text-primary' : ''}`}>
+          <CardTitle className="font-medium text-lg">
             {name}
-            {isProgrammingFundamentals && (
-              <span className="ml-2 text-xs bg-primary text-white px-2 py-0.5 rounded-full flex items-center">
-                <Star className="h-3 w-3 mr-1" />
-                Featured
-              </span>
-            )}
           </CardTitle>
           <div className="flex space-x-2">
+            {isProgrammingFundamentals && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-8"
+                onClick={() => setShowAnalytics(true)}
+              >
+                <BarChart className="h-4 w-4 mr-1" />
+                Grade Analytics
+              </Button>
+            )}
             <Button variant="outline" size="sm" className="h-8">
               <BarChart className="h-4 w-4 mr-1" />
               Analyze
@@ -100,6 +107,14 @@ export function RepositoryCard({
           )}
         </div>
       </CardFooter>
+      
+      {isProgrammingFundamentals && (
+        <GradeAnalyticsDialog
+          open={showAnalytics}
+          onOpenChange={setShowAnalytics}
+          repositoryName={name}
+        />
+      )}
     </Card>
   );
 }
