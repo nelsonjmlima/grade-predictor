@@ -11,7 +11,7 @@ export default function LoginPage() {
         backgroundPosition: "center"
       }}
     >
-      <div className="flex flex-col items-start justify-center w-full md:w-2/5 lg:w-1/3 h-full pr-6 pl-6">
+      <div className="flex flex-col items-center justify-center w-full md:w-2/5 lg:w-1/3 h-full pr-6 pl-6">
         <div className="text-center w-full mb-8 animate-fade-in">
           <h1 className="text-3xl font-semibold tracking-tight text-white">Grade Predictor</h1>
           <p className="text-gray-200 mt-2">Analyze GitLab metrics to predict student success</p>
