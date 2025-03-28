@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LogIn, UserPlus } from "lucide-react";
@@ -61,10 +60,7 @@ export function AuthForm() {
         
         <TabsContent value="login">
           <CardHeader>
-            <CardTitle className="text-2xl font-medium">Welcome back</CardTitle>
-            <CardDescription>
-              Sign in to access your repositories and student data
-            </CardDescription>
+            <CardTitle className="text-2xl font-medium">Sign in to access your repositories</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleLogin} className="space-y-4">
