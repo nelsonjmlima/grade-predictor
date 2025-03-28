@@ -74,7 +74,7 @@ export default function DashboardPage() {
               <p className="text-sm text-muted-foreground">
                 {repositoryCount === 0 
                   ? "You don't have any repositories yet. Create your first repository to get started." 
-                  : `You have ${repositoryCount} ${repositoryCount === 1 ? 'repository' : 'repositories'}.`}
+                  : ""}
               </p>
             </div>
             <div className="flex items-center gap-3">
