@@ -3,6 +3,7 @@ import { SlidersHorizontal } from "lucide-react";
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
 import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useNavigate } from "react-router-dom";
 
 interface Repository {
   name: string;
@@ -44,6 +45,17 @@ export function RepositoriesList({
   sampleStudents,
   onRepositorySelect
 }: RepositoriesListProps) {
+  const navigate = useNavigate();
+
+  const handleRepositoryClick = (repo: Repository) => {
+    if (repo.id) {
+      navigate(`/repositories/${repo.id}`);
+    } else {
+      // For repositories without IDs, use the previous behavior
+      onRepositorySelect('programming-fundamentals');
+    }
+  };
+
   if (showGradesTemplate) {
     return (
       <div className="mb-8">
@@ -54,9 +66,9 @@ export function RepositoriesList({
         <div className="mt-6 p-3 bg-muted rounded-md">
           <p className="text-sm text-muted-foreground">
             {selectedRepository === 'programming-fundamentals' 
-              ? "Showing detailed student data for Programming Fundamentals 2023." 
-              : "This is a template view showing how repositories with student grades would appear."} 
-            Click the <SlidersHorizontal className="h-3 w-3 inline mx-1" /> button to toggle back to the regular repository view.
+              ? "Mostrando dados detalhados de alunos para Programming Fundamentals 2023." 
+              : "Esta é uma visualização de modelo mostrando como repositórios com notas de alunos apareceriam."} 
+            Clique no botão <SlidersHorizontal className="h-3 w-3 inline mx-1" /> para alternar de volta para a visualização regular do repositório.
           </p>
         </div>
       </div>
@@ -81,8 +93,8 @@ export function RepositoriesList({
         {orderedRepositories.map((repo) => (
           <div 
             key={repo.name} 
-            className={repo.id === 'programming-fundamentals' ? 'cursor-pointer transform transition-transform hover:scale-[1.02]' : ''}
-            onClick={() => repo.id === 'programming-fundamentals' ? onRepositorySelect(repo.id) : null}
+            className="cursor-pointer transform transition-transform hover:scale-[1.02]"
+            onClick={() => handleRepositoryClick(repo)}
           >
             <RepositoryCard {...repo} />
           </div>

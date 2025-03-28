@@ -1,21 +1,31 @@
+export interface Repository {
+  name: string;
+  description: string;
+  lastActivity: string;
+  commitCount: number;
+  mergeRequestCount: number;
+  branchCount: number;
+  progress: number;
+  predictedGrade?: string;
+  id?: string;
+}
 
-// Sample repository data
+export interface Student {
+  id: string;
+  name: string;
+  email: string;
+  commitCount: number;
+  grade?: string;
+  lastActivity: string;
+}
+
+// Make sure each repository has an ID
 export const allRepositories = [
   {
+    id: 'programming-fundamentals',
     name: "Programming Fundamentals 2023",
-    description: "Course repository for first-year programming fundamentals",
-    lastActivity: "Today at 10:15",
-    commitCount: 215,
-    mergeRequestCount: 32,
-    branchCount: 8,
-    progress: 78,
-    predictedGrade: "B+",
-    id: "programming-fundamentals"
-  },
-  {
-    name: "Team Alpha Project",
-    description: "Software Engineering final project for Team Alpha",
-    lastActivity: "Today at 13:45",
+    description: "Curso introdutório aos fundamentos de programação para alunos de Ciência da Computação",
+    lastActivity: "Hoje às 13:45",
     commitCount: 127,
     mergeRequestCount: 18,
     branchCount: 5,
@@ -23,9 +33,10 @@ export const allRepositories = [
     predictedGrade: "B+"
   },
   {
+    id: 'web-development',
     name: "Web Development Course",
-    description: "Web development course repository for CS301",
-    lastActivity: "Yesterday at 09:22",
+    description: "Repositório do curso de desenvolvimento web para CS301",
+    lastActivity: "Ontem às 09:22",
     commitCount: 84,
     mergeRequestCount: 12,
     branchCount: 3,
@@ -33,151 +44,149 @@ export const allRepositories = [
     predictedGrade: "A-"
   },
   {
+    id: 'algorithm-analysis',
     name: "Algorithm Analysis",
-    description: "Team project for algorithm performance analysis",
-    lastActivity: "3 days ago",
+    description: "Projeto de equipe para análise de desempenho de algoritmos",
+    lastActivity: "3 dias atrás",
     commitCount: 56,
     mergeRequestCount: 7,
     branchCount: 2,
     progress: 42
   },
   {
-    name: "Database Systems",
-    description: "Group project for database implementation",
-    lastActivity: "5 days ago",
-    commitCount: 92,
-    mergeRequestCount: 15,
-    branchCount: 4,
-    progress: 61,
-    predictedGrade: "B"
-  },
-  {
-    name: "Mobile App Development",
-    description: "Final year mobile application project",
-    lastActivity: "1 week ago",
-    commitCount: 143,
-    mergeRequestCount: 21,
+    id: 'team-alpha-project',
+    name: "Team Alpha Project",
+    description: "Projeto final de Engenharia de Software para a Equipe Alpha",
+    lastActivity: "Semana passada",
+    commitCount: 203,
+    mergeRequestCount: 25,
     branchCount: 7,
-    progress: 83,
-    predictedGrade: "A"
+    progress: 92
   },
   {
-    name: "Computer Networks",
-    description: "Network simulation and analysis project",
-    lastActivity: "2 weeks ago",
-    commitCount: 48,
-    mergeRequestCount: 5,
-    branchCount: 2,
-    progress: 35
+    id: 'data-structures',
+    name: "Data Structures 101",
+    description: "Curso de Estruturas de Dados para estudantes do segundo ano",
+    lastActivity: "2 semanas atrás",
+    commitCount: 67,
+    mergeRequestCount: 9,
+    branchCount: 3,
+    progress: 51
   }
 ];
 
-// Sample student data for the grades view template
-export const sampleStudents = [
-  { 
-    id: "1", 
-    name: "Emma Johnson", 
-    email: "emma.j@university.edu", 
-    commitCount: 34, 
-    grade: "A", 
-    lastActivity: "Today at 10:15" 
+export const sampleStudents: Student[] = [
+  {
+    id: 'student-1',
+    name: "João Silva",
+    email: "joao.silva@example.com",
+    commitCount: 32,
+    grade: "A",
+    lastActivity: "Hoje às 10:00"
   },
-  { 
-    id: "2", 
-    name: "Liam Smith", 
-    email: "l.smith@university.edu", 
-    commitCount: 27, 
-    grade: "B+", 
-    lastActivity: "Yesterday at 15:30" 
+  {
+    id: 'student-2',
+    name: "Maria Oliveira",
+    email: "maria.oliveira@example.com",
+    commitCount: 25,
+    grade: "B",
+    lastActivity: "Ontem às 14:30"
   },
-  { 
-    id: "3", 
-    name: "Olivia Davis", 
-    email: "o.davis@university.edu", 
-    commitCount: 42, 
-    grade: "A-", 
-    lastActivity: "2 days ago" 
+  {
+    id: 'student-3',
+    name: "Carlos Pereira",
+    email: "carlos.pereira@example.com",
+    commitCount: 45,
+    grade: "A+",
+    lastActivity: "Hoje às 11:45"
   },
-  { 
-    id: "4", 
-    name: "Noah Wilson", 
-    email: "n.wilson@university.edu", 
-    commitCount: 18, 
-    grade: "C+", 
-    lastActivity: "3 days ago" 
+  {
+    id: 'student-4',
+    name: "Ana Rodrigues",
+    email: "ana.rodrigues@example.com",
+    commitCount: 18,
+    grade: "C",
+    lastActivity: "2 dias atrás"
   },
-  { 
-    id: "5", 
-    name: "Sophia Martinez", 
-    email: "s.martinez@university.edu", 
-    commitCount: 31, 
-    grade: undefined, 
-    lastActivity: "5 days ago" 
+  {
+    id: 'student-5',
+    name: "Ricardo Santos",
+    email: "ricardo.santos@example.com",
+    commitCount: 29,
+    grade: "B+",
+    lastActivity: "Ontem às 16:15"
   }
 ];
 
-// New student data for Programming Fundamentals repository
-export const programmingStudents = [
-  { 
-    id: "1", 
-    name: "Ines Silva", 
-    email: "ines.silva@university.edu", 
-    commitCount: 45, 
-    grade: "A-", 
-    lastActivity: "Today at 09:30" 
+export const programmingStudents: Student[] = [
+  {
+    id: 'student-6',
+    name: "Mariana Costa",
+    email: "mariana.costa@example.com",
+    commitCount: 38,
+    grade: "A",
+    lastActivity: "Hoje às 09:15"
   },
-  { 
-    id: "2", 
-    name: "Carolina Pereira", 
-    email: "carolina.p@university.edu", 
-    commitCount: 38, 
-    grade: "B+", 
-    lastActivity: "Yesterday at 14:20" 
+  {
+    id: 'student-7',
+    name: "Gustavo Almeida",
+    email: "gustavo.almeida@example.com",
+    commitCount: 21,
+    grade: "C+",
+    lastActivity: "Ontem às 18:00"
   },
-  { 
-    id: "3", 
-    name: "Bruna Costa", 
-    email: "bruna.c@university.edu", 
-    commitCount: 52, 
-    grade: "A", 
-    lastActivity: "Today at 11:45" 
+  {
+    id: 'student-8',
+    name: "Patrícia Nunes",
+    email: "patricia.nunes@example.com",
+    commitCount: 52,
+    grade: "A+",
+    lastActivity: "Hoje às 12:30"
   },
-  { 
-    id: "4", 
-    name: "Luis Santos", 
-    email: "luis.s@university.edu", 
-    commitCount: 31, 
-    grade: "C+", 
-    lastActivity: "3 days ago" 
+  {
+    id: 'student-9',
+    name: "Fernando Castro",
+    email: "fernando.castro@example.com",
+    commitCount: 15,
+    grade: "D",
+    lastActivity: "3 dias atrás"
   },
-  { 
-    id: "5", 
-    name: "Nelson Oliveira", 
-    email: "nelson.o@university.edu", 
-    commitCount: 41, 
-    grade: "B", 
-    lastActivity: "Yesterday at 08:15" 
+  {
+    id: 'student-10',
+    name: "Isabel Gonçalves",
+    email: "isabel.goncalves@example.com",
+    commitCount: 31,
+    grade: "B",
+    lastActivity: "Ontem às 15:45"
   }
 ];
 
-// Helper functions for repositories
-export const filterRepositories = (repositories: any[], searchTerm: string) => {
-  return repositories.filter(repo => 
-    repo.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    repo.description.toLowerCase().includes(searchTerm.toLowerCase())
+export const filterRepositories = (repositories: Repository[], searchTerm: string): Repository[] => {
+  if (!searchTerm) {
+    return repositories;
+  }
+
+  const lowerSearchTerm = searchTerm.toLowerCase();
+  return repositories.filter(repo =>
+    repo.name.toLowerCase().includes(lowerSearchTerm) ||
+    repo.description.toLowerCase().includes(lowerSearchTerm)
   );
 };
 
-export const sortRepositories = (repositories: any[], sortBy: string) => {
-  return [...repositories].sort((a, b) => {
-    if (sortBy === 'recent') {
-      // This is a simplified sort - in reality, you'd parse the dates
-      return a.lastActivity > b.lastActivity ? -1 : 1;
-    } else if (sortBy === 'name') {
-      return a.name.localeCompare(b.name);
-    } else if (sortBy === 'progress') {
-      return b.progress - a.progress;
-    }
-    return 0;
-  });
+export const sortRepositories = (repositories: Repository[], sortBy: string): Repository[] => {
+  switch (sortBy) {
+    case 'recent':
+      // Sort by lastActivity (assuming it's a string in "Today at HH:MM" format)
+      return repositories.sort((a, b) => {
+        const aTime = new Date(a.lastActivity);
+        const bTime = new Date(b.lastActivity);
+        return bTime.getTime() - aTime.getTime();
+      });
+    case 'name':
+      return repositories.sort((a, b) => a.name.localeCompare(b.name));
+    case 'progress':
+      return repositories.sort((a, b) => b.progress - a.progress);
+    default:
+      return repositories;
+  }
 };
