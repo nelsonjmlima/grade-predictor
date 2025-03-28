@@ -38,7 +38,7 @@ export function AuthForm() {
   };
 
   return (
-    <Card className="w-full max-w-lg mx-auto overflow-hidden animate-scale-in glassmorphism">
+    <Card className="w-full mx-auto overflow-hidden animate-scale-in glassmorphism">
       <Tabs defaultValue="login" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="login" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
@@ -51,8 +51,12 @@ export function AuthForm() {
         
         <TabsContent value="login">
           <CardHeader>
+            <CardTitle className="text-2xl font-medium">Welcome back</CardTitle>
+            <CardDescription>
+              Sign in to your account to continue
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 px-6">
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -81,6 +85,11 @@ export function AuthForm() {
               </Button>
             </form>
           </CardContent>
+          <CardFooter className="pb-4 px-6">
+            <p className="text-sm text-muted-foreground text-center w-full">
+              Need an account? Click the Sign Up tab above.
+            </p>
+          </CardFooter>
         </TabsContent>
         
         <TabsContent value="signup">
@@ -90,7 +99,7 @@ export function AuthForm() {
               Enter your details to get started
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 px-6">
             <form onSubmit={handleSignup} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -137,6 +146,11 @@ export function AuthForm() {
               </Button>
             </form>
           </CardContent>
+          <CardFooter className="pb-4 px-6">
+            <p className="text-sm text-muted-foreground text-center w-full">
+              Already have an account? Click the Login tab above.
+            </p>
+          </CardFooter>
         </TabsContent>
       </Tabs>
     </Card>
