@@ -60,16 +60,16 @@ export default function DashboardPage() {
       <main className="flex-1 overflow-y-auto">
         <div className="p-6">
           <div className="flex flex-col mb-8">
-            <h1 className="text-2xl font-semibold tracking-tight animate-fade-in">Dashboard</h1>
-            <p className="text-muted-foreground animate-fade-in opacity-0" style={{ animationDelay: "100ms" }}>
+            <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground">
               Manage your repositories and analyze student performance
             </p>
-            <p className="text-xl font-medium text-primary animate-fade-in opacity-0" style={{ animationDelay: "150ms" }}>
+            <p className="text-xl font-medium text-primary mt-2">
               Bem-vindo Sr. Professor
             </p>
           </div>
           
-          <div className="bg-muted/50 p-3 rounded-md flex items-center border border-muted mb-6 animate-fade-in opacity-0" style={{ animationDelay: "200ms" }}>
+          <div className="bg-muted/50 p-3 rounded-md flex items-center border border-muted mb-6">
             <Star className="h-4 w-4 text-yellow-500 mr-2" />
             <p className="text-sm">
               <span className="font-medium">Featured Repository: Programming Fundamentals 2023</span>
@@ -103,23 +103,23 @@ export default function DashboardPage() {
             <>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                 {repositories.map((repo, index) => (
-                  <div key={repo.name} className="animate-fade-in opacity-0" style={{ animationDelay: `${index * 100 + 200}ms` }}>
+                  <div key={repo.name}>
                     <RepositoryCard {...repo} />
                   </div>
                 ))}
               </div>
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="animate-fade-in opacity-0" style={{ animationDelay: "500ms" }}>
+                <div>
                   <StudentComparisonChart />
                 </div>
-                <div className="animate-fade-in opacity-0" style={{ animationDelay: "600ms" }}>
+                <div>
                   <MetricsPanel />
                 </div>
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center py-16 animate-fade-in opacity-0" style={{ animationDelay: "200ms" }}>
+            <div className="flex flex-col items-center justify-center py-16">
               <div className="bg-muted/50 p-8 rounded-lg flex flex-col items-center max-w-md">
                 <FolderPlus className="h-16 w-16 text-muted-foreground mb-4" />
                 <h3 className="text-xl font-medium mb-2">No repositories found</h3>
