@@ -11,8 +11,8 @@ export function RepositoriesHeader({ onAddRepository }: RepositoriesHeaderProps)
     <div className="flex flex-col gap-4 mb-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight animate-fade-in">Repositories</h1>
-          <p className="text-muted-foreground animate-fade-in opacity-0" style={{ animationDelay: "100ms" }}>
+          <h1 className="text-2xl font-semibold tracking-tight">Repositories</h1>
+          <p className="text-muted-foreground">
             View and manage all your GitLab repositories
           </p>
         </div>
