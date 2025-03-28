@@ -40,11 +40,11 @@ export default function RepositoryDetailsPage() {
           <div className="max-w-6xl mx-auto space-y-6">
             <Button variant="outline" onClick={handleGoBack} className="gap-2">
               <ArrowLeft className="h-4 w-4" />
-              Voltar
+              Back
             </Button>
             <div className="p-8 text-center">
-              <h2 className="text-2xl font-semibold mb-2">Repositório não encontrado</h2>
-              <p className="text-muted-foreground">O repositório solicitado não existe ou foi removido.</p>
+              <h2 className="text-2xl font-semibold mb-2">Repository not found</h2>
+              <p className="text-muted-foreground">The requested repository does not exist or has been removed.</p>
             </div>
           </div>
         </main>
@@ -61,7 +61,7 @@ export default function RepositoryDetailsPage() {
         <div className="max-w-6xl mx-auto space-y-6">
           <Button variant="outline" onClick={handleGoBack} className="gap-2">
             <ArrowLeft className="h-4 w-4" />
-            Voltar
+            Back
           </Button>
           
           {repository && (
@@ -74,11 +74,11 @@ export default function RepositoryDetailsPage() {
                 <div className="flex items-center gap-2">
                   <Button variant="outline" className="gap-2">
                     <GitBranch className="h-4 w-4" />
-                    Ramos
+                    Branches
                   </Button>
                   <Button variant="outline" className="gap-2">
                     <Users className="h-4 w-4" />
-                    Colaboradores
+                    Collaborators
                   </Button>
                 </div>
               </div>
@@ -100,7 +100,7 @@ export default function RepositoryDetailsPage() {
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base font-medium flex items-center gap-2">
                       <GitMerge className="h-4 w-4" />
-                      Solicitações de Mesclagem
+                      Merge Requests
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -112,7 +112,7 @@ export default function RepositoryDetailsPage() {
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base font-medium flex items-center gap-2">
                       <GitBranch className="h-4 w-4" />
-                      Ramos
+                      Branches
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -125,18 +125,18 @@ export default function RepositoryDetailsPage() {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base font-medium flex items-center gap-2">
                     <Activity className="h-4 w-4" />
-                    Progresso do Projeto
+                    Project Progress
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span>Progresso</span>
+                      <span>Progress</span>
                       <span className="font-medium">{repository.progress}%</span>
                     </div>
                     <Progress value={repository.progress} className="h-2" />
                     <p className="text-sm text-muted-foreground pt-2">
-                      Última atualização: {repository.lastActivity}
+                      Last updated: {repository.lastActivity}
                     </p>
                   </div>
                 </CardContent>
@@ -144,9 +144,9 @@ export default function RepositoryDetailsPage() {
               
               <Tabs defaultValue="students" className="w-full">
                 <TabsList className="mb-4">
-                  <TabsTrigger value="students">Alunos</TabsTrigger>
-                  <TabsTrigger value="activity">Atividade</TabsTrigger>
-                  <TabsTrigger value="analytics">Análise</TabsTrigger>
+                  <TabsTrigger value="students">Students</TabsTrigger>
+                  <TabsTrigger value="activity">Activity</TabsTrigger>
+                  <TabsTrigger value="analytics">Analytics</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="students">
@@ -160,7 +160,7 @@ export default function RepositoryDetailsPage() {
                   <Card>
                     <CardContent className="p-6">
                       <p className="text-center py-8 text-muted-foreground">
-                        Os dados de atividade serão exibidos aqui.
+                        Activity data will be displayed here.
                       </p>
                     </CardContent>
                   </Card>
@@ -170,7 +170,7 @@ export default function RepositoryDetailsPage() {
                   <Card>
                     <CardContent className="p-6">
                       <p className="text-center py-8 text-muted-foreground">
-                        Os dados analíticos serão exibidos aqui.
+                        Analytics data will be displayed here.
                       </p>
                     </CardContent>
                   </Card>

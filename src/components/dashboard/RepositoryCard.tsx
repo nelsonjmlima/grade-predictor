@@ -33,7 +33,7 @@ export function RepositoryCard({
           {name}
           {isProgrammingFundamentals && (
             <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-              Destacado
+              Featured
             </span>
           )}
         </CardTitle>
@@ -61,7 +61,7 @@ export function RepositoryCard({
         
         <div className="mt-2 space-y-2">
           <div className="flex justify-between text-sm">
-            <span>Progresso do Projeto</span>
+            <span>Project Progress</span>
             <span className="font-medium">{progress}%</span>
           </div>
           <Progress value={progress} className="h-2" />
