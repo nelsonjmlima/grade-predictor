@@ -21,7 +21,7 @@ export default function ResetPasswordPage() {
     setTimeout(() => {
       setIsLoading(false);
       setEmailSent(true);
-      toast.success("Password reset link sent to your email");
+      toast.success("Link de redefinição de senha enviado para seu e-mail");
     }, 1000);
   };
 
@@ -29,29 +29,29 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-background to-secondary/50">
       <div className="w-full max-w-md px-8 py-12">
         <div className="text-center mb-8 animate-fade-in">
-          <h1 className="text-3xl font-semibold tracking-tight">Reset Password</h1>
-          <p className="text-muted-foreground mt-2">Enter your email to receive a password reset link</p>
+          <h1 className="text-3xl font-semibold tracking-tight">Redefinir Senha</h1>
+          <p className="text-muted-foreground mt-2">Digite seu e-mail para receber um link de redefinição de senha</p>
         </div>
         
         <Card className="w-full max-w-md mx-auto overflow-hidden animate-scale-in glassmorphism">
           {!emailSent ? (
             <>
               <CardHeader>
-                <CardTitle className="text-2xl font-medium">Reset your password</CardTitle>
+                <CardTitle className="text-2xl font-medium">Redefina sua senha</CardTitle>
                 <CardDescription>
-                  Enter your email address and we'll send you a link to reset your password
+                  Digite seu endereço de e-mail e enviaremos um link para redefinir sua senha
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <form onSubmit={handleResetPassword} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="m.scott@example.com" required />
+                    <Label htmlFor="email">E-mail</Label>
+                    <Input id="email" type="email" placeholder="m.scott@exemplo.com" required />
                   </div>
                   <Button type="submit" className="w-full group" disabled={isLoading}>
-                    {isLoading ? "Sending..." : (
+                    {isLoading ? "Enviando..." : (
                       <>
-                        Send Reset Link <Mail className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                        Enviar Link de Redefinição <Mail className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                       </>
                     )}
                   </Button>
@@ -61,16 +61,16 @@ export default function ResetPasswordPage() {
           ) : (
             <>
               <CardHeader>
-                <CardTitle className="text-2xl font-medium">Check your email</CardTitle>
+                <CardTitle className="text-2xl font-medium">Verifique seu e-mail</CardTitle>
                 <CardDescription>
-                  We've sent a password reset link to your email address
+                  Enviamos um link de redefinição de senha para seu endereço de e-mail
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 text-center">
                 <div className="py-4">
                   <Mail className="mx-auto h-12 w-12 text-primary" />
                   <p className="mt-4 text-sm text-muted-foreground">
-                    Check your inbox for the password reset link. It might take a few minutes to arrive.
+                    Verifique sua caixa de entrada para o link de redefinição de senha. Pode levar alguns minutos para chegar.
                   </p>
                 </div>
                 <Button 
@@ -78,13 +78,13 @@ export default function ResetPasswordPage() {
                   className="w-full"
                   onClick={() => navigate("/")}
                 >
-                  Back to Login
+                  Voltar para Login
                 </Button>
               </CardContent>
             </>
           )}
           <CardFooter className="flex justify-center py-4 text-xs text-muted-foreground">
-            Remember your password? <Button variant="link" className="px-2 text-xs" onClick={() => navigate("/")}>Sign in</Button>
+            Lembrou sua senha? <Button variant="link" className="px-2 text-xs" onClick={() => navigate("/")}>Entrar</Button>
           </CardFooter>
         </Card>
       </div>

@@ -22,7 +22,7 @@ export function AuthForm() {
     // Simulate login process
     setTimeout(() => {
       setIsLoading(false);
-      toast.success("Successfully logged in");
+      toast.success("Login realizado com sucesso");
       navigate("/dashboard");
     }, 1000);
   };
@@ -34,7 +34,7 @@ export function AuthForm() {
     // Simulate signup process
     setTimeout(() => {
       setIsLoading(false);
-      toast.success("Account created successfully");
+      toast.success("Conta criada com sucesso");
       navigate("/dashboard");
     }, 1000);
   };
@@ -44,10 +44,10 @@ export function AuthForm() {
       <Tabs defaultValue="login" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="login" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            Login
+            Entrar
           </TabsTrigger>
           <TabsTrigger value="signup" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            Sign Up
+            Cadastrar
           </TabsTrigger>
         </TabsList>
         
@@ -57,27 +57,27 @@ export function AuthForm() {
           <CardContent className="space-y-4">
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="m.scott@example.com" required />
+                <Label htmlFor="email">E-mail</Label>
+                <Input id="email" type="email" placeholder="m.scott@exemplo.com" required />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">Senha</Label>
                   <Button 
                     type="button" 
                     variant="link" 
                     className="px-0 text-xs" 
                     onClick={() => navigate("/reset-password")}
                   >
-                    Forgot password?
+                    Esqueceu a senha?
                   </Button>
                 </div>
                 <Input id="password" type="password" required />
               </div>
               <Button type="submit" className="w-full group" disabled={isLoading}>
-                {isLoading ? "Signing in..." : (
+                {isLoading ? "Entrando..." : (
                   <>
-                    Sign In <LogIn className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    Entrar <LogIn className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
               </Button>
@@ -87,26 +87,26 @@ export function AuthForm() {
         
         <TabsContent value="signup">
           <CardHeader>
-            <CardTitle className="text-2xl font-medium">Create an account</CardTitle>
+            <CardTitle className="text-2xl font-medium">Criar uma conta</CardTitle>
             <CardDescription>
-              Enter your details to get started
+              Insira seus dados para começar
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleSignup} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">First name</Label>
+                  <Label htmlFor="firstName">Nome</Label>
                   <Input id="firstName" placeholder="Michael" required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last name</Label>
+                  <Label htmlFor="lastName">Sobrenome</Label>
                   <Input id="lastName" placeholder="Scott" required />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label>I am a</Label>
+                <Label>Eu sou</Label>
                 <RadioGroup 
                   defaultValue="student" 
                   className="flex space-x-4"
@@ -114,7 +114,7 @@ export function AuthForm() {
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="student" id="student" />
-                    <Label htmlFor="student">Student</Label>
+                    <Label htmlFor="student">Estudante</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="professor" id="professor" />
@@ -124,34 +124,34 @@ export function AuthForm() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="idNumber">Number</Label>
+                <Label htmlFor="idNumber">Número</Label>
                 <Input id="idNumber" placeholder={userType === "student" ? "S12345" : "P12345"} required />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="institution">Institution</Label>
-                <Input id="institution" placeholder="University name" required />
+                <Label htmlFor="institution">Instituição</Label>
+                <Input id="institution" placeholder="Nome da universidade" required />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="m.scott@example.com" required />
+                <Label htmlFor="email">E-mail</Label>
+                <Input id="email" type="email" placeholder="m.scott@exemplo.com" required />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Senha</Label>
                 <Input id="password" type="password" required />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Label htmlFor="confirmPassword">Confirmar Senha</Label>
                 <Input id="confirmPassword" type="password" required />
               </div>
               
               <Button type="submit" className="w-full group" disabled={isLoading}>
-                {isLoading ? "Creating account..." : (
+                {isLoading ? "Criando conta..." : (
                   <>
-                    Create Account <UserPlus className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    Criar Conta <UserPlus className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
               </Button>
@@ -160,7 +160,7 @@ export function AuthForm() {
         </TabsContent>
       </Tabs>
       <CardFooter className="flex justify-center py-4 text-xs text-muted-foreground">
-        By continuing, you agree to our Terms of Service and Privacy Policy
+        Ao continuar, você concorda com nossos Termos de Serviço e Política de Privacidade
       </CardFooter>
     </Card>
   );

@@ -13,11 +13,11 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const formSchema = z.object({
-  name: z.string().min(3, { message: "Repository name must be at least 3 characters" }),
-  description: z.string().min(10, { message: "Description must be at least 10 characters" }),
-  type: z.enum(["course", "project", "thesis"], { required_error: "Please select a repository type" }),
+  name: z.string().min(3, { message: "Nome do repositório deve ter pelo menos 3 caracteres" }),
+  description: z.string().min(10, { message: "Descrição deve ter pelo menos 10 caracteres" }),
+  type: z.enum(["course", "project", "thesis"], { required_error: "Por favor selecione um tipo de repositório" }),
   students: z.string().optional(),
-  link: z.string().url({ message: "Please enter a valid URL" }).optional().or(z.literal("")),
+  link: z.string().url({ message: "Por favor insira uma URL válida" }).optional().or(z.literal("")),
   apiKey: z.string().optional(),
   userId: z.string().optional(),
 });
@@ -55,7 +55,7 @@ export function CreateRepositoryDialog({
     
     // Simulate API call with a timeout
     setTimeout(() => {
-      console.log("Creating repository with values:", values);
+      console.log("Criando repositório com valores:", values);
       
       setIsSubmitting(false);
       form.reset();
@@ -71,9 +71,9 @@ export function CreateRepositoryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Create New Repository</DialogTitle>
+          <DialogTitle>Criar Novo Repositório</DialogTitle>
           <DialogDescription>
-            Set up a new repository to track student progress and performance.
+            Configure um novo repositório para acompanhar o progresso e desempenho dos alunos.
           </DialogDescription>
         </DialogHeader>
 
@@ -84,9 +84,9 @@ export function CreateRepositoryDialog({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Repository Name</FormLabel>
+                  <FormLabel>Nome do Repositório</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Software Engineering 2023" {...field} />
+                    <Input placeholder="ex., Engenharia de Software 2023" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -98,10 +98,10 @@ export function CreateRepositoryDialog({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>Descrição</FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="Brief description of this repository's purpose" 
+                      placeholder="Breve descrição do propósito deste repositório" 
                       className="resize-none" 
                       {...field} 
                     />
@@ -116,33 +116,33 @@ export function CreateRepositoryDialog({
               name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Repository Type</FormLabel>
+                  <FormLabel>Tipo de Repositório</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
                     defaultValue={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select repository type" />
+                        <SelectValue placeholder="Selecione o tipo de repositório" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="course">
                         <div className="flex items-center">
                           <BookOpen className="h-4 w-4 mr-2" />
-                          <span>Course</span>
+                          <span>Curso</span>
                         </div>
                       </SelectItem>
                       <SelectItem value="project">
                         <div className="flex items-center">
                           <GitBranch className="h-4 w-4 mr-2" />
-                          <span>Project</span>
+                          <span>Projeto</span>
                         </div>
                       </SelectItem>
                       <SelectItem value="thesis">
                         <div className="flex items-center">
                           <Users className="h-4 w-4 mr-2" />
-                          <span>Thesis</span>
+                          <span>Tese</span>
                         </div>
                       </SelectItem>
                     </SelectContent>
@@ -157,11 +157,11 @@ export function CreateRepositoryDialog({
               name="link"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Repository Link</FormLabel>
+                  <FormLabel>Link do Repositório</FormLabel>
                   <FormControl>
                     <div className="flex items-center space-x-2">
                       <Link className="h-4 w-4 text-muted-foreground" />
-                      <Input placeholder="https://github.com/username/repository" {...field} />
+                      <Input placeholder="https://github.com/usuario/repositorio" {...field} />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -174,11 +174,11 @@ export function CreateRepositoryDialog({
               name="apiKey"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>API Key</FormLabel>
+                  <FormLabel>Chave API</FormLabel>
                   <FormControl>
                     <div className="flex items-center space-x-2">
                       <Key className="h-4 w-4 text-muted-foreground" />
-                      <Input placeholder="Enter repository API key" type="password" {...field} />
+                      <Input placeholder="Digite a chave API do repositório" type="password" {...field} />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -191,11 +191,11 @@ export function CreateRepositoryDialog({
               name="userId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>User ID</FormLabel>
+                  <FormLabel>ID do Usuário</FormLabel>
                   <FormControl>
                     <div className="flex items-center space-x-2">
                       <User className="h-4 w-4 text-muted-foreground" />
-                      <Input placeholder="Enter user ID" {...field} />
+                      <Input placeholder="Digite o ID do usuário" {...field} />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -208,10 +208,10 @@ export function CreateRepositoryDialog({
               name="students"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Student Email Addresses (optional)</FormLabel>
+                  <FormLabel>Endereços de E-mail dos Alunos (opcional)</FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="Enter student email addresses, one per line" 
+                      placeholder="Digite os endereços de e-mail dos alunos, um por linha" 
                       className="resize-none h-24" 
                       {...field} 
                     />
@@ -228,10 +228,10 @@ export function CreateRepositoryDialog({
                 onClick={() => onOpenChange(false)}
                 disabled={isSubmitting}
               >
-                Cancel
+                Cancelar
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Creating..." : "Create Repository"}
+                {isSubmitting ? "Criando..." : "Criar Repositório"}
               </Button>
             </DialogFooter>
           </form>
