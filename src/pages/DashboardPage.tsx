@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
-import { MetricsPanel } from "@/components/dashboard/MetricsPanel";
 import { StudentComparisonChart } from "@/components/dashboard/StudentComparisonChart";
 import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
 import { Button } from "@/components/ui/button";
@@ -102,13 +101,8 @@ export default function DashboardPage() {
                 ))}
               </div>
               
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div>
-                  <StudentComparisonChart />
-                </div>
-                <div>
-                  <MetricsPanel />
-                </div>
+              <div className="mb-6">
+                <StudentComparisonChart />
               </div>
             </>
           ) : (

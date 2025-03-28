@@ -109,7 +109,7 @@ export function StudentComparisonChart() {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="h-[300px]">
+      <CardContent className="h-[500px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={data}
