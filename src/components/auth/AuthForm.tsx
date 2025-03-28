@@ -8,12 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export function AuthForm() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [userType, setUserType] = useState("student");
   
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,26 +104,8 @@ export function AuthForm() {
               </div>
               
               <div className="space-y-2">
-                <Label>I am a</Label>
-                <RadioGroup 
-                  defaultValue="student" 
-                  className="flex space-x-4"
-                  onValueChange={setUserType}
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="student" id="student" />
-                    <Label htmlFor="student">Student</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="professor" id="professor" />
-                    <Label htmlFor="professor">Professor</Label>
-                  </div>
-                </RadioGroup>
-              </div>
-              
-              <div className="space-y-2">
                 <Label htmlFor="idNumber">Number</Label>
-                <Input id="idNumber" placeholder={userType === "student" ? "S12345" : "P12345"} required />
+                <Input id="idNumber" placeholder="S12345" required />
               </div>
               
               <div className="space-y-2">
@@ -159,9 +139,6 @@ export function AuthForm() {
           </CardContent>
         </TabsContent>
       </Tabs>
-      <CardFooter className="flex justify-center py-4 text-xs text-muted-foreground">
-        By continuing, you agree to our Terms of Service and Privacy Policy
-      </CardFooter>
     </Card>
   );
 }
