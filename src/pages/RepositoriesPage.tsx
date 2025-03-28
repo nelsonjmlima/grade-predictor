@@ -42,7 +42,7 @@ export default function RepositoriesPage() {
       <SideNav />
       
       <main className="flex-1 overflow-y-auto">
-        <div className="p-6">
+        <div className="p-4">
           <RepositoriesHeader 
             onAddRepository={() => setDialogOpen(true)} 
           />

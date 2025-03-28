@@ -58,13 +58,13 @@ export function RepositoriesList({
 
   if (showGradesTemplate) {
     return (
-      <div className="mb-8">
+      <div className="mb-4">
         <RepositoryGradesView 
           repositoryName={selectedRepository === 'programming-fundamentals' ? "Programming Fundamentals 2023" : "Advanced Programming Course"} 
           students={selectedRepository === 'programming-fundamentals' ? programmingStudents : sampleStudents} 
         />
-        <div className="mt-6 p-3 bg-muted rounded-md">
-          <p className="text-sm text-muted-foreground">
+        <div className="mt-3 p-2 bg-muted rounded-md">
+          <p className="text-xs text-muted-foreground">
             {selectedRepository === 'programming-fundamentals' 
               ? "Showing detailed student data for Programming Fundamentals 2023." 
               : "This is a template view showing how repositories with student grades would appear."} 
@@ -87,13 +87,13 @@ export function RepositoriesList({
   return (
     <ScrollArea className="h-full">
       <div className={viewMode === 'grid' 
-        ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
-        : "space-y-4"
+        ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" 
+        : "space-y-3"
       }>
         {orderedRepositories.map((repo) => (
           <div 
             key={repo.name} 
-            className="cursor-pointer transform transition-transform hover:scale-[1.02]"
+            className="cursor-pointer transform transition-transform hover:scale-[1.01]"
             onClick={() => handleRepositoryClick(repo)}
           >
             <RepositoryCard {...repo} />

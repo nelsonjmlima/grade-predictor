@@ -57,18 +57,18 @@ export default function DashboardPage() {
       <SideNav />
       
       <main className="flex-1 overflow-y-auto">
-        <div className="p-6">
-          <div className="flex flex-col mb-8">
-            <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground">
+        <div className="p-4">
+          <div className="flex flex-col mb-4">
+            <h1 className="text-xl font-semibold tracking-tight">Dashboard</h1>
+            <p className="text-sm text-muted-foreground">
               Manage your repositories and analyze student performance
             </p>
-            <p className="text-xl font-medium text-primary mt-2">
+            <p className="text-base font-medium text-primary mt-1">
               Bem-vindo Sr. Professor
             </p>
           </div>
           
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex-1">
               <p className="text-sm text-muted-foreground">
                 {repositoryCount === 0 
@@ -76,16 +76,16 @@ export default function DashboardPage() {
                   : ""}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                 <Input 
                   placeholder="Search repositories..." 
-                  className="pl-9 w-[240px] h-9"
+                  className="pl-8 w-[200px] h-8 text-sm"
                 />
               </div>
-              <Button size="lg" className="h-10 px-5" onClick={handleCreateRepository}>
-                <Plus className="h-5 w-5 mr-2" />
+              <Button size="sm" onClick={handleCreateRepository}>
+                <Plus className="h-4 w-4 mr-1" />
                 New Repository
               </Button>
             </div>
@@ -93,7 +93,7 @@ export default function DashboardPage() {
           
           {repositories.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                 {repositories.map((repo, index) => (
                   <div key={repo.name}>
                     <RepositoryCard {...repo} />
@@ -101,20 +101,20 @@ export default function DashboardPage() {
                 ))}
               </div>
               
-              <div className="mb-6">
+              <div className="mb-4">
                 <StudentComparisonChart />
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center py-16">
-              <div className="bg-muted/50 p-8 rounded-lg flex flex-col items-center max-w-md">
-                <FolderPlus className="h-16 w-16 text-muted-foreground mb-4" />
-                <h3 className="text-xl font-medium mb-2">No repositories found</h3>
-                <p className="text-center text-muted-foreground mb-6">
+            <div className="flex flex-col items-center justify-center py-8">
+              <div className="bg-muted/50 p-6 rounded-lg flex flex-col items-center max-w-md">
+                <FolderPlus className="h-12 w-12 text-muted-foreground mb-3" />
+                <h3 className="text-base font-medium mb-1">No repositories found</h3>
+                <p className="text-center text-xs text-muted-foreground mb-4">
                   Create your first repository to start tracking student progress and analyzing their performance.
                 </p>
-                <Button size="lg" className="w-full" onClick={handleCreateRepository}>
-                  <Plus className="h-5 w-5 mr-2" />
+                <Button size="sm" className="w-full" onClick={handleCreateRepository}>
+                  <Plus className="h-4 w-4 mr-1" />
                   Create New Repository
                 </Button>
               </div>
