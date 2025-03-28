@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LogIn, UserPlus } from "lucide-react";
@@ -7,14 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export function AuthForm() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [userType, setUserType] = useState("student");
-  const [termsAgreed, setTermsAgreed] = useState(false);
   
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,12 +29,6 @@ export function AuthForm() {
   
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!termsAgreed) {
-      toast.error("You must agree to the terms and conditions");
-      return;
-    }
-    
     setIsLoading(true);
     
     // Simulate signup process
@@ -47,7 +40,7 @@ export function AuthForm() {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto overflow-hidden animate-scale-in glassmorphism">
+    <Card className="w-full max-w-lg mx-auto overflow-hidden animate-scale-in glassmorphism">
       <Tabs defaultValue="login" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="login" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
@@ -131,7 +124,7 @@ export function AuthForm() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="idNumber">{userType === "student" ? "Student" : "Professor"} Number</Label>
+                <Label htmlFor="idNumber">Number</Label>
                 <Input id="idNumber" placeholder={userType === "student" ? "S12345" : "P12345"} required />
               </div>
               
@@ -155,21 +148,7 @@ export function AuthForm() {
                 <Input id="confirmPassword" type="password" required />
               </div>
               
-              <div className="flex items-center space-x-2 pt-2">
-                <Checkbox 
-                  id="terms" 
-                  checked={termsAgreed} 
-                  onCheckedChange={(checked) => setTermsAgreed(checked === true)} 
-                />
-                <Label 
-                  htmlFor="terms" 
-                  className="text-sm font-normal cursor-pointer"
-                >
-                  I agree to the Terms and Conditions and Privacy Policy
-                </Label>
-              </div>
-              
-              <Button type="submit" className="w-full group" disabled={isLoading || !termsAgreed}>
+              <Button type="submit" className="w-full group" disabled={isLoading}>
                 {isLoading ? "Creating account..." : (
                   <>
                     Create Account <UserPlus className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
