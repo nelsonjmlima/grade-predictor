@@ -10,9 +10,9 @@ export default function AnalyticsPage() {
         <div className="space-y-6 max-w-6xl mx-auto">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Análises</h1>
+              <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
               <p className="text-muted-foreground">
-                Compare repositórios e preveja o desempenho dos alunos
+                Compare repositories and predict student performance
               </p>
             </div>
           </div>

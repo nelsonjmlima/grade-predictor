@@ -24,25 +24,25 @@ const metricGroups = [
   {
     name: "Commits",
     items: [
-      { id: "commit_count", label: "Contagem de Commits", active: true },
-      { id: "commit_frequency", label: "Frequência de Commits", active: false },
-      { id: "commit_message_quality", label: "Qualidade das Mensagens de Commit", active: false },
+      { id: "commit_count", label: "Commit Count", active: true },
+      { id: "commit_frequency", label: "Commit Frequency", active: false },
+      { id: "commit_message_quality", label: "Commit Message Quality", active: false },
     ],
   },
   {
-    name: "Qualidade de Código",
+    name: "Code Quality",
     items: [
-      { id: "code_quality_score", label: "Pontuação de Qualidade de Código", active: true },
-      { id: "test_coverage", label: "Cobertura de Testes", active: false },
-      { id: "bug_count", label: "Contagem de Bugs", active: false },
+      { id: "code_quality_score", label: "Code Quality Score", active: true },
+      { id: "test_coverage", label: "Test Coverage", active: false },
+      { id: "bug_count", label: "Bug Count", active: false },
     ],
   },
   {
-    name: "Colaboração",
+    name: "Collaboration",
     items: [
-      { id: "merge_requests", label: "Solicitações de Merge", active: true },
-      { id: "code_review_participation", label: "Participação em Revisões de Código", active: false },
-      { id: "issue_participation", label: "Participação em Issues", active: false },
+      { id: "merge_requests", label: "Merge Requests", active: true },
+      { id: "code_review_participation", label: "Code Review Participation", active: false },
+      { id: "issue_participation", label: "Issue Participation", active: false },
     ],
   },
 ];
@@ -63,19 +63,19 @@ export function MetricsPanel() {
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle>Métricas de Desempenho</CardTitle>
-            <CardDescription>Selecione métricas para incluir na análise</CardDescription>
+            <CardTitle>Performance Metrics</CardTitle>
+            <CardDescription>Select metrics to include in analysis</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
               <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Selecione o período" />
+                <SelectValue placeholder="Select timeframe" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="last_7_days">Últimos 7 dias</SelectItem>
-                <SelectItem value="last_30_days">Últimos 30 dias</SelectItem>
-                <SelectItem value="last_90_days">Últimos 90 dias</SelectItem>
-                <SelectItem value="full_semester">Semestre Completo</SelectItem>
+                <SelectItem value="last_7_days">Last 7 days</SelectItem>
+                <SelectItem value="last_30_days">Last 30 days</SelectItem>
+                <SelectItem value="last_90_days">Last 90 days</SelectItem>
+                <SelectItem value="full_semester">Full Semester</SelectItem>
               </SelectContent>
             </Select>
             
@@ -89,10 +89,10 @@ export function MetricsPanel() {
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem onClick={() => setSelectedChartType("bar")}>
-                  <BarChart className="h-4 w-4 mr-2" /> Gráfico de Barras
+                  <BarChart className="h-4 w-4 mr-2" /> Bar Chart
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setSelectedChartType("line")}>
-                  <LineChart className="h-4 w-4 mr-2" /> Gráfico de Linhas
+                  <LineChart className="h-4 w-4 mr-2" /> Line Chart
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -125,7 +125,7 @@ export function MetricsPanel() {
                           <Info className="h-3.5 w-3.5 ml-1 text-muted-foreground cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p className="text-xs">Informações sobre {item.label.toLowerCase()}</p>
+                          <p className="text-xs">Information about {item.label.toLowerCase()}</p>
                         </TooltipContent>
                       </Tooltip>
                     </div>
@@ -137,7 +137,7 @@ export function MetricsPanel() {
           
           <div className="flex justify-end mt-4">
             <Button className="group">
-              Aplicar Métricas <ChevronDown className="ml-1 h-4 w-4 group-hover:translate-y-0.5 transition-transform" />
+              Apply Metrics <ChevronDown className="ml-1 h-4 w-4 group-hover:translate-y-0.5 transition-transform" />
             </Button>
           </div>
         </div>
