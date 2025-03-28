@@ -4,7 +4,7 @@ import { AuthForm } from "@/components/auth/AuthForm";
 export default function LoginPage() {
   return (
     <div 
-      className="min-h-screen w-full flex justify-end p-4 bg-cover bg-center"
+      className="min-h-screen w-full flex items-center justify-end p-4 bg-cover bg-center"
       style={{
         backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80')",
         backgroundSize: "cover",
