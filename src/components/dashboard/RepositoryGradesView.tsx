@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, User, FileText, Award, Download } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useNavigate } from "react-router-dom";
 
 interface Student {
   id: string;
@@ -21,6 +22,14 @@ interface RepositoryGradesViewProps {
 }
 
 export function RepositoryGradesView({ repositoryName, students, repositoryId }: RepositoryGradesViewProps) {
+  const navigate = useNavigate();
+
+  const handleViewStudentMetrics = (studentId: string) => {
+    if (repositoryId) {
+      navigate(`/repositories/${repositoryId}/student/${studentId}`);
+    }
+  };
+
   return (
     <Card className="w-full">
       <CardHeader className="pb-3">
@@ -97,6 +106,7 @@ export function RepositoryGradesView({ repositoryName, students, repositoryId }:
                       variant="ghost" 
                       size="icon" 
                       className="h-8 w-8"
+                      onClick={() => handleViewStudentMetrics(student.id)}
                     >
                       <FileText className="h-4 w-4" />
                     </Button>
