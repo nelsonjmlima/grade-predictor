@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
 import { RepositoriesHeader } from "@/components/dashboard/RepositoriesHeader";
@@ -20,9 +20,14 @@ export default function RepositoriesPage() {
   const [showGradesTemplate, setShowGradesTemplate] = useState(false);
   const [selectedRepository, setSelectedRepository] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [repositories, setRepositories] = useState(allRepositories);
   
-  const filteredRepositories = filterRepositories(allRepositories, searchTerm);
-  const sortedRepositories = sortRepositories(filteredRepositories, sortBy);
+  // Listen for changes to repositories
+  useEffect(() => {
+    const filteredRepositories = filterRepositories(allRepositories, searchTerm);
+    const sortedRepositories = sortRepositories(filteredRepositories, sortBy);
+    setRepositories(sortedRepositories);
+  }, [searchTerm, sortBy, allRepositories]);
 
   const handleRepositorySelect = (repoId: string) => {
     setSelectedRepository(repoId);
@@ -35,6 +40,11 @@ export default function RepositoriesPage() {
 
   const handleViewModeChange = (mode: 'grid' | 'list') => {
     setViewMode(mode);
+  };
+
+  const handleRepositoryCreated = () => {
+    // This will trigger the useEffect to update the repositories list
+    setRepositories([...allRepositories]);
   };
 
   return (
@@ -59,7 +69,7 @@ export default function RepositoriesPage() {
           />
           
           <RepositoriesList 
-            repositories={sortedRepositories}
+            repositories={repositories}
             viewMode={viewMode}
             showGradesTemplate={showGradesTemplate}
             selectedRepository={selectedRepository}
@@ -73,6 +83,7 @@ export default function RepositoriesPage() {
       <CreateRepositoryDialog 
         open={dialogOpen} 
         onOpenChange={setDialogOpen} 
+        onRepositoryCreated={handleRepositoryCreated}
       />
     </div>
   );

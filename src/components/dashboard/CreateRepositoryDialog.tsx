@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BookOpen, Users, GitBranch, Link, Key, User } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -12,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { addRepository } from "@/services/repositoryData";
 
 const formSchema = z.object({
   name: z.string().min(3, { message: "Repository name must be at least 3 characters" }),
@@ -37,6 +39,7 @@ export function CreateRepositoryDialog({
   onRepositoryCreated 
 }: CreateRepositoryDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -55,11 +58,6 @@ export function CreateRepositoryDialog({
     setIsSubmitting(true);
     
     try {
-      // Simulate API call with a timeout
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log("Creating repository with values:", values);
-      
       // Create a new repository object
       const newRepo = {
         id: values.name.toLowerCase().replace(/\s+/g, '-'),
@@ -72,7 +70,10 @@ export function CreateRepositoryDialog({
         progress: 0,
       };
       
-      // In a real app, we would add this to the database
+      // Add repository to our store
+      addRepository(newRepo);
+      
+      console.log("Creating repository with values:", values);
       console.log("New repository created:", newRepo);
       
       // Show success notification
@@ -87,6 +88,9 @@ export function CreateRepositoryDialog({
       if (onRepositoryCreated) {
         onRepositoryCreated();
       }
+      
+      // Navigate to repositories page to see the new repository
+      navigate("/repositories");
     } catch (error) {
       console.error("Error creating repository:", error);
       toast.error("Failed to create repository", {

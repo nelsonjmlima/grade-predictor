@@ -75,9 +75,8 @@ export function RepositoriesList({
     );
   }
 
-  // Display only Programming Fundamentals repository at the top
-  const programmingFundamentalsRepo = repositories.find(repo => repo.id === 'programming-fundamentals');
-  const repositoriesToDisplay = programmingFundamentalsRepo ? [programmingFundamentalsRepo] : repositories;
+  // Display all repositories
+  const repositoriesToDisplay = repositories;
 
   return (
     <ScrollArea className="h-full">
@@ -85,15 +84,22 @@ export function RepositoriesList({
         ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" 
         : "space-y-3"
       }>
-        {repositoriesToDisplay.map((repo) => (
-          <div 
-            key={repo.name} 
-            className="cursor-pointer transform transition-transform hover:scale-[1.01]"
-            onClick={() => handleRepositoryClick(repo)}
-          >
-            <RepositoryCard {...repo} />
+        {repositoriesToDisplay.length > 0 ? (
+          repositoriesToDisplay.map((repo) => (
+            <div 
+              key={repo.id || repo.name} 
+              className="cursor-pointer transform transition-transform hover:scale-[1.01]"
+              onClick={() => handleRepositoryClick(repo)}
+            >
+              <RepositoryCard {...repo} />
+            </div>
+          ))
+        ) : (
+          <div className="col-span-3 p-8 border border-dashed rounded-lg flex flex-col items-center justify-center text-center">
+            <p className="text-muted-foreground mb-2">No repositories found</p>
+            <p className="text-sm text-muted-foreground">Try changing your search or create a new repository</p>
           </div>
-        ))}
+        )}
       </div>
     </ScrollArea>
   );
