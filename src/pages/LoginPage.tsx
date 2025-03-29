@@ -13,9 +13,9 @@ export default function LoginPage() {
       }}
     >
       <div className="w-full max-w-5xl px-4 flex flex-col md:flex-row items-center gap-8">
-        {/* Logo on the left */}
-        <div className="w-full md:w-1/2 flex flex-col items-start mb-8 md:mb-0">
-          <Logo size={72} className="mb-4" />
+        {/* Logo on the left - moved more to the left and 50% bigger */}
+        <div className="w-full md:w-1/2 flex flex-col items-start pl-0 md:pl-6 mb-8 md:mb-0">
+          <Logo size={108} className="mb-4" /> {/* Increased from 72 to 108 (50% bigger) */}
           <p className="text-gray-200 text-xl">Analyze GitLab metrics to predict student success</p>
         </div>
         
