@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
@@ -5,10 +6,31 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GitBranch, GitCommit, Clock, Trash, PlusCircle } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { 
+  GitBranch, 
+  GitCommit, 
+  Clock, 
+  Trash, 
+  PlusCircle, 
+  ArrowLeft, 
+  GitMerge,
+  Edit,
+  Activity
+} from "lucide-react";
 import { toast } from "sonner";
-import { getRepositories, updateRepository, deleteRepository } from "@/services/repositoryData";
+import { 
+  getRepositories, 
+  updateRepository, 
+  deleteRepository, 
+  Repository,
+  programmingStudents,
+  sampleStudents
+} from "@/services/repositoryData";
 import { DeleteRepositoryDialog } from "@/components/dashboard/DeleteRepositoryDialog";
+import { EditRepositoryDialog } from "@/components/dashboard/EditRepositoryDialog";
+import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
 
 export default function RepositoryDetailsPage() {
   const { id } = useParams();
