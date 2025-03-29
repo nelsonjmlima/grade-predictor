@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
@@ -12,7 +11,6 @@ import { motion } from "framer-motion";
 import { allRepositories, sampleStudents, programmingStudents } from "@/services/repositoryData";
 import { toast } from "sonner";
 
-// Generate weekly commit data
 const generateWeeklyCommitData = (studentId) => {
   const baseValue = parseInt(studentId.split('-')[1], 10) * 3 || 5;
   return [
@@ -25,7 +23,6 @@ const generateWeeklyCommitData = (studentId) => {
   ];
 };
 
-// Generate file modifications data
 const generateFileModificationsData = (studentId) => {
   const baseValue = parseInt(studentId.split('-')[1], 10) * 2 || 4;
   return [
@@ -37,7 +34,6 @@ const generateFileModificationsData = (studentId) => {
   ];
 };
 
-// Generate daily activity pattern
 const generateDailyActivityData = (studentId) => {
   const baseValue = parseInt(studentId.split('-')[1], 10) || 3;
   return [
@@ -51,7 +47,6 @@ const generateDailyActivityData = (studentId) => {
   ];
 };
 
-// Generate commit type distribution
 const generateCommitTypeData = (studentId) => {
   const baseValue = parseInt(studentId.split('-')[1], 10) || 2;
   return [
@@ -63,7 +58,6 @@ const generateCommitTypeData = (studentId) => {
   ];
 };
 
-// Generate code quality metrics
 const generateCodeQualityData = (studentId) => {
   const baseValue = parseInt(studentId.split('-')[1], 10) * 5 || 10;
   return [
@@ -75,7 +69,6 @@ const generateCodeQualityData = (studentId) => {
   ];
 };
 
-// Generate collaboration metrics
 const generateCollaborationData = (studentId) => {
   const baseValue = parseInt(studentId.split('-')[1], 10) || 2;
   return [
@@ -88,7 +81,6 @@ const generateCollaborationData = (studentId) => {
   ];
 };
 
-// Colors for charts
 const COLORS = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
 
 export default function StudentMetricsPage() {
@@ -100,7 +92,6 @@ export default function StudentMetricsPage() {
   const [activeTab, setActiveTab] = useState("activity");
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   
-  // Generated data states
   const [weeklyCommits, setWeeklyCommits] = useState([]);
   const [fileModifications, setFileModifications] = useState([]);
   const [dailyActivity, setDailyActivity] = useState([]);
@@ -115,7 +106,6 @@ export default function StudentMetricsPage() {
         setRepository(foundRepo);
       }
       
-      // Find the student based on the repository type
       const isProgRepo = repositoryId === 'programming-fundamentals';
       const studentsList = isProgRepo ? programmingStudents : sampleStudents;
       const foundStudent = studentsList.find(s => s.id === studentId);
@@ -123,7 +113,6 @@ export default function StudentMetricsPage() {
       if (foundStudent) {
         setStudent(foundStudent);
         
-        // Generate data for this student
         setTimeout(() => {
           setWeeklyCommits(generateWeeklyCommitData(studentId));
           setFileModifications(generateFileModificationsData(studentId));
@@ -134,7 +123,7 @@ export default function StudentMetricsPage() {
           setIsDataLoaded(true);
           setLoading(false);
           toast.success("Student metrics loaded successfully");
-        }, 1000); // Simulate loading for 1 second
+        }, 1000);
       } else {
         setLoading(false);
         toast.error("Student not found");
@@ -166,7 +155,6 @@ export default function StudentMetricsPage() {
     );
   }
 
-  // Render loading skeleton
   if (loading || !isDataLoaded) {
     return (
       <div className="flex h-screen overflow-hidden">
@@ -399,7 +387,7 @@ export default function StudentMetricsPage() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="h-80">
+                        <div className="h-40">
                           <ChartContainer
                             config={{
                               reviews: { color: "#8b5cf6" },
