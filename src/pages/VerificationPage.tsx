@@ -9,7 +9,6 @@ import { toast } from "sonner";
 export default function VerificationPage() {
   const navigate = useNavigate();
   const [verificationComplete, setVerificationComplete] = useState(false);
-  const [seconds, setSeconds] = useState(5);
 
   useEffect(() => {
     // Simulate verification process
@@ -18,24 +17,8 @@ export default function VerificationPage() {
       toast.success("User data successfully verified!");
     }, 2000);
 
-    // Set up countdown timer
-    if (verificationComplete) {
-      const countdownInterval = setInterval(() => {
-        setSeconds((prev) => {
-          if (prev <= 1) {
-            clearInterval(countdownInterval);
-            navigate("/dashboard");
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(countdownInterval);
-    }
-
     return () => clearTimeout(verificationTimer);
-  }, [navigate, verificationComplete]);
+  }, []);
 
   const handleContinue = () => {
     navigate("/dashboard");
@@ -90,9 +73,6 @@ export default function VerificationPage() {
                     <ShieldCheck className="h-5 w-5" />
                     <span>Access permissions granted</span>
                   </div>
-                  <p className="text-center text-sm text-muted-foreground mt-4">
-                    Redirecting to dashboard in {seconds} seconds...
-                  </p>
                 </div>
               )}
             </div>
