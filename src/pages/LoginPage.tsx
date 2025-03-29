@@ -1,5 +1,6 @@
 
 import { AuthForm } from "@/components/auth/AuthForm";
+import { Logo } from "@/components/logo/Logo";
 
 export default function LoginPage() {
   return (
@@ -13,7 +14,7 @@ export default function LoginPage() {
     >
       <div className="flex flex-col items-center justify-center w-full md:w-1/2 h-full py-8">
         <div className="text-center w-full mb-8 animate-fade-in">
-          <h1 className="text-3xl font-semibold tracking-tight text-white">Grade Predictor</h1>
+          <Logo size={48} className="mx-auto mb-4" />
           <p className="text-gray-200 mt-2">Analyze GitLab metrics to predict student success</p>
         </div>
         <div className="w-full max-w-lg px-4">
