@@ -16,7 +16,7 @@ export default function LoginPage() {
         {/* Logo on the left - moved further left by adding negative margin */}
         <div className="w-full md:w-1/2 flex flex-col items-start pl-0 md:-ml-20 mb-8 md:mb-0">
           <Logo size={108} className="mb-4" /> {/* Keeping the same 50% bigger size */}
-          <p className="text-gray-200 text-xl">Analyze GitLab metrics to predict student success</p>
+          <p className="text-gray-200 text-xl font-light tracking-wide ml-1">Analyze GitLab metrics to predict student success</p>
         </div>
         
         {/* Auth form on the right */}
