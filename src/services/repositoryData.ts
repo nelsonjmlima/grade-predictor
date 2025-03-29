@@ -1,4 +1,3 @@
-
 export interface Repository {
   name: string;
   description: string;
@@ -20,8 +19,8 @@ export interface Student {
   lastActivity: string;
 }
 
-// Predefined repositories
-const predefinedRepositories = [
+// Make sure each repository has an ID
+export const allRepositories = [
   {
     id: 'programming-fundamentals',
     name: "Programming Fundamentals 2023",
@@ -75,47 +74,6 @@ const predefinedRepositories = [
     progress: 51
   }
 ];
-
-// User-created repositories storage
-// Attempt to load from localStorage if available
-const loadUserRepositories = (): Repository[] => {
-  try {
-    const saved = localStorage.getItem('userRepositories');
-    return saved ? JSON.parse(saved) : [];
-  } catch (error) {
-    console.error("Error loading repositories from localStorage:", error);
-    return [];
-  }
-};
-
-// Combined repositories (predefined + user-created)
-let userRepositories = loadUserRepositories();
-export let allRepositories = [...predefinedRepositories, ...userRepositories];
-
-// Function to add a new repository
-export const addRepository = (repository: Repository): void => {
-  // Add timestamp
-  const newRepo = {
-    ...repository,
-    lastActivity: "Just now",
-    commitCount: repository.commitCount || 0,
-    mergeRequestCount: repository.mergeRequestCount || 0,
-    branchCount: repository.branchCount || 1,
-    progress: repository.progress || 0,
-  };
-  
-  userRepositories.push(newRepo);
-  
-  // Update the combined repositories
-  allRepositories = [...predefinedRepositories, ...userRepositories];
-  
-  // Save to localStorage for persistence
-  try {
-    localStorage.setItem('userRepositories', JSON.stringify(userRepositories));
-  } catch (error) {
-    console.error("Error saving repositories to localStorage:", error);
-  }
-};
 
 export const sampleStudents: Student[] = [
   {
