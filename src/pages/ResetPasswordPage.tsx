@@ -40,25 +40,35 @@ export default function ResetPasswordPage() {
           <p className="text-gray-200 mt-2">Enter your email to receive a password reset link</p>
         </div>
         
-        <Card className="w-full max-w-md mx-auto overflow-hidden animate-scale-in glassmorphism">
+        <Card className="w-full max-w-md mx-auto overflow-hidden animate-scale-in bg-black/40 backdrop-blur-xl border border-white/10 text-white">
           {!emailSent ? (
             <>
               <CardHeader>
-                <CardTitle className="text-2xl font-medium">Reset your password</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-2xl font-medium text-white">Reset your password</CardTitle>
+                <CardDescription className="text-gray-300 text-lg">
                   Enter your email address and we'll send you a link to reset your password
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 px-8">
                 <form onSubmit={handleResetPassword} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="m.scott@example.com" required />
+                  <div className="space-y-3">
+                    <Label htmlFor="email" className="text-gray-200 text-lg">Email</Label>
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      placeholder="m.scott@example.com" 
+                      required 
+                      className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-12 text-lg"
+                    />
                   </div>
-                  <Button type="submit" className="w-full group" disabled={isLoading}>
+                  <Button 
+                    type="submit" 
+                    className="w-full group bg-blue-600/80 hover:bg-blue-700/90 text-white h-14 text-lg mt-2" 
+                    disabled={isLoading}
+                  >
                     {isLoading ? "Sending..." : (
                       <>
-                        Send Reset Link <Mail className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                        Send Reset Link <Mail className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                       </>
                     )}
                   </Button>
@@ -68,21 +78,21 @@ export default function ResetPasswordPage() {
           ) : (
             <>
               <CardHeader>
-                <CardTitle className="text-2xl font-medium">Check your email</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-2xl font-medium text-white">Check your email</CardTitle>
+                <CardDescription className="text-gray-300 text-lg">
                   We've sent a password reset link to your email address
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4 text-center">
+              <CardContent className="space-y-4 text-center px-8">
                 <div className="py-4">
-                  <Mail className="mx-auto h-12 w-12 text-primary" />
-                  <p className="mt-4 text-sm text-muted-foreground">
+                  <Mail className="mx-auto h-12 w-12 text-blue-400" />
+                  <p className="mt-4 text-sm text-gray-300">
                     Check your inbox for the password reset link. It might take a few minutes to arrive.
                   </p>
                 </div>
                 <Button 
                   variant="outline" 
-                  className="w-full"
+                  className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
                   onClick={() => navigate("/")}
                 >
                   Back to Login
@@ -90,8 +100,8 @@ export default function ResetPasswordPage() {
               </CardContent>
             </>
           )}
-          <CardFooter className="flex justify-center py-4 text-xs text-muted-foreground">
-            Remember your password? <Button variant="link" className="px-2 text-xs" onClick={() => navigate("/")}>Sign in</Button>
+          <CardFooter className="flex justify-center py-4 text-xs text-gray-300 px-8">
+            Remember your password? <Button variant="link" className="px-2 text-xs text-blue-300 hover:text-blue-200" onClick={() => navigate("/")}>Sign in</Button>
           </CardFooter>
         </Card>
       </div>
