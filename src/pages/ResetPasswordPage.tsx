@@ -4,7 +4,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Mail, KeyRound, ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +11,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { supabase } from "@/integrations/supabase/client";
 
 // Form schema for email request
 const emailSchema = z.object({
@@ -38,9 +38,44 @@ export default function ResetPasswordPage() {
   const [emailSent, setEmailSent] = useState(false);
   const [passwordUpdated, setPasswordUpdated] = useState(false);
   
-  // Determine if we're in update password mode based on URL params
+  // Determine if we're in update password mode based on URL params or hash
   const searchParams = new URLSearchParams(location.search);
   const isUpdateMode = searchParams.get('type') === 'update';
+  
+  // Check for Supabase auth hash in URL
+  useEffect(() => {
+    const handleHashChange = async () => {
+      const hash = window.location.hash;
+      if (hash && hash.includes('access_token') && hash.includes('type=recovery')) {
+        console.log("Hash detected in URL, setting update mode");
+        
+        // Extract hash parameters (including the access token)
+        const hashParams = new URLSearchParams(hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        
+        if (accessToken) {
+          try {
+            // Process the recovery token
+            const { error } = await supabase.auth.refreshSession({ refresh_token: accessToken });
+            
+            if (error) {
+              console.error("Error processing recovery token:", error);
+              toast.error("Invalid or expired recovery link. Please try again.");
+              navigate('/reset-password');
+            } else {
+              // Redirect to the update password page
+              navigate('/reset-password?type=update');
+            }
+          } catch (error) {
+            console.error("Error processing recovery token:", error);
+            toast.error("Failed to process recovery link. Please try again.");
+          }
+        }
+      }
+    };
+    
+    handleHashChange();
+  }, [navigate]);
   
   // Email form
   const emailForm = useForm<EmailFormValues>({
