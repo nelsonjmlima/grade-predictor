@@ -34,6 +34,10 @@ export default function DashboardPage() {
     navigate(`/repositories/${repository.id}`);
   };
 
+  const handleAddRepository = () => {
+    navigate("/repositories/add");
+  };
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <SideNav />
@@ -67,6 +71,10 @@ export default function DashboardPage() {
               <Button size="sm" onClick={handleCreateRepository}>
                 <Plus className="h-4 w-4 mr-1" />
                 New Repository
+              </Button>
+              <Button size="sm" className="h-9 px-4" onClick={handleAddRepository}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Repository
               </Button>
             </div>
           </div>
