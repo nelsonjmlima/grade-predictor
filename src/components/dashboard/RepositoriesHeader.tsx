@@ -1,12 +1,19 @@
 
 import { Plus, GitlabIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface RepositoriesHeaderProps {
   onAddRepository: () => void;
 }
 
 export function RepositoriesHeader({ onAddRepository }: RepositoriesHeaderProps) {
+  const navigate = useNavigate();
+  
+  const handleAddRepository = () => {
+    navigate("/repositories/add");
+  };
+  
   return (
     <div className="flex flex-col gap-4 mb-8">
       <div className="flex items-center justify-between">
@@ -21,7 +28,7 @@ export function RepositoriesHeader({ onAddRepository }: RepositoriesHeaderProps)
             <GitlabIcon className="h-4 w-4 mr-2" />
             Sync Repositories
           </Button>
-          <Button size="sm" className="h-9 px-4" onClick={onAddRepository}>
+          <Button size="sm" className="h-9 px-4" onClick={handleAddRepository}>
             <Plus className="h-4 w-4 mr-2" />
             Add Repository
           </Button>
