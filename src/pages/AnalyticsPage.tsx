@@ -12,7 +12,7 @@ export default function AnalyticsPage() {
             <div>
               <h1 className="text-xl font-bold tracking-tight">Grade Prediction Model</h1>
               <p className="text-sm text-muted-foreground">
-                Compare repositories and predict student performance
+                Predict student performance using various machine learning algorithms
               </p>
             </div>
           </div>
