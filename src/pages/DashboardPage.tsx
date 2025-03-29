@@ -68,10 +68,6 @@ export default function DashboardPage() {
                   className="pl-8 w-[200px] h-8 text-sm"
                 />
               </div>
-              <Button size="sm" onClick={handleCreateRepository}>
-                <Plus className="h-4 w-4 mr-1" />
-                New Repository
-              </Button>
               <Button size="sm" className="h-9 px-4" onClick={handleAddRepository}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Repository
