@@ -55,8 +55,9 @@ const App = () => {
             <Toaster />
             <Sonner position="top-right" theme="light" closeButton />
             <Routes>
-              <Route path="/" element={<LoginPage />} />
-              <Route path="/index" element={<Index />} />
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/index" element={<Navigate to="/" replace />} />
               <Route path="/logo" element={<LogoPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/verification" element={<VerificationPage />} />
@@ -73,7 +74,6 @@ const App = () => {
               <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
               
-              <Route path="/login" element={<Navigate to="/" replace />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
