@@ -26,8 +26,12 @@ const signupSchema = z.object({
   idNumber: z.string().min(1, { message: "ID Number is required" }),
   institution: z.string().min(1, { message: "Institution is required" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-  confirmPassword: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  password: z.string().min(8, { 
+    message: "Password must be at least 8 characters and include a number and special character" 
+  })
+  .regex(/.*[0-9].*/, { message: "Password must include at least one number" })
+  .regex(/.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?].*/, { message: "Password must include at least one special character" }),
+  confirmPassword: z.string().min(8, { message: "Password must be at least 8 characters" }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -300,10 +304,14 @@ export function AuthForm() {
                       <FormControl>
                         <Input 
                           {...field}
-                          type="password" 
+                          type="password"
+                          showPasswordToggle
                           className="bg-white/10 border-white/20 text-white h-12 text-lg"
                         />
                       </FormControl>
+                      <p className="text-sm text-gray-400 mt-1">
+                        Password must be at least 8 characters and include a number and special character
+                      </p>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -318,7 +326,8 @@ export function AuthForm() {
                       <FormControl>
                         <Input 
                           {...field}
-                          type="password" 
+                          type="password"
+                          showPasswordToggle
                           className="bg-white/10 border-white/20 text-white h-12 text-lg"
                         />
                       </FormControl>
