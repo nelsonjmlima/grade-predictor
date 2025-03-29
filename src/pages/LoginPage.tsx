@@ -1,8 +1,17 @@
 
 import { AuthForm } from "@/components/auth/AuthForm";
 import { Logo } from "@/components/logo/Logo";
+import { useAuth } from "@/contexts/AuthContext";
+import { Navigate } from "react-router-dom";
 
 export default function LoginPage() {
+  const { user, isLoading } = useAuth();
+
+  // If user is already logged in, redirect to dashboard
+  if (!isLoading && user) {
+    return <Navigate to="/dashboard" />;
+  }
+
   return (
     <div 
       className="min-h-screen w-full flex items-center justify-center bg-cover bg-center"

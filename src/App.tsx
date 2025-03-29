@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 // Pages
 import LoginPage from "./pages/LoginPage";
@@ -23,6 +24,7 @@ import VerificationPage from "./pages/VerificationPage";
 import Index from "./pages/Index";
 import LogoPage from "./pages/LogoPage";
 import GradePredictionPage from "./pages/GradePredictionPage";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -48,28 +50,33 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner position="top-right" theme="light" closeButton />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<LoginPage />} />
-            <Route path="/index" element={<Index />} />
-            <Route path="/logo" element={<LogoPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/verification" element={<VerificationPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/repositories" element={<RepositoriesPage />} />
-            <Route path="/repositories/add" element={<AddRepositoryPage />} />
-            <Route path="/repositories/compare" element={<RepositoryComparisonPage />} />
-            <Route path="/repositories/ranking" element={<RepositoryRankingPage />} />
-            <Route path="/repositories/:id" element={<RepositoryDetailsPage />} />
-            <Route path="/repositories/:id/student/:studentId" element={<StudentMetricsPage />} />
-            <Route path="/repositories/:id/student/:studentId/prediction" element={<GradePredictionPage />} />
-            <Route path="/analytics" element={<AnalyticsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/login" element={<Navigate to="/" replace />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AuthProvider>
+            <Toaster />
+            <Sonner position="top-right" theme="light" closeButton />
+            <Routes>
+              <Route path="/" element={<LoginPage />} />
+              <Route path="/index" element={<Index />} />
+              <Route path="/logo" element={<LogoPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/verification" element={<VerificationPage />} />
+              
+              {/* Protected Routes */}
+              <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+              <Route path="/repositories" element={<ProtectedRoute><RepositoriesPage /></ProtectedRoute>} />
+              <Route path="/repositories/add" element={<ProtectedRoute><AddRepositoryPage /></ProtectedRoute>} />
+              <Route path="/repositories/compare" element={<ProtectedRoute><RepositoryComparisonPage /></ProtectedRoute>} />
+              <Route path="/repositories/ranking" element={<ProtectedRoute><RepositoryRankingPage /></ProtectedRoute>} />
+              <Route path="/repositories/:id" element={<ProtectedRoute><RepositoryDetailsPage /></ProtectedRoute>} />
+              <Route path="/repositories/:id/student/:studentId" element={<ProtectedRoute><StudentMetricsPage /></ProtectedRoute>} />
+              <Route path="/repositories/:id/student/:studentId/prediction" element={<ProtectedRoute><GradePredictionPage /></ProtectedRoute>} />
+              <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+              
+              <Route path="/login" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
