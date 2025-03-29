@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import {
@@ -341,6 +340,7 @@ export default function SettingsPage() {
                                 <Input
                                   type="password"
                                   placeholder="••••••••"
+                                  showPasswordToggle
                                   {...field}
                                 />
                               </FormControl>
@@ -361,6 +361,7 @@ export default function SettingsPage() {
                                 <Input
                                   type="password"
                                   placeholder="••••••••"
+                                  showPasswordToggle
                                   {...field}
                                 />
                               </FormControl>
@@ -382,6 +383,7 @@ export default function SettingsPage() {
                                 <Input
                                   type="password"
                                   placeholder="••••••••"
+                                  showPasswordToggle
                                   {...field}
                                 />
                               </FormControl>
