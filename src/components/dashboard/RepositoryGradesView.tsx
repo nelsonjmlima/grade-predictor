@@ -1,12 +1,15 @@
 
+import { useState } from "react";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, User, FileText, Award, Download } from "lucide-react";
+import { BarChart, User, FileText, Award, Download, PlusCircle, Pencil } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
+import { StudentFormDialog } from "@/components/dashboard/StudentFormDialog";
+import { toast } from "sonner";
 
-interface Student {
+export interface Student {
   id: string;
   name: string;
   email: string;
@@ -19,14 +22,46 @@ interface RepositoryGradesViewProps {
   repositoryName: string;
   students: Student[];
   repositoryId?: string;
+  onStudentAdded?: (student: Student) => void;
+  onStudentEdited?: (student: Student) => void;
 }
 
-export function RepositoryGradesView({ repositoryName, students, repositoryId }: RepositoryGradesViewProps) {
+export function RepositoryGradesView({ 
+  repositoryName, 
+  students, 
+  repositoryId,
+  onStudentAdded,
+  onStudentEdited
+}: RepositoryGradesViewProps) {
   const navigate = useNavigate();
+  const [studentFormOpen, setStudentFormOpen] = useState(false);
+  const [editingStudent, setEditingStudent] = useState<Student | undefined>(undefined);
 
   const handleViewStudentMetrics = (studentId: string) => {
     if (repositoryId) {
       navigate(`/repositories/${repositoryId}/student/${studentId}`);
+    }
+  };
+
+  const handleAddStudent = () => {
+    setEditingStudent(undefined);
+    setStudentFormOpen(true);
+  };
+
+  const handleEditStudent = (student: Student) => {
+    setEditingStudent(student);
+    setStudentFormOpen(true);
+  };
+
+  const handleStudentSaved = (student: Student) => {
+    if (editingStudent) {
+      // Handle editing existing student
+      onStudentEdited?.(student);
+      toast.success(`Student ${student.name} updated successfully`);
+    } else {
+      // Handle adding new student
+      onStudentAdded?.(student);
+      toast.success(`Student ${student.name} added successfully`);
     }
   };
 
@@ -43,6 +78,10 @@ export function RepositoryGradesView({ repositoryName, students, repositoryId }:
             <Button size="sm">
               <Award className="h-4 w-4 mr-2" />
               Assign Grades
+            </Button>
+            <Button variant="default" size="sm" onClick={handleAddStudent}>
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Add Student
             </Button>
           </div>
         </div>
@@ -82,6 +121,14 @@ export function RepositoryGradesView({ repositoryName, students, repositoryId }:
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end space-x-2">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8"
+                      onClick={() => handleEditStudent(student)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -117,6 +164,14 @@ export function RepositoryGradesView({ repositoryName, students, repositoryId }:
           </TableBody>
         </Table>
       </CardContent>
+      
+      <StudentFormDialog
+        open={studentFormOpen}
+        onOpenChange={setStudentFormOpen}
+        onStudentSaved={handleStudentSaved}
+        initialStudent={editingStudent}
+        repositoryId={repositoryId || ''}
+      />
     </Card>
   );
 }

@@ -1,19 +1,14 @@
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   GitBranch, 
   GitCommit, 
-  Clock, 
-  Trash, 
-  PlusCircle, 
   ArrowLeft, 
   GitMerge,
   Edit,
@@ -25,15 +20,16 @@ import { toast } from "sonner";
 import { 
   getRepositories, 
   updateRepository, 
-  deleteRepository, 
   Repository,
   programmingStudents,
-  sampleStudents
+  sampleStudents,
+  Student
 } from "@/services/repositoryData";
 import { DeleteRepositoryDialog } from "@/components/dashboard/DeleteRepositoryDialog";
 import { EditRepositoryDialog } from "@/components/dashboard/EditRepositoryDialog";
 import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
 import { CSVImportDialog } from "@/components/dashboard/CSVImportDialog";
+import { saveStudentData } from "@/services/studentData";
 
 export default function RepositoryDetailsPage() {
   const { id } = useParams();
@@ -44,6 +40,7 @@ export default function RepositoryDetailsPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [csvImportDialogOpen, setCsvImportDialogOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [students, setStudents] = useState<Student[]>([]);
 
   const loadRepository = () => {
     if (id) {
@@ -51,6 +48,9 @@ export default function RepositoryDetailsPage() {
       const foundRepo = allRepositories.find(repo => repo.id === id);
       if (foundRepo) {
         setRepository(foundRepo);
+        // Load students based on repository ID
+        const repoStudents = id === 'programming-fundamentals' ? [...programmingStudents] : [...sampleStudents];
+        setStudents(repoStudents);
       }
       setLoading(false);
     }
@@ -129,6 +129,50 @@ export default function RepositoryDetailsPage() {
     }
   };
 
+  const handleStudentAdded = async (newStudent: Student) => {
+    // Add student to the local state
+    setStudents(prev => [...prev, newStudent]);
+    
+    // Save detailed student data
+    try {
+      await saveStudentData({
+        id: newStudent.id,
+        name: newStudent.name,
+        email: newStudent.email,
+        commitCount: newStudent.commitCount,
+        currentGrade: newStudent.grade || 'Not Graded',
+        commitTrend: "up",
+        commitPercentChange: 0,
+        activityScore: 5.0 // Default value
+      });
+    } catch (error) {
+      console.error("Error saving detailed student data:", error);
+    }
+  };
+
+  const handleStudentEdited = async (updatedStudent: Student) => {
+    // Update student in local state
+    setStudents(prev => prev.map(student => 
+      student.id === updatedStudent.id ? updatedStudent : student
+    ));
+    
+    // Save detailed student data
+    try {
+      await saveStudentData({
+        id: updatedStudent.id,
+        name: updatedStudent.name,
+        email: updatedStudent.email,
+        commitCount: updatedStudent.commitCount,
+        currentGrade: updatedStudent.grade || 'Not Graded',
+        commitTrend: "up", // Maintain existing trend
+        commitPercentChange: 0,
+        activityScore: 5.0 // Default value
+      });
+    } catch (error) {
+      console.error("Error updating detailed student data:", error);
+    }
+  };
+
   if (!loading && !repository) {
     return (
       <div className="flex h-screen overflow-hidden">
@@ -148,8 +192,6 @@ export default function RepositoryDetailsPage() {
       </div>
     );
   }
-
-  const students = id === 'programming-fundamentals' ? programmingStudents : sampleStudents;
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -199,7 +241,7 @@ export default function RepositoryDetailsPage() {
                     onClick={() => setDeleteDialogOpen(true)} 
                     className="gap-2"
                   >
-                    <Trash className="h-4 w-4" />
+                    <Edit className="h-4 w-4" />
                     Delete
                   </Button>
                 </div>
@@ -284,6 +326,8 @@ export default function RepositoryDetailsPage() {
                     repositoryName={repository.name} 
                     students={students}
                     repositoryId={id}
+                    onStudentAdded={handleStudentAdded}
+                    onStudentEdited={handleStudentEdited}
                   />
                 </TabsContent>
                 

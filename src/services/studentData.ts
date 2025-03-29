@@ -1,6 +1,28 @@
+// Type definitions for student data
+export interface StudentData {
+  id: string;
+  name: string;
+  email: string;
+  commitCount: number;
+  commitTrend: "up" | "down" | "stable";
+  commitPercentChange: number;
+  currentGrade: string;
+  activityScore: number;
+  commits: { date: string; count: number }[];
+  fileChanges: { type: string; count: number; color: string }[];
+  codeQuality: { category: string; score: number; maxScore: number }[];
+  codeReviews: {
+    title: string;
+    type: "positive" | "negative" | "improvement";
+    message: string;
+    reviewer: string;
+    date: string;
+  }[];
+  contributions: { date: string; count: number }[];
+}
 
 // Mock student data for demonstration purposes
-const sampleStudentData = {
+const sampleStudentData: StudentData = {
   id: "s12345",
   name: "John Doe",
   email: "john.doe@university.edu",
@@ -77,11 +99,45 @@ const sampleStudentData = {
   })
 };
 
+// Store for custom student data
+let customStudentData: Record<string, StudentData> = {};
+
 // Simulates fetching student data
-export const getStudentData = async (studentId?: string) => {
+export const getStudentData = async (studentId?: string): Promise<StudentData> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve(sampleStudentData);
+      if (studentId && customStudentData[studentId]) {
+        resolve(customStudentData[studentId]);
+      } else {
+        resolve(sampleStudentData);
+      }
+    }, 1000);
+  });
+};
+
+// Add or update a student
+export const saveStudentData = async (studentData: Partial<StudentData> & { id: string }): Promise<StudentData> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // If this student exists, update it; otherwise create a new one based on the sample
+      const existingData = customStudentData[studentData.id] || { ...sampleStudentData, id: studentData.id };
+      
+      // Merge the data, keeping chart data from the existing record if not provided
+      const updatedData: StudentData = {
+        ...existingData,
+        ...studentData,
+        // Make sure we don't lose chart data if it wasn't provided
+        commits: studentData.commits || existingData.commits,
+        fileChanges: studentData.fileChanges || existingData.fileChanges,
+        codeQuality: studentData.codeQuality || existingData.codeQuality,
+        codeReviews: studentData.codeReviews || existingData.codeReviews,
+        contributions: studentData.contributions || existingData.contributions
+      };
+      
+      // Store the updated data
+      customStudentData[studentData.id] = updatedData;
+      
+      resolve(updatedData);
     }, 1000);
   });
 };
