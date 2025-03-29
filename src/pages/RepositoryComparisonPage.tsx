@@ -62,19 +62,24 @@ export default function RepositoryComparisonPage() {
 
   // Load repositories
   useEffect(() => {
-    const repos = getRepositories();
-    setRepositories(repos);
-    
-    // Default to selecting first two repositories if available
-    if (repos.length > 0) {
-      const repoIds = repos.slice(0, Math.min(2, repos.length)).map(repo => repo.id || "");
-      setSelectedRepos(repoIds.filter(id => id !== ""));
+    try {
+      const repos = getRepositories();
+      setRepositories(repos);
+      
+      // Default to selecting first two repositories if available
+      if (repos.length > 0) {
+        const repoIds = repos.slice(0, Math.min(2, repos.length)).map(repo => repo.id || "");
+        setSelectedRepos(repoIds.filter(id => id !== ""));
+      }
+    } catch (error) {
+      console.error("Error loading repositories:", error);
+      toast.error("Failed to load repositories");
+    } finally {
+      setLoading(false);
+      
+      // Start animation sequence after loading
+      setTimeout(animateSequentially, 300);
     }
-    
-    setLoading(false);
-    
-    // Start animation sequence after loading
-    setTimeout(animateSequentially, 300);
   }, []);
 
   const toggleRepository = (repoId: string) => {
@@ -86,9 +91,58 @@ export default function RepositoryComparisonPage() {
   };
 
   const handleExport = () => {
-    toast.success("Chart exported", {
-      description: "The comparison data has been exported to CSV."
-    });
+    try {
+      // Generate a CSV export of the comparison data
+      const headers = ["Time Point", ...selectedRepos.map(repoId => {
+        const repo = repositories.find(r => r.id === repoId);
+        return repo?.name || "Unknown";
+      })];
+      
+      const timePoints = selectedTimePeriod === "week" 
+        ? ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        : selectedTimePeriod === "month"
+          ? ["Week 1", "Week 2", "Week 3", "Week 4"]
+          : ["Week 1", "Week 3", "Week 6", "Week 9", "Week 12", "Week 15"];
+      
+      const csvData = [
+        headers.join(','),
+        ...timePoints.map((timePoint, index) => {
+          const values = [timePoint];
+          
+          // Add data for each selected repository
+          selectedRepos.forEach(repoId => {
+            const repo = repositories.find(r => r.id === repoId);
+            if (repo) {
+              // Generate a sample value
+              const baseValue = repo.progress;
+              const variance = Math.sin(index * 0.5) * 10;
+              const value = Math.round(Math.max(0, Math.min(100, baseValue + variance)));
+              values.push(value.toString());
+            } else {
+              values.push("0");
+            }
+          });
+          
+          return values.join(',');
+        })
+      ].join('\n');
+      
+      const blob = new Blob([csvData], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `repository-comparison-${selectedMetric}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success("Comparison data exported successfully", {
+        description: "The CSV file has been downloaded to your device."
+      });
+    } catch (error) {
+      console.error("Error exporting chart:", error);
+      toast.error("Failed to export chart data");
+    }
   };
 
   // Calculate average performance
@@ -111,6 +165,8 @@ export default function RepositoryComparisonPage() {
       selectedRepos.includes(repo.id || "")
     );
     
+    if (selectedRepositories.length === 0) return null;
+    
     return selectedRepositories.reduce((prev, current) => 
       prev.progress > current.progress ? prev : current
     );
@@ -123,6 +179,8 @@ export default function RepositoryComparisonPage() {
     const selectedRepositories = repositories.filter(repo => 
       selectedRepos.includes(repo.id || "")
     );
+    
+    if (selectedRepositories.length < 2) return 0;
     
     const performances = selectedRepositories.map(repo => repo.progress);
     const max = Math.max(...performances);
@@ -156,7 +214,7 @@ export default function RepositoryComparisonPage() {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => toast.info("Filters are not implemented yet")}
+                    onClick={() => toast.info("Filters will be available in a future update")}
                     className={`transition-all duration-300 ${animatedItems.includes("controls") ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
                   >
                     <Filter className="h-4 w-4 mr-2" />
@@ -181,7 +239,7 @@ export default function RepositoryComparisonPage() {
                   <div className="flex flex-wrap gap-2">
                     {repositories.map((repo, index) => (
                       <Button
-                        key={repo.id}
+                        key={repo.id || index}
                         variant={selectedRepos.includes(repo.id || "") ? "default" : "outline"}
                         size="sm"
                         className={`flex items-center transition-all duration-300 ${
@@ -263,23 +321,13 @@ export default function RepositoryComparisonPage() {
                 
                 <TabsContent value="repositories" className="pt-4">
                   <div className={`transition-all duration-500 ${animatedItems.includes("chart") ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                    {selectedRepos.length === 0 ? (
-                      <div className="rounded-lg border-2 border-dashed p-8 text-center">
-                        <GitBranch className="h-10 w-10 mx-auto mb-4 text-muted-foreground animate-bounce" />
-                        <h3 className="text-lg font-medium">No Repositories Selected</h3>
-                        <p className="text-muted-foreground max-w-md mx-auto mt-2">
-                          Please select at least one repository to view comparison data
-                        </p>
-                      </div>
-                    ) : (
-                      <RepositoryComparisonChart 
-                        selectedRepos={selectedRepos}
-                        repositories={repositories}
-                        selectedMetric={selectedMetric}
-                        viewType={viewType}
-                        timePeriod={selectedTimePeriod}
-                      />
-                    )}
+                    <RepositoryComparisonChart 
+                      selectedRepos={selectedRepos}
+                      repositories={repositories}
+                      selectedMetric={selectedMetric}
+                      viewType={viewType}
+                      timePeriod={selectedTimePeriod}
+                    />
                   </div>
                 </TabsContent>
                 
@@ -300,18 +348,35 @@ export default function RepositoryComparisonPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>All Students</DropdownMenuItem>
-                        <DropdownMenuItem>High Performers</DropdownMenuItem>
-                        <DropdownMenuItem>Low Performers</DropdownMenuItem>
-                        <DropdownMenuItem>Custom Selection</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => toast.info("Student filtering coming soon")}>
+                          All Students
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => toast.info("Performance filtering coming soon")}>
+                          High Performers
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => toast.info("Performance filtering coming soon")}>
+                          Low Performers
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => toast.info("Custom selection coming soon")}>
+                          Custom Selection
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
                   
-                  <div className="rounded-md bg-muted p-8 h-[400px] flex items-center justify-center">
-                    <p className="text-muted-foreground">
-                      Student performance comparison chart would appear here
+                  <div className="rounded-md bg-muted p-8 h-[400px] flex flex-col items-center justify-center">
+                    <Users className="h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground text-center">
+                      Student performance comparison will be available soon
                     </p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-4"
+                      onClick={() => toast.info("This feature is coming in a future update")}
+                    >
+                      Activate Student Comparison
+                    </Button>
                   </div>
                 </TabsContent>
                 
@@ -326,17 +391,26 @@ export default function RepositoryComparisonPage() {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => toast.info("Period comparison is not implemented yet")}
+                      onClick={() => toast.info("Period comparison is coming soon")}
                     >
                       <ArrowLeftRight className="h-4 w-4 mr-2" />
                       Compare Periods
                     </Button>
                   </div>
                   
-                  <div className="rounded-md bg-muted p-8 h-[400px] flex items-center justify-center">
-                    <p className="text-muted-foreground">
-                      Performance trends analysis would appear here
+                  <div className="rounded-md bg-muted p-8 h-[400px] flex flex-col items-center justify-center">
+                    <ArrowLeftRight className="h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground text-center">
+                      Performance trends analysis will be available soon
                     </p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-4"
+                      onClick={() => toast.info("This feature is coming in a future update")}
+                    >
+                      Activate Trends Analysis
+                    </Button>
                   </div>
                 </TabsContent>
               </Tabs>

@@ -6,6 +6,7 @@ import {
 } from "recharts";
 import { Loader2 } from "lucide-react";
 import { Repository } from "@/services/repositoryData";
+import { toast } from "sonner";
 
 interface RepositoryComparisonChartProps {
   selectedRepos: string[];
@@ -69,6 +70,10 @@ const generateMetricData = (repo: Repository, metric: string) => {
 
 // Generate repository data for chart
 const generateRepositoryData = (repos: Repository[], metric: string, timePeriod: string) => {
+  if (!repos || repos.length === 0) {
+    return [];
+  }
+
   // Time points for x-axis
   const timePoints = generateTimePoints(timePeriod);
   
@@ -76,6 +81,8 @@ const generateRepositoryData = (repos: Repository[], metric: string, timePeriod:
   return timePoints.map((timePoint, index) => {
     const data: any = { name: timePoint };
     repos.forEach(repo => {
+      if (!repo) return;
+      
       // Base value from repo metrics
       const baseValue = generateMetricData(repo, metric);
       
@@ -106,20 +113,32 @@ export function RepositoryComparisonChart({
   );
 
   useEffect(() => {
+    if (selectedRepos.length === 0) {
+      setData([]);
+      setLoading(false);
+      return;
+    }
+
     // Reset animation state when data changes
     setAnimated(false);
     // Simulate loading data from an API
     setLoading(true);
     
     const timer = setTimeout(() => {
-      const newData = generateRepositoryData(filteredRepositories, selectedMetric, timePeriod);
-      setData(newData);
-      setLoading(false);
-      
-      // Trigger animation after data is loaded
-      setTimeout(() => {
-        setAnimated(true);
-      }, 100);
+      try {
+        const newData = generateRepositoryData(filteredRepositories, selectedMetric, timePeriod);
+        setData(newData);
+        setLoading(false);
+        
+        // Trigger animation after data is loaded
+        setTimeout(() => {
+          setAnimated(true);
+        }, 100);
+      } catch (error) {
+        console.error("Error generating chart data:", error);
+        toast.error("Failed to generate chart data");
+        setLoading(false);
+      }
     }, 800);
     
     return () => clearTimeout(timer);
@@ -129,6 +148,14 @@ export function RepositoryComparisonChart({
     return (
       <div className="flex items-center justify-center h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (selectedRepos.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-[400px] border border-dashed rounded-lg">
+        <p className="text-muted-foreground">Select repositories to compare</p>
       </div>
     );
   }
@@ -155,7 +182,7 @@ export function RepositoryComparisonChart({
           >
             <defs>
               {filteredRepositories.map((repo, index) => (
-                <linearGradient key={repo.id} id={`color-${repo.id}`} x1="0" y1="0" x2="0" y2="1">
+                <linearGradient key={repo.id || index} id={`color-${repo.id || index}`} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={colors[index % colors.length]} stopOpacity={0.8} />
                   <stop offset="95%" stopColor={colors[index % colors.length]} stopOpacity={0} />
                 </linearGradient>
@@ -181,12 +208,12 @@ export function RepositoryComparisonChart({
             
             {filteredRepositories.map((repo, index) => (
               <Area
-                key={repo.id}
+                key={repo.id || index}
                 type="monotone"
                 dataKey={repo.name}
                 stroke={colors[index % colors.length]}
                 fillOpacity={1}
-                fill={`url(#color-${repo.id})`}
+                fill={`url(#color-${repo.id || index})`}
                 strokeWidth={2}
                 animationDuration={1500}
                 animationBegin={index * 300}
@@ -219,7 +246,7 @@ export function RepositoryComparisonChart({
             
             {filteredRepositories.map((repo, index) => (
               <Bar
-                key={repo.id}
+                key={repo.id || index}
                 dataKey={repo.name}
                 fill={colors[index % colors.length]}
                 radius={[4, 4, 0, 0]}
