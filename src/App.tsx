@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 import VerificationPage from "./pages/VerificationPage";
 import Index from "./pages/Index";
 import LogoPage from "./pages/LogoPage";
+import GradePredictionPage from "./pages/GradePredictionPage";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,7 @@ const App = () => {
             <Route path="/repositories/ranking" element={<RepositoryRankingPage />} />
             <Route path="/repositories/:id" element={<RepositoryDetailsPage />} />
             <Route path="/repositories/:id/student/:studentId" element={<StudentMetricsPage />} />
+            <Route path="/repositories/:id/student/:studentId/prediction" element={<GradePredictionPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/login" element={<Navigate to="/" replace />} />
