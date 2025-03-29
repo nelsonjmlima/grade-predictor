@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -152,26 +152,24 @@ export function SideNav() {
         </nav>
       </div>
       
-      <div className="p-4 border-t border-border mt-auto">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src="" />
-            <AvatarFallback>{userInitials}</AvatarFallback>
-          </Avatar>
-          {!collapsed && (
-            <div className="flex-1 overflow-hidden">
-              <p className="text-xs text-muted-foreground font-medium">Professor</p>
-              <p className="text-sm font-medium truncate">{userName}</p>
-              <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
-            </div>
-          )}
+      <div className="p-3 border-t border-border mt-auto">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Avatar className="h-8 w-8">
+              <AvatarFallback>{userInitials}</AvatarFallback>
+            </Avatar>
+            {!collapsed && (
+              <span className="text-sm font-medium truncate">{userName}</span>
+            )}
+          </div>
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full"
+            className="rounded-full h-8 w-8 ml-1"
             onClick={() => setShowSignOutDialog(true)}
           >
             <LogOut className="h-4 w-4 text-muted-foreground" />
+            <span className="sr-only">Sign Out</span>
           </Button>
         </div>
       </div>
