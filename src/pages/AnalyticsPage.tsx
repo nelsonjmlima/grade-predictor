@@ -1,6 +1,6 @@
 
 import { SideNav } from "@/components/dashboard/SideNav";
-import { AnalyticsPanel } from "@/components/dashboard/AnalyticsPanel";
+import { GradePredictionPanel } from "@/components/prediction/GradePredictionPanel";
 
 export default function AnalyticsPage() {
   return (
@@ -17,7 +17,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
           
-          <AnalyticsPanel />
+          <GradePredictionPanel />
         </div>
       </main>
     </div>
