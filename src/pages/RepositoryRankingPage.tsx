@@ -49,7 +49,7 @@ export default function RepositoryRankingPage() {
   }, []);
 
   // Helper function to get the value from repository based on selected metric
-  const getMetricValue = (repo: Repository, metricId: string) => {
+  const getMetricValue = (repo: Repository, metricId: string): string | number => {
     switch(metricId) {
       case "commit_count":
         return repo.commitCount;
@@ -89,14 +89,22 @@ export default function RepositoryRankingPage() {
     if (selectedMetric === "predicted_grade") {
       if (!aValue || aValue === "N/A") return sortDirection === "asc" ? -1 : 1;
       if (!bValue || bValue === "N/A") return sortDirection === "asc" ? 1 : -1;
+      
+      // Safe string comparison for predicted grades
+      const aStr = String(aValue);
+      const bStr = String(bValue);
       return sortDirection === "asc" 
-        ? bValue.localeCompare(aValue) 
-        : aValue.localeCompare(bValue);
+        ? bStr.localeCompare(aStr) 
+        : aStr.localeCompare(bStr);
     }
     
+    // For numeric metrics, convert to numbers to ensure proper comparison
+    const aNum = typeof aValue === 'number' ? aValue : 0;
+    const bNum = typeof bValue === 'number' ? bValue : 0;
+    
     return sortDirection === "asc" 
-      ? aValue - bValue 
-      : bValue - aValue;
+      ? aNum - bNum 
+      : bNum - aNum;
   });
 
   // Toggle sort direction
@@ -143,6 +151,44 @@ export default function RepositoryRankingPage() {
       console.error("Error exporting rankings:", error);
       toast.error("Failed to export rankings");
     }
+  };
+
+  // Calculate the average of numeric metrics
+  const calculateAverage = (metricId: string): number | string => {
+    if (metricId === "predicted_grade" || repositories.length === 0) {
+      return "N/A";
+    }
+    
+    const sum = repositories.reduce((total, repo) => {
+      const value = getMetricValue(repo, metricId);
+      return typeof value === "number" ? total + value : total;
+    }, 0);
+    
+    return Math.round(sum / Math.max(1, repositories.length));
+  };
+
+  // Calculate the range difference between highest and lowest
+  const calculateRangeDifference = (metricId: string): number | string => {
+    if (metricId === "predicted_grade" || repositories.length < 2) {
+      return "N/A";
+    }
+    
+    // Ensure we're only comparing numeric values
+    const highestRepo = sortedRepositories[0];
+    const lowestRepo = sortedRepositories[sortedRepositories.length - 1];
+    
+    if (!highestRepo || !lowestRepo) {
+      return "N/A";
+    }
+    
+    const highestValue = getMetricValue(highestRepo, metricId);
+    const lowestValue = getMetricValue(lowestRepo, metricId);
+    
+    if (typeof highestValue !== 'number' || typeof lowestValue !== 'number') {
+      return "N/A";
+    }
+    
+    return Math.round(highestValue - lowestValue);
   };
 
   return (
@@ -319,18 +365,7 @@ export default function RepositoryRankingPage() {
                       </CardHeader>
                       <CardContent>
                         <div className="text-2xl font-bold">
-                          {selectedMetric === "predicted_grade" ? "N/A" : 
-                            repositories.length === 0 ? "N/A" :
-                            formatMetricValue(
-                              Math.round(
-                                repositories.reduce((sum, repo) => {
-                                  const value = getMetricValue(repo, selectedMetric);
-                                  return typeof value === "number" ? sum + value : sum;
-                                }, 0) / Math.max(1, repositories.length)
-                              ),
-                              selectedMetric
-                            )
-                          }
+                          {formatMetricValue(calculateAverage(selectedMetric), selectedMetric)}
                         </div>
                         <p className="text-xs text-muted-foreground">
                           Across {repositories.length} repositories
@@ -344,15 +379,7 @@ export default function RepositoryRankingPage() {
                       </CardHeader>
                       <CardContent>
                         <div className="text-2xl font-bold">
-                          {selectedMetric === "predicted_grade" || repositories.length < 2 ? "N/A" : 
-                            formatMetricValue(
-                              Math.round(
-                                getMetricValue(sortedRepositories[0], selectedMetric) - 
-                                getMetricValue(sortedRepositories[sortedRepositories.length - 1], selectedMetric)
-                              ),
-                              selectedMetric
-                            )
-                          }
+                          {formatMetricValue(calculateRangeDifference(selectedMetric), selectedMetric)}
                         </div>
                         <p className="text-xs text-muted-foreground">
                           Between highest and lowest ranked repositories
