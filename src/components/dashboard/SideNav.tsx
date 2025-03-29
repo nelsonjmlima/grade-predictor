@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -12,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -72,12 +74,22 @@ export function SideNav() {
   const [activeItem, setActiveItem] = useState("Dashboard");
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const navigate = useNavigate();
+  const { signOut, user } = useAuth();
 
-  const handleSignOut = () => {
-    // Navigate to index/login page
-    navigate("/");
-    setShowSignOutDialog(false);
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      setShowSignOutDialog(false);
+      // Navigation is handled by the auth state change listener in AuthContext
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
+
+  // Extract user information for display
+  const userEmail = user?.email || "user@example.com";
+  const userName = user?.user_metadata?.name || userEmail.split('@')[0] || "User";
+  const userInitials = userName.slice(0, 2).toUpperCase();
 
   return (
     <div className={cn(
@@ -144,13 +156,13 @@ export function SideNav() {
         <div className="flex items-center gap-3">
           <Avatar className="h-8 w-8">
             <AvatarImage src="" />
-            <AvatarFallback>NS</AvatarFallback>
+            <AvatarFallback>{userInitials}</AvatarFallback>
           </Avatar>
           {!collapsed && (
             <div className="flex-1 overflow-hidden">
               <p className="text-xs text-muted-foreground font-medium">Professor</p>
-              <p className="text-sm font-medium truncate">Nuno Seixas</p>
-              <p className="text-xs text-muted-foreground">n.seixas@university.edu</p>
+              <p className="text-sm font-medium truncate">{userName}</p>
+              <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
             </div>
           )}
           <Button 
