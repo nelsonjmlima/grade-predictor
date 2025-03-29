@@ -143,7 +143,10 @@ export default function RepositoryDetailsPage() {
         currentGrade: newStudent.grade || 'Not Graded',
         commitTrend: "up",
         commitPercentChange: 0,
-        activityScore: 5.0 // Default value
+        activityScore: 5.0,
+        studentNumber: newStudent.studentNumber,
+        gitlabUsername: newStudent.gitlabUsername,
+        groupNumber: newStudent.groupNumber
       });
     } catch (error) {
       console.error("Error saving detailed student data:", error);
@@ -166,7 +169,10 @@ export default function RepositoryDetailsPage() {
         currentGrade: updatedStudent.grade || 'Not Graded',
         commitTrend: "up", // Maintain existing trend
         commitPercentChange: 0,
-        activityScore: 5.0 // Default value
+        activityScore: 5.0, // Default value
+        studentNumber: updatedStudent.studentNumber,
+        gitlabUsername: updatedStudent.gitlabUsername,
+        groupNumber: updatedStudent.groupNumber
       });
     } catch (error) {
       console.error("Error updating detailed student data:", error);

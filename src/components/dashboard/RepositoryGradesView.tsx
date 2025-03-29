@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, User, FileText, Award, Download, PlusCircle, Pencil } from "lucide-react";
+import { BarChart, User, FileText, Award, Download, PlusCircle, Pencil, Users, GitBranch } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { StudentFormDialog } from "@/components/dashboard/StudentFormDialog";
@@ -16,6 +16,9 @@ export interface Student {
   commitCount: number;
   grade?: string;
   lastActivity: string;
+  studentNumber?: string;
+  gitlabUsername?: string;
+  groupNumber?: number;
 }
 
 interface RepositoryGradesViewProps {
@@ -92,6 +95,8 @@ export function RepositoryGradesView({
           <TableHeader>
             <TableRow>
               <TableHead className="w-[250px]">Student</TableHead>
+              <TableHead>ID / Group</TableHead>
+              <TableHead>GitLab User</TableHead>
               <TableHead>Commits</TableHead>
               <TableHead>Last Activity</TableHead>
               <TableHead>Grade</TableHead>
@@ -109,6 +114,25 @@ export function RepositoryGradesView({
                       <div className="text-xs text-muted-foreground">{student.email}</div>
                     </div>
                   </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center space-x-1">
+                    <span className="font-medium">{student.studentNumber || 'N/A'}</span>
+                    {student.groupNumber !== undefined && (
+                      <span className="text-xs text-muted-foreground flex items-center">
+                        <Users className="h-3 w-3 ml-1 mr-1" />
+                        Group {student.groupNumber}
+                      </span>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {student.gitlabUsername ? (
+                    <div className="flex items-center space-x-1">
+                      <GitBranch className="h-3 w-3 text-muted-foreground" />
+                      <span>{student.gitlabUsername}</span>
+                    </div>
+                  ) : 'N/A'}
                 </TableCell>
                 <TableCell>{student.commitCount}</TableCell>
                 <TableCell>{student.lastActivity}</TableCell>

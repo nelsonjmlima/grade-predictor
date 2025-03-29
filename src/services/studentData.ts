@@ -1,3 +1,4 @@
+
 // Type definitions for student data
 export interface StudentData {
   id: string;
@@ -8,6 +9,9 @@ export interface StudentData {
   commitPercentChange: number;
   currentGrade: string;
   activityScore: number;
+  studentNumber?: string;
+  gitlabUsername?: string;
+  groupNumber?: number;
   commits: { date: string; count: number }[];
   fileChanges: { type: string; count: number; color: string }[];
   codeQuality: { category: string; score: number; maxScore: number }[];
@@ -31,6 +35,9 @@ const sampleStudentData: StudentData = {
   commitPercentChange: 12,
   currentGrade: "B+",
   activityScore: 8.7,
+  studentNumber: "123456",
+  gitlabUsername: "johndoe",
+  groupNumber: 1,
   
   // Data for charts
   commits: [

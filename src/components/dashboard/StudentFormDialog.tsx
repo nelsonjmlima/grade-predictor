@@ -3,15 +3,13 @@ import { useState } from "react";
 import { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Student } from "@/services/repositoryData";
-import { getStudentData } from "@/services/studentData";
+import { getStudentData, saveStudentData } from "@/services/studentData";
 
 // Define the form schema
 const studentFormSchema = z.object({
@@ -21,6 +19,9 @@ const studentFormSchema = z.object({
   commitCount: z.coerce.number().int().min(0),
   lastActivity: z.string(),
   grade: z.string().optional(),
+  studentNumber: z.string().min(1, { message: "Student number is required" }),
+  gitlabUsername: z.string().min(1, { message: "GitLab username is required" }),
+  groupNumber: z.coerce.number().int().min(0, { message: "Group number must be a positive number" }),
 });
 
 type StudentFormValues = z.infer<typeof studentFormSchema>;
@@ -52,6 +53,9 @@ export function StudentFormDialog({
       commitCount: 0,
       lastActivity: "Today",
       grade: "",
+      studentNumber: "",
+      gitlabUsername: "",
+      groupNumber: 0,
     },
   });
 
@@ -59,11 +63,7 @@ export function StudentFormDialog({
     setIsLoading(true);
     
     try {
-      // In a real application, this would make an API call
-      // For now, we'll simulate a successful save
-      const studentData = await getStudentData();
-      
-      // Create the new student by combining form values with default student data
+      // Create the new student by combining form values
       const newStudent: Student = {
         ...values as Student,
         // Add any missing required fields
@@ -71,6 +71,22 @@ export function StudentFormDialog({
         grade: values.grade || undefined,
       };
       
+      // Save detailed student data to studentData service
+      await saveStudentData({
+        id: newStudent.id,
+        name: newStudent.name,
+        email: newStudent.email,
+        commitCount: newStudent.commitCount,
+        currentGrade: newStudent.grade || 'Not Graded',
+        commitTrend: "up",
+        commitPercentChange: 0,
+        activityScore: 5.0,
+        studentNumber: newStudent.studentNumber,
+        gitlabUsername: newStudent.gitlabUsername,
+        groupNumber: newStudent.groupNumber
+      });
+      
+      // Pass the student data back to the parent component
       onStudentSaved(newStudent);
       onOpenChange(false);
       toast.success("Student data saved successfully");
@@ -108,19 +124,65 @@ export function StudentFormDialog({
               )}
             />
             
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder="john.doe@example.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="john.doe@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="studentNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Student Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="123456" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="gitlabUsername"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>GitLab Username</FormLabel>
+                    <FormControl>
+                      <Input placeholder="johndoe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="groupNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Group Number</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="0" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             
             <div className="grid grid-cols-2 gap-4">
               <FormField

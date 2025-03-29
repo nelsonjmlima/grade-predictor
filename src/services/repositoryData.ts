@@ -1,4 +1,3 @@
-
 export interface Repository {
   name: string;
   description: string;
@@ -18,6 +17,9 @@ export interface Student {
   commitCount: number;
   grade?: string;
   lastActivity: string;
+  studentNumber?: string;
+  gitlabUsername?: string;
+  groupNumber?: number;
 }
 
 // Default repositories
