@@ -14,9 +14,14 @@ import {
   Building,
   AtSign,
   LockKeyhole,
-  HelpCircle
+  HelpCircle,
+  AlertTriangle
 } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -28,9 +33,23 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
+// Password schema
+const passwordSchema = z.object({
+  currentPassword: z.string().min(1, { message: "Current password is required" }),
+  newPassword: z.string().min(8, { message: "New password must be at least 8 characters" }),
+  confirmPassword: z.string().min(1, { message: "Confirm password is required" }),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const { updatePassword } = useAuth();
   
   const handleSaveGeneral = () => {
     setIsLoading(true);
@@ -40,12 +59,39 @@ export default function SettingsPage() {
     }, 1000);
   };
   
-  const handleSavePassword = () => {
+  // Password form
+  const passwordForm = useForm<PasswordFormValues>({
+    resolver: zodResolver(passwordSchema),
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
+  
+  const handleSavePassword = async (data: PasswordFormValues) => {
     setIsLoading(true);
-    setTimeout(() => {
+    
+    try {
+      // Call the updatePassword function from AuthContext
+      const { error } = await updatePassword(data.newPassword);
+      
+      if (error) {
+        console.error("Password update error:", error);
+        toast.error(error.message || "Failed to update password");
+        passwordForm.setError("root", { 
+          message: error.message || "Failed to update password" 
+        });
+      } else {
+        toast.success("Password updated successfully");
+        passwordForm.reset();
+      }
+    } catch (err) {
+      console.error("Password update exception:", err);
+      toast.error("An unexpected error occurred");
+    } finally {
       setIsLoading(false);
-      toast.success("Password updated successfully");
-    }, 1000);
+    }
   };
 
   const handleSaveIntegrations = () => {
@@ -264,60 +310,115 @@ export default function SettingsPage() {
                     <CardDescription>Update your account password</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label 
-                        htmlFor="currentPassword" 
-                        className="flex items-center gap-1"
-                      >
-                        Current password
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="w-80">Enter your current password to authorize the change</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </Label>
-                      <Input id="currentPassword" type="password" />
-                    </div>
-                    
-                    <Separator />
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="newPassword">New password</Label>
-                      <Input id="newPassword" type="password" />
-                      <p className="text-sm text-muted-foreground">
-                        Password must be at least 8 characters and include a number and special character
-                      </p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">Confirm new password</Label>
-                      <Input id="confirmPassword" type="password" />
-                    </div>
+                    <Form {...passwordForm}>
+                      <form onSubmit={passwordForm.handleSubmit(handleSavePassword)} className="space-y-4">
+                        {passwordForm.formState.errors.root && (
+                          <div className="p-3 bg-destructive/15 text-destructive rounded-md flex items-center gap-2">
+                            <AlertTriangle className="h-4 w-4" />
+                            <span>{passwordForm.formState.errors.root.message}</span>
+                          </div>
+                        )}
+                        
+                        <FormField
+                          control={passwordForm.control}
+                          name="currentPassword"
+                          render={({ field }) => (
+                            <FormItem className="space-y-2">
+                              <FormLabel 
+                                className="flex items-center gap-1"
+                              >
+                                Current password
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="w-80">Enter your current password to authorize the change</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="password"
+                                  placeholder="••••••••"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <Separator />
+                        
+                        <FormField
+                          control={passwordForm.control}
+                          name="newPassword"
+                          render={({ field }) => (
+                            <FormItem className="space-y-2">
+                              <FormLabel>New password</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="password"
+                                  placeholder="••••••••"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <p className="text-sm text-muted-foreground">
+                                Password must be at least 8 characters and include a number and special character
+                              </p>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={passwordForm.control}
+                          name="confirmPassword"
+                          render={({ field }) => (
+                            <FormItem className="space-y-2">
+                              <FormLabel>Confirm new password</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="password"
+                                  placeholder="••••••••"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <CardFooter className="flex justify-end px-0 pt-4">
+                          <Button 
+                            variant="outline" 
+                            className="mr-2"
+                            type="button"
+                            onClick={() => passwordForm.reset()}
+                          >
+                            Cancel
+                          </Button>
+                          <Button 
+                            type="submit"
+                            disabled={isLoading}
+                          >
+                            {isLoading ? (
+                              <>
+                                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                Updating...
+                              </>
+                            ) : (
+                              <>
+                                <Shield className="mr-2 h-4 w-4" />
+                                Update Password
+                              </>
+                            )}
+                          </Button>
+                        </CardFooter>
+                      </form>
+                    </Form>
                   </CardContent>
-                  <CardFooter className="flex justify-end">
-                    <Button 
-                      variant="outline" 
-                      className="mr-2"
-                    >
-                      Cancel
-                    </Button>
-                    <Button onClick={handleSavePassword} disabled={isLoading}>
-                      {isLoading ? (
-                        <>
-                          <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                          Updating...
-                        </>
-                      ) : (
-                        <>
-                          <Shield className="mr-2 h-4 w-4" />
-                          Update Password
-                        </>
-                      )}
-                    </Button>
-                  </CardFooter>
                 </Card>
               </div>
             </TabsContent>
