@@ -13,6 +13,7 @@ import DashboardPage from "./pages/DashboardPage";
 import RepositoriesPage from "./pages/RepositoriesPage";
 import RepositoryDetailsPage from "./pages/RepositoryDetailsPage";
 import AddRepositoryPage from "./pages/AddRepositoryPage";
+import RepositoryComparisonPage from "./pages/RepositoryComparisonPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
@@ -56,6 +57,7 @@ const App = () => {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/repositories" element={<RepositoriesPage />} />
             <Route path="/repositories/add" element={<AddRepositoryPage />} />
+            <Route path="/repositories/compare" element={<RepositoryComparisonPage />} />
             <Route path="/repositories/:id" element={<RepositoryDetailsPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/settings" element={<SettingsPage />} />

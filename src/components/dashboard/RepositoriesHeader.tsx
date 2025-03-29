@@ -1,5 +1,5 @@
 
-import { Plus, GitlabIcon } from "lucide-react";
+import { Plus, GitlabIcon, BarChart2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -14,6 +14,10 @@ export function RepositoriesHeader({ onAddRepository }: RepositoriesHeaderProps)
     navigate("/repositories/add");
   };
   
+  const handleCompareRepositories = () => {
+    navigate("/repositories/compare");
+  };
+  
   return (
     <div className="flex flex-col gap-4 mb-8">
       <div className="flex items-center justify-between">
@@ -24,6 +28,15 @@ export function RepositoriesHeader({ onAddRepository }: RepositoriesHeaderProps)
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-9"
+            onClick={handleCompareRepositories}
+          >
+            <BarChart2 className="h-4 w-4 mr-2" />
+            Compare
+          </Button>
           <Button variant="outline" size="sm" className="h-9">
             <GitlabIcon className="h-4 w-4 mr-2" />
             Sync Repositories
