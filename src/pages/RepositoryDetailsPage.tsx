@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,9 @@ import {
   ArrowLeft, 
   GitMerge,
   Edit,
-  Activity
+  Activity,
+  Save,
+  FileUp
 } from "lucide-react";
 import { toast } from "sonner";
 import { 
@@ -31,6 +33,7 @@ import {
 import { DeleteRepositoryDialog } from "@/components/dashboard/DeleteRepositoryDialog";
 import { EditRepositoryDialog } from "@/components/dashboard/EditRepositoryDialog";
 import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
+import { CSVImportDialog } from "@/components/dashboard/CSVImportDialog";
 
 export default function RepositoryDetailsPage() {
   const { id } = useParams();
@@ -39,6 +42,8 @@ export default function RepositoryDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [csvImportDialogOpen, setCsvImportDialogOpen] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const loadRepository = () => {
     if (id) {
@@ -68,6 +73,7 @@ export default function RepositoryDetailsPage() {
 
   const handleRepositoryUpdated = (updatedRepo: Repository) => {
     setRepository(updatedRepo);
+    setHasUnsavedChanges(false);
   };
 
   const addSampleData = () => {
@@ -82,14 +88,44 @@ export default function RepositoryDetailsPage() {
       };
       
       setRepository(updatedRepo);
+      setHasUnsavedChanges(true);
       
-      const success = updateRepository(repository.id, updatedRepo);
+      toast.success("Sample data added", {
+        description: "Repository data has been updated with sample values. Don't forget to save your changes."
+      });
+    }
+  };
+
+  const saveChanges = () => {
+    if (repository && repository.id) {
+      const success = updateRepository(repository.id, repository);
       
       if (success) {
-        toast.success("Sample data added", {
-          description: "Repository data has been updated with sample values."
+        setHasUnsavedChanges(false);
+        toast.success("Changes saved", {
+          description: "Repository data has been saved successfully."
+        });
+      } else {
+        toast.error("Failed to save changes", {
+          description: "An error occurred while saving your changes."
         });
       }
+    }
+  };
+
+  const handleCSVDataImported = (data: Partial<Repository>) => {
+    if (repository && repository.id) {
+      const updatedRepo = {
+        ...repository,
+        ...data
+      };
+      
+      setRepository(updatedRepo);
+      setHasUnsavedChanges(true);
+      
+      toast.success("CSV data imported", {
+        description: "Repository data has been updated with imported values. Don't forget to save your changes."
+      });
     }
   };
 
@@ -133,11 +169,36 @@ export default function RepositoryDetailsPage() {
                   <p className="text-muted-foreground">{repository.description}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" onClick={() => setEditDialogOpen(true)} className="gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setCsvImportDialogOpen(true)} 
+                    className="gap-2"
+                  >
+                    <FileUp className="h-4 w-4" />
+                    Import CSV
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setEditDialogOpen(true)} 
+                    className="gap-2"
+                  >
                     <Edit className="h-4 w-4" />
                     Edit
                   </Button>
-                  <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)} className="gap-2">
+                  <Button 
+                    variant="default" 
+                    onClick={saveChanges} 
+                    className="gap-2"
+                    disabled={!hasUnsavedChanges}
+                  >
+                    <Save className="h-4 w-4" />
+                    Save Changes
+                  </Button>
+                  <Button 
+                    variant="destructive" 
+                    onClick={() => setDeleteDialogOpen(true)} 
+                    className="gap-2"
+                  >
                     <Trash className="h-4 w-4" />
                     Delete
                   </Button>
@@ -260,6 +321,12 @@ export default function RepositoryDetailsPage() {
                 onOpenChange={setEditDialogOpen}
                 repository={repository}
                 onRepositoryUpdated={handleRepositoryUpdated}
+              />
+
+              <CSVImportDialog
+                open={csvImportDialogOpen}
+                onOpenChange={setCsvImportDialogOpen}
+                onDataImported={handleCSVDataImported}
               />
             </>
           )}
