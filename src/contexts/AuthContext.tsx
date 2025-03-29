@@ -12,6 +12,8 @@ interface AuthContextType {
   signUp: (email: string, password: string, metadata: any) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: any }>;
+  updatePassword: (password: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,6 +36,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           navigate('/dashboard');
         } else if (event === 'SIGNED_OUT') {
           navigate('/');
+        } else if (event === 'PASSWORD_RECOVERY') {
+          navigate('/reset-password?type=update');
         }
       }
     );
@@ -86,6 +90,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password?type=update`,
+      });
+      return { error };
+    } catch (error) {
+      console.error("Error during password reset:", error);
+      return { error };
+    }
+  };
+
+  const updatePassword = async (password: string) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password,
+      });
+      return { error };
+    } catch (error) {
+      console.error("Error during password update:", error);
+      return { error };
+    }
+  };
+
   const value = {
     user,
     session,
@@ -93,6 +121,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signIn,
     signOut,
+    resetPassword,
+    updatePassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
