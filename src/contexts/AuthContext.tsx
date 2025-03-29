@@ -33,7 +33,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (event === 'SIGNED_IN') {
-          navigate('/dashboard');
+          // Redirect to verification page instead of dashboard
+          navigate('/verification');
         } else if (event === 'SIGNED_OUT') {
           navigate('/');
         } else if (event === 'PASSWORD_RECOVERY') {

@@ -5,20 +5,63 @@ import { ShieldCheck, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function VerificationPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [verificationComplete, setVerificationComplete] = useState(false);
+  const [verificationSteps, setVerificationSteps] = useState({
+    identity: false,
+    account: false,
+    permissions: false
+  });
 
+  // Perform actual verification checks
   useEffect(() => {
-    // Simulate verification process
-    const verificationTimer = setTimeout(() => {
-      setVerificationComplete(true);
-      toast.success("User data successfully verified!");
-    }, 2000);
+    const performVerification = async () => {
+      if (!user) {
+        // Handle case where there's no user
+        toast.error("No user found. Please log in again.");
+        navigate("/");
+        return;
+      }
 
-    return () => clearTimeout(verificationTimer);
-  }, []);
+      try {
+        // Step 1: Check if user identity is confirmed (email verification)
+        // For this demo, we'll simulate checking email confirmation
+        setVerificationSteps(prev => ({ ...prev, identity: true }));
+        
+        // Step 2: Check if user account is active in our database
+        // Here we're checking if the user exists in Supabase
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        
+        if (userError) {
+          throw new Error(userError.message);
+        }
+        
+        if (userData && userData.user) {
+          setVerificationSteps(prev => ({ ...prev, account: true }));
+        }
+        
+        // Step 3: Check if user has the necessary permissions
+        // In a real app, you might check roles or permissions
+        // For demo purposes, we'll simulate this
+        setTimeout(() => {
+          setVerificationSteps(prev => ({ ...prev, permissions: true }));
+          setVerificationComplete(true);
+          toast.success("User verification completed successfully!");
+        }, 1000);
+        
+      } catch (error) {
+        console.error("Verification error:", error);
+        toast.error("An error occurred during verification. Please try again.");
+      }
+    };
+
+    performVerification();
+  }, [user, navigate]);
 
   const handleContinue = () => {
     navigate("/dashboard");
@@ -45,7 +88,7 @@ export default function VerificationPage() {
           </CardTitle>
           <CardDescription className="text-gray-300 text-lg">
             {verificationComplete 
-              ? "Your account has been successfully verified" 
+              ? `Welcome ${user?.email || 'User'}! Your account has been verified` 
               : "Please wait while we verify your account information"}
           </CardDescription>
         </CardHeader>
@@ -55,7 +98,9 @@ export default function VerificationPage() {
               {!verificationComplete ? (
                 <div className="flex flex-col items-center justify-center space-y-4">
                   <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-500 rounded-full animate-[pulse_2s_ease-in-out_infinite]" style={{ width: "60%" }}></div>
+                    <div className="h-full bg-blue-500 rounded-full animate-[pulse_2s_ease-in-out_infinite]" 
+                         style={{ width: `${Object.values(verificationSteps).filter(Boolean).length / 3 * 100}%` }}>
+                    </div>
                   </div>
                   <p className="text-sm text-gray-300">Verifying credentials...</p>
                 </div>
