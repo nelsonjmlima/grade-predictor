@@ -16,7 +16,7 @@ export default function LoginPage() {
           <h1 className="text-3xl font-semibold tracking-tight text-white">Grade Predictor</h1>
           <p className="text-gray-200 mt-2">Analyze GitLab metrics to predict student success</p>
         </div>
-        <div className="w-full max-w-md px-4">
+        <div className="w-full max-w-lg px-4">
           <AuthForm />
         </div>
       </div>
