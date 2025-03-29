@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import {
   User,
@@ -21,6 +22,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { supabase } from "@/integrations/supabase/client";
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -33,6 +35,17 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
+// Profile schema
+const profileSchema = z.object({
+  firstName: z.string().min(1, { message: "First name is required" }),
+  lastName: z.string().min(1, { message: "Last name is required" }),
+  email: z.string().email({ message: "Invalid email address" }).optional(),
+  institution: z.string().optional(),
+  department: z.string().optional(),
+});
+
+type ProfileFormValues = z.infer<typeof profileSchema>;
 
 // Password schema
 const passwordSchema = z.object({
@@ -48,14 +61,90 @@ type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const { updatePassword } = useAuth();
+  const { user, updatePassword } = useAuth();
+  const [userMetadata, setUserMetadata] = useState<any>(null);
   
-  const handleSaveGeneral = () => {
+  // Profile form
+  const profileForm = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      institution: "",
+      department: "",
+    },
+  });
+
+  // Load user data when component mounts
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (user) {
+        try {
+          const { data: { user: userData }, error } = await supabase.auth.getUser();
+          
+          if (error) {
+            console.error("Error fetching user data:", error);
+            toast.error("Failed to load user data");
+            return;
+          }
+
+          if (userData) {
+            const metadata = userData.user_metadata || {};
+            setUserMetadata(metadata);
+            
+            profileForm.reset({
+              firstName: metadata.first_name || "",
+              lastName: metadata.last_name || "",
+              email: userData.email || "",
+              institution: metadata.institution || "",
+              department: metadata.department || "",
+            });
+          }
+        } catch (error) {
+          console.error("Error in loadUserData:", error);
+          toast.error("Failed to load user data");
+        }
+      }
+    };
+
+    loadUserData();
+  }, [user, profileForm]);
+  
+  const handleSaveGeneral = async (data: ProfileFormValues) => {
     setIsLoading(true);
-    setTimeout(() => {
+    
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          first_name: data.firstName,
+          last_name: data.lastName,
+          institution: data.institution,
+          department: data.department,
+        }
+      });
+      
+      if (error) {
+        console.error("Error updating profile:", error);
+        toast.error(error.message || "Failed to update profile");
+      } else {
+        toast.success("Profile updated successfully");
+        
+        // Update local metadata state to reflect changes
+        setUserMetadata({
+          ...userMetadata,
+          first_name: data.firstName,
+          last_name: data.lastName,
+          institution: data.institution,
+          department: data.department,
+        });
+      }
+    } catch (error) {
+      console.error("Error during profile update:", error);
+      toast.error("An unexpected error occurred");
+    } finally {
       setIsLoading(false);
-      toast.success("Profile updated successfully");
-    }, 1000);
+    }
   };
   
   // Password form
@@ -109,6 +198,25 @@ export default function SettingsPage() {
     }, 1000);
   };
 
+  // Format date helper function
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  // Get last login time
+  const getLastLogin = () => {
+    if (user?.last_sign_in_at) {
+      const date = new Date(user.last_sign_in_at);
+      return `${date.toLocaleDateString()} at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    }
+    return "N/A";
+  };
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <SideNav />
@@ -147,80 +255,131 @@ export default function SettingsPage() {
             <TabsContent value="general">
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <User className="h-5 w-5 mr-2" />
-                        Personal Information
-                      </CardTitle>
-                      <CardDescription>Update your basic profile details</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="firstName" className="flex items-center gap-1">
-                            First name
-                          </Label>
-                          <Input id="firstName" defaultValue="Nuno" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="lastName" className="flex items-center gap-1">
-                            Last name
-                          </Label>
-                          <Input id="lastName" defaultValue="Seixas" />
-                        </div>
-                      </div>
+                  <Form {...profileForm}>
+                    <form onSubmit={profileForm.handleSubmit(handleSaveGeneral)}>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center">
+                            <User className="h-5 w-5 mr-2" />
+                            Personal Information
+                          </CardTitle>
+                          <CardDescription>Update your basic profile details</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={profileForm.control}
+                              name="firstName"
+                              render={({ field }) => (
+                                <FormItem className="space-y-2">
+                                  <FormLabel className="flex items-center gap-1">
+                                    First name
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={profileForm.control}
+                              name="lastName"
+                              render={({ field }) => (
+                                <FormItem className="space-y-2">
+                                  <FormLabel className="flex items-center gap-1">
+                                    Last name
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          
+                          <FormField
+                            control={profileForm.control}
+                            name="email"
+                            render={({ field }) => (
+                              <FormItem className="space-y-2">
+                                <FormLabel className="flex items-center gap-1">
+                                  <AtSign className="h-4 w-4" />
+                                  Email address
+                                </FormLabel>
+                                <FormControl>
+                                  <Input {...field} type="email" disabled />
+                                </FormControl>
+                                <p className="text-sm text-muted-foreground">Email cannot be changed</p>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </CardContent>
+                      </Card>
                       
-                      <div className="space-y-2">
-                        <Label htmlFor="email" className="flex items-center gap-1">
-                          <AtSign className="h-4 w-4" />
-                          Email address
-                        </Label>
-                        <Input id="email" type="email" defaultValue="n.seixas@university.edu" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <Building className="h-5 w-5 mr-2" />
-                        Institution Details
-                      </CardTitle>
-                      <CardDescription>Manage your institution information</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="institution" className="flex items-center gap-1">
-                          <Briefcase className="h-4 w-4" />
-                          Institution
-                        </Label>
-                        <Input id="institution" defaultValue="University of Technology" />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="department" className="flex items-center gap-1">
-                          Institution Department
-                        </Label>
-                        <Input id="department" defaultValue="Computer Science" />
-                      </div>
-                    </CardContent>
-                    <CardFooter>
-                      <Button onClick={handleSaveGeneral} disabled={isLoading} className="ml-auto">
-                        {isLoading ? (
-                          <>
-                            <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                            Saving...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="mr-2 h-4 w-4" />
-                            Save Changes
-                          </>
-                        )}
-                      </Button>
-                    </CardFooter>
-                  </Card>
+                      <Card className="mt-6">
+                        <CardHeader>
+                          <CardTitle className="flex items-center">
+                            <Building className="h-5 w-5 mr-2" />
+                            Institution Details
+                          </CardTitle>
+                          <CardDescription>Manage your institution information</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <FormField
+                            control={profileForm.control}
+                            name="institution"
+                            render={({ field }) => (
+                              <FormItem className="space-y-2">
+                                <FormLabel className="flex items-center gap-1">
+                                  <Briefcase className="h-4 w-4" />
+                                  Institution
+                                </FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={profileForm.control}
+                            name="department"
+                            render={({ field }) => (
+                              <FormItem className="space-y-2">
+                                <FormLabel className="flex items-center gap-1">
+                                  Institution Department
+                                </FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </CardContent>
+                        <CardFooter>
+                          <Button type="submit" disabled={isLoading} className="ml-auto">
+                            {isLoading ? (
+                              <>
+                                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                Saving...
+                              </>
+                            ) : (
+                              <>
+                                <Save className="mr-2 h-4 w-4" />
+                                Save Changes
+                              </>
+                            )}
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    </form>
+                  </Form>
                 </div>
                 
                 <div className="space-y-6">
@@ -236,19 +395,19 @@ export default function SettingsPage() {
                       <div className="space-y-1">
                         <div className="text-sm text-muted-foreground">Account Type</div>
                         <div className="font-medium flex items-center">
-                          Professor
+                          {userMetadata?.role || "Professor"}
                           <Badge className="ml-2 bg-primary">Active</Badge>
                         </div>
                       </div>
                       
                       <div className="space-y-1">
                         <div className="text-sm text-muted-foreground">Member Since</div>
-                        <div className="font-medium">October 15, 2023</div>
+                        <div className="font-medium">{formatDate(user?.created_at) || "Not available"}</div>
                       </div>
                       
                       <div className="space-y-1">
                         <div className="text-sm text-muted-foreground">Last Login</div>
-                        <div className="font-medium">Today at 9:42 AM</div>
+                        <div className="font-medium">{getLastLogin()}</div>
                       </div>
                       
                       <div className="rounded-lg bg-muted p-4">
@@ -257,7 +416,7 @@ export default function SettingsPage() {
                             <CheckCircle2 className="h-5 w-5 text-green-500" />
                             <div className="font-medium">Email Verified</div>
                           </div>
-                          <Badge variant="outline" className="bg-green-50">Complete</Badge>
+                          <Badge variant="outline" className="bg-green-50">{user?.email_confirmed_at ? "Complete" : "Pending"}</Badge>
                         </div>
                       </div>
                     </CardContent>
