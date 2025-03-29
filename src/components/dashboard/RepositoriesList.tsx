@@ -75,19 +75,16 @@ export function RepositoriesList({
     );
   }
 
-  // Display only Programming Fundamentals repository at the top
-  const programmingFundamentalsRepo = repositories.find(repo => repo.id === 'programming-fundamentals');
-  const repositoriesToDisplay = programmingFundamentalsRepo ? [programmingFundamentalsRepo] : repositories;
-
+  // Display all repositories, not just the first one
   return (
     <ScrollArea className="h-full">
       <div className={viewMode === 'grid' 
         ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" 
         : "space-y-3"
       }>
-        {repositoriesToDisplay.map((repo) => (
+        {repositories.map((repo) => (
           <div 
-            key={repo.name} 
+            key={repo.id || repo.name} 
             className="cursor-pointer transform transition-transform hover:scale-[1.01]"
             onClick={() => handleRepositoryClick(repo)}
           >

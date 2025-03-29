@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -12,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { addRepository } from "@/services/repositoryData";
 
 const formSchema = z.object({
   name: z.string().min(3, { message: "Repository name must be at least 3 characters" }),
@@ -55,11 +55,6 @@ export function CreateRepositoryDialog({
     setIsSubmitting(true);
     
     try {
-      // Simulate API call with a timeout
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log("Creating repository with values:", values);
-      
       // Create a new repository object
       const newRepo = {
         id: values.name.toLowerCase().replace(/\s+/g, '-'),
@@ -72,8 +67,8 @@ export function CreateRepositoryDialog({
         progress: 0,
       };
       
-      // In a real app, we would add this to the database
-      console.log("New repository created:", newRepo);
+      // Add the repository to storage
+      addRepository(newRepo);
       
       // Show success notification
       toast.success("Repository created successfully", {

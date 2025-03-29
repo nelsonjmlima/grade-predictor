@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
 import { StudentComparisonChart } from "@/components/dashboard/StudentComparisonChart";
@@ -8,35 +8,33 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-// Filter to only show Programming Fundamentals repository
-const repository = {
-  id: 'programming-fundamentals',
-  name: "Programming Fundamentals 2023",
-  description: "Curso introdutório aos fundamentos de programação para alunos de Ciência da Computação",
-  lastActivity: "Hoje às 13:45",
-  commitCount: 127,
-  mergeRequestCount: 18,
-  branchCount: 5,
-  progress: 68,
-  predictedGrade: "B+"
-};
+import { getRepositories, Repository } from "@/services/repositoryData";
 
 export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [repositories, setRepositories] = useState<Repository[]>([]);
   const navigate = useNavigate();
+
+  // Fetch repositories on mount and when dialogOpen changes (indicating a potential new repo)
+  useEffect(() => {
+    const fetchedRepositories = getRepositories();
+    setRepositories(fetchedRepositories);
+  }, [dialogOpen]);
 
   const handleCreateRepository = () => {
     setDialogOpen(true);
   };
 
-  const handleRepositoryClick = () => {
-    navigate(`/repositories/${repository.id}`);
+  const handleRepositoryClick = (repoId: string) => {
+    navigate(`/repositories/${repoId}`);
   };
 
   const handleAddRepository = () => {
     navigate("/repositories/add");
   };
+
+  // Get the main repository (either the first one or a specific featured one)
+  const mainRepository = repositories.length > 0 ? repositories[0] : null;
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -57,7 +55,9 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex-1">
               <p className="text-sm text-muted-foreground">
-                Currently managing the Programming Fundamentals 2023 repository.
+                {mainRepository 
+                  ? `Currently managing ${mainRepository.name}.`
+                  : "No repositories available. Add your first repository."}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -76,12 +76,14 @@ export default function DashboardPage() {
           </div>
           
           <div className="mb-4">
-            <div 
-              className="cursor-pointer transform transition-transform hover:scale-[1.01]"
-              onClick={handleRepositoryClick}
-            >
-              <RepositoryCard {...repository} />
-            </div>
+            {mainRepository && (
+              <div 
+                className="cursor-pointer transform transition-transform hover:scale-[1.01]"
+                onClick={() => handleRepositoryClick(mainRepository.id || '')}
+              >
+                <RepositoryCard {...mainRepository} />
+              </div>
+            )}
           </div>
           
           <div className="mb-4">
@@ -93,6 +95,11 @@ export default function DashboardPage() {
       <CreateRepositoryDialog 
         open={dialogOpen} 
         onOpenChange={setDialogOpen} 
+        onRepositoryCreated={() => {
+          // Refresh repositories after creation
+          const updatedRepositories = getRepositories();
+          setRepositories(updatedRepositories);
+        }}
       />
     </div>
   );

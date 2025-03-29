@@ -1,12 +1,12 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
 import { RepositoriesHeader } from "@/components/dashboard/RepositoriesHeader";
 import { RepositoryControls } from "@/components/dashboard/RepositoryControls";
 import { RepositoriesList } from "@/components/dashboard/RepositoriesList";
 import { 
-  allRepositories, 
+  getRepositories,
   sampleStudents, 
   programmingStudents,
   filterRepositories,
@@ -20,8 +20,14 @@ export default function RepositoriesPage() {
   const [showGradesTemplate, setShowGradesTemplate] = useState(false);
   const [selectedRepository, setSelectedRepository] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [repositories, setRepositories] = useState(getRepositories());
   
-  const filteredRepositories = filterRepositories(allRepositories, searchTerm);
+  // Refresh repositories when dialog opens/closes or when component mounts
+  useEffect(() => {
+    setRepositories(getRepositories());
+  }, [dialogOpen]);
+  
+  const filteredRepositories = filterRepositories(repositories, searchTerm);
   const sortedRepositories = sortRepositories(filteredRepositories, sortBy);
 
   const handleRepositorySelect = (repoId: string) => {
@@ -35,6 +41,11 @@ export default function RepositoriesPage() {
 
   const handleViewModeChange = (mode: 'grid' | 'list') => {
     setViewMode(mode);
+  };
+
+  const handleRepositoryCreated = () => {
+    // Refresh repositories after creation
+    setRepositories(getRepositories());
   };
 
   return (
@@ -73,6 +84,7 @@ export default function RepositoriesPage() {
       <CreateRepositoryDialog 
         open={dialogOpen} 
         onOpenChange={setDialogOpen} 
+        onRepositoryCreated={handleRepositoryCreated}
       />
     </div>
   );

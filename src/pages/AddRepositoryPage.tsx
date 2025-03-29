@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -12,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { allRepositories } from "@/services/repositoryData";
+import { addRepository } from "@/services/repositoryData";
 
 const formSchema = z.object({
   name: z.string().min(3, { message: "Repository name must be at least 3 characters" }),
@@ -47,11 +46,6 @@ export default function AddRepositoryPage() {
     setIsSubmitting(true);
     
     try {
-      // Simulate API call with a timeout
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log("Creating repository with values:", values);
-      
       // Create a new repository object
       const newRepo = {
         id: values.name.toLowerCase().replace(/\s+/g, '-'),
@@ -64,9 +58,8 @@ export default function AddRepositoryPage() {
         progress: 0,
       };
       
-      // In a real app, we would add this to the database
-      // For now, we'll log it to console
-      console.log("New repository created:", newRepo);
+      // Add the repository to storage
+      addRepository(newRepo);
       
       // Show success notification
       toast.success("Repository created successfully", {

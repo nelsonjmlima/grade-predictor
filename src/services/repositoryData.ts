@@ -1,3 +1,4 @@
+
 export interface Repository {
   name: string;
   description: string;
@@ -19,8 +20,8 @@ export interface Student {
   lastActivity: string;
 }
 
-// Make sure each repository has an ID
-export const allRepositories = [
+// Default repositories
+const defaultRepositories = [
   {
     id: 'programming-fundamentals',
     name: "Programming Fundamentals 2023",
@@ -74,6 +75,28 @@ export const allRepositories = [
     progress: 51
   }
 ];
+
+// Get repositories from localStorage or use default ones
+export const getRepositories = (): Repository[] => {
+  const storedRepositories = localStorage.getItem('repositories');
+  if (storedRepositories) {
+    return JSON.parse(storedRepositories);
+  } else {
+    // Initialize with default repositories if nothing is stored
+    localStorage.setItem('repositories', JSON.stringify(defaultRepositories));
+    return defaultRepositories;
+  }
+};
+
+// Add a new repository
+export const addRepository = (repository: Repository): void => {
+  const repositories = getRepositories();
+  repositories.unshift(repository); // Add new repository at the beginning
+  localStorage.setItem('repositories', JSON.stringify(repositories));
+};
+
+// Export for compatibility with existing code
+export const allRepositories = getRepositories();
 
 export const sampleStudents: Student[] = [
   {
