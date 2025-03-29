@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
@@ -18,7 +17,6 @@ export default function RepositoryDetailsPage() {
 
   useEffect(() => {
     if (id) {
-      // Find repository by id
       const foundRepo = allRepositories.find(repo => repo.id === id);
       if (foundRepo) {
         setRepository(foundRepo);
@@ -31,7 +29,6 @@ export default function RepositoryDetailsPage() {
     navigate(-1);
   };
 
-  // If repository not found
   if (!loading && !repository) {
     return (
       <div className="flex h-screen overflow-hidden">
@@ -152,7 +149,8 @@ export default function RepositoryDetailsPage() {
                 <TabsContent value="students">
                   <RepositoryGradesView 
                     repositoryName={repository.name} 
-                    students={students} 
+                    students={students}
+                    repositoryId={id}
                   />
                 </TabsContent>
                 

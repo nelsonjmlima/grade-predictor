@@ -12,6 +12,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import DashboardPage from "./pages/DashboardPage";
 import RepositoriesPage from "./pages/RepositoriesPage";
 import RepositoryDetailsPage from "./pages/RepositoryDetailsPage";
+import StudentMetricsPage from "./pages/StudentMetricsPage";
 import AddRepositoryPage from "./pages/AddRepositoryPage";
 import RepositoryComparisonPage from "./pages/RepositoryComparisonPage";
 import RepositoryRankingPage from "./pages/RepositoryRankingPage";
@@ -61,6 +62,7 @@ const App = () => {
             <Route path="/repositories/compare" element={<RepositoryComparisonPage />} />
             <Route path="/repositories/ranking" element={<RepositoryRankingPage />} />
             <Route path="/repositories/:id" element={<RepositoryDetailsPage />} />
+            <Route path="/repositories/:id/student/:studentId" element={<StudentMetricsPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/login" element={<Navigate to="/" replace />} />

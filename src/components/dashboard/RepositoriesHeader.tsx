@@ -1,7 +1,8 @@
 
-import { Plus, GitlabIcon, BarChart2, Trophy } from "lucide-react";
+import { Plus, GitlabIcon, BarChart2, Trophy, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface RepositoriesHeaderProps {
   onAddRepository: () => void;
@@ -20,6 +21,19 @@ export function RepositoriesHeader({ onAddRepository }: RepositoriesHeaderProps)
   
   const handleRankRepositories = () => {
     navigate("/repositories/ranking");
+  };
+  
+  const handleSyncRepositories = () => {
+    toast.success("Synchronization started", {
+      description: "Your GitLab repositories are being synchronized.",
+    });
+    
+    // Simulate sync completion after 2 seconds
+    setTimeout(() => {
+      toast.success("Synchronization complete", {
+        description: "All repositories have been updated successfully.",
+      });
+    }, 2000);
   };
   
   return (
@@ -50,7 +64,12 @@ export function RepositoriesHeader({ onAddRepository }: RepositoriesHeaderProps)
             <BarChart2 className="h-4 w-4 mr-2" />
             Compare
           </Button>
-          <Button variant="outline" size="sm" className="h-9">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-9"
+            onClick={handleSyncRepositories}
+          >
             <GitlabIcon className="h-4 w-4 mr-2" />
             Sync Repositories
           </Button>
