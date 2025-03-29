@@ -1,17 +1,14 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, GitCommit, GitBranch, GitMerge, Users, Activity, Edit, Trash } from "lucide-react";
-import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
-import { getRepositories, sampleStudents, programmingStudents, Repository } from "@/services/repositoryData";
-import { DeleteRepositoryDialog } from "@/components/dashboard/DeleteRepositoryDialog";
-import { EditRepositoryDialog } from "@/components/dashboard/EditRepositoryDialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GitBranch, GitCommit, Clock, Trash, PlusCircle } from "lucide-react";
 import { toast } from "sonner";
+import { getRepositories, updateRepository, deleteRepository } from "@/services/repositoryData";
+import { DeleteRepositoryDialog } from "@/components/dashboard/DeleteRepositoryDialog";
 
 export default function RepositoryDetailsPage() {
   const { id } = useParams();
@@ -64,7 +61,6 @@ export default function RepositoryDetailsPage() {
       
       setRepository(updatedRepo);
       
-      // Update in storage
       const success = updateRepository(repository.id, updatedRepo);
       
       if (success) {
@@ -229,7 +225,6 @@ export default function RepositoryDetailsPage() {
                 </TabsContent>
               </Tabs>
               
-              {/* Dialogs */}
               <DeleteRepositoryDialog 
                 open={deleteDialogOpen}
                 onOpenChange={setDeleteDialogOpen}
