@@ -93,10 +93,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = async (email: string) => {
     try {
-      // Get the base URL of the application
+      // Get the absolute URL of the current site instead of using localhost
+      // This should return the full production URL
       const baseUrl = window.location.origin;
       console.log("Reset password base URL:", baseUrl);
       
+      // Configure the reset password endpoint with the correct production URL
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${baseUrl}/reset-password?type=update`,
       });

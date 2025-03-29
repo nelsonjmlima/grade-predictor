@@ -45,31 +45,40 @@ export default function ResetPasswordPage() {
   // Check for Supabase auth hash in URL
   useEffect(() => {
     const handleHashChange = async () => {
+      // Get the full URL including the hash
+      const fullUrl = window.location.href;
       const hash = window.location.hash;
+      
+      console.log("Checking URL for recovery token:", fullUrl);
+      
       if (hash && hash.includes('access_token') && hash.includes('type=recovery')) {
         console.log("Hash detected in URL, setting update mode");
         
-        // Extract hash parameters (including the access token)
-        const hashParams = new URLSearchParams(hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        
-        if (accessToken) {
-          try {
-            // Process the recovery token
-            const { error } = await supabase.auth.refreshSession({ refresh_token: accessToken });
+        // Process the recovery token
+        try {
+          // Extract access token from hash
+          const hashParams = new URLSearchParams(hash.substring(1));
+          const accessToken = hashParams.get('access_token');
+          
+          if (accessToken) {
+            console.log("Found access token in URL, attempting to process it");
+            
+            // Use the session parameter instead of refresh token
+            const { data, error } = await supabase.auth.getUser(accessToken);
             
             if (error) {
               console.error("Error processing recovery token:", error);
               toast.error("Invalid or expired recovery link. Please try again.");
               navigate('/reset-password');
             } else {
-              // Redirect to the update password page
-              navigate('/reset-password?type=update');
+              console.log("Successfully authenticated with recovery token");
+              // Redirect to the update password page without the hash
+              navigate('/reset-password?type=update', { replace: true });
             }
-          } catch (error) {
-            console.error("Error processing recovery token:", error);
-            toast.error("Failed to process recovery link. Please try again.");
           }
+        } catch (error) {
+          console.error("Error processing recovery token:", error);
+          toast.error("Failed to process recovery link. Please try again.");
         }
       }
     };
