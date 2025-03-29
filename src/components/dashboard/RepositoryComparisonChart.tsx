@@ -5,36 +5,15 @@ import {
   Tooltip, ResponsiveContainer, Legend 
 } from "recharts";
 import { Loader2 } from "lucide-react";
-
-interface Repository {
-  id: number;
-  name: string;
-}
+import { Repository } from "@/services/repositoryData";
 
 interface RepositoryComparisonChartProps {
-  selectedRepos: number[];
+  selectedRepos: string[];
   repositories: Repository[];
   selectedMetric: string;
   viewType: string;
+  timePeriod: string;
 }
-
-// Sample data for each repository and metric
-const generateRepositoryData = (repos: Repository[], metric: string) => {
-  // Time points for x-axis
-  const timePoints = ["Week 1", "Week 3", "Week 6", "Week 9", "Week 12", "Week 15"];
-  
-  // Generate random data for each repository
-  return timePoints.map(timePoint => {
-    const data: any = { name: timePoint };
-    repos.forEach(repo => {
-      // Generate a random value between 30-100, with some consistency based on repo ID
-      const baseValue = 30 + (repo.id * 5) % 20;
-      const randomValue = baseValue + Math.floor(Math.random() * 50);
-      data[repo.name] = randomValue;
-    });
-    return data;
-  });
-};
 
 // Define colors for the repositories
 const colors = [
@@ -46,18 +25,83 @@ const colors = [
   "#EC4899", // Pink
 ];
 
+// Generate time points based on the selected time period
+const generateTimePoints = (timePeriod: string) => {
+  switch (timePeriod) {
+    case "week":
+      return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    case "month":
+      return ["Week 1", "Week 2", "Week 3", "Week 4"];
+    case "semester":
+    default:
+      return ["Week 1", "Week 3", "Week 6", "Week 9", "Week 12", "Week 15"];
+  }
+};
+
+// Generate metric data based on the selected metric
+const generateMetricData = (repo: Repository, metric: string) => {
+  // Base value is determined by the repository's metrics
+  let baseValue = 40;
+  
+  switch (metric) {
+    case "commit_frequency":
+      baseValue = 30 + (repo.commitCount / 10);
+      break;
+    case "code_quality":
+      baseValue = 40 + (repo.progress / 5);
+      break;
+    case "test_coverage":
+      baseValue = 20 + (repo.progress / 4);
+      break;
+    case "completion_rate":
+      baseValue = repo.progress;
+      break;
+    case "collaboration":
+      baseValue = 30 + (repo.mergeRequestCount * 2);
+      break;
+    default:
+      baseValue = 40 + (repo.progress / 3);
+  }
+  
+  // Cap the value at 100
+  return Math.min(baseValue, 100);
+};
+
+// Generate repository data for chart
+const generateRepositoryData = (repos: Repository[], metric: string, timePeriod: string) => {
+  // Time points for x-axis
+  const timePoints = generateTimePoints(timePeriod);
+  
+  // Generate data for each repository
+  return timePoints.map((timePoint, index) => {
+    const data: any = { name: timePoint };
+    repos.forEach(repo => {
+      // Base value from repo metrics
+      const baseValue = generateMetricData(repo, metric);
+      
+      // Add some variance based on the time point (index)
+      const variance = Math.sin(index * 0.5) * 10; // Sine wave pattern
+      const finalValue = Math.round(Math.max(0, Math.min(100, baseValue + variance)));
+      
+      data[repo.name] = finalValue;
+    });
+    return data;
+  });
+};
+
 export function RepositoryComparisonChart({ 
   selectedRepos,
   repositories,
   selectedMetric,
-  viewType 
+  viewType,
+  timePeriod
 }: RepositoryComparisonChartProps) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Selected repositories filtered from all repositories
+  // Filter repositories based on selected IDs
   const filteredRepositories = repositories.filter(repo => 
-    selectedRepos.includes(repo.id)
+    selectedRepos.includes(repo.id || "")
   );
 
   useEffect(() => {
@@ -65,13 +109,13 @@ export function RepositoryComparisonChart({
     setLoading(true);
     
     const timer = setTimeout(() => {
-      const newData = generateRepositoryData(filteredRepositories, selectedMetric);
+      const newData = generateRepositoryData(filteredRepositories, selectedMetric, timePeriod);
       setData(newData);
       setLoading(false);
     }, 800);
     
     return () => clearTimeout(timer);
-  }, [selectedRepos, selectedMetric, filteredRepositories]);
+  }, [selectedRepos, selectedMetric, filteredRepositories, timePeriod]);
 
   if (loading) {
     return (
@@ -80,6 +124,18 @@ export function RepositoryComparisonChart({
       </div>
     );
   }
+
+  // Get metric label for tooltip
+  const getMetricLabel = () => {
+    switch (selectedMetric) {
+      case "commit_frequency": return "Commit Frequency";
+      case "code_quality": return "Code Quality";
+      case "test_coverage": return "Test Coverage";
+      case "completion_rate": return "Completion Rate";
+      case "collaboration": return "Collaboration";
+      default: return "Score";
+    }
+  };
 
   return (
     <div className="h-[400px]">
@@ -105,7 +161,7 @@ export function RepositoryComparisonChart({
               tickFormatter={(value) => `${value}%`}
             />
             <Tooltip 
-              formatter={(value) => [`${value}%`, "Score"]}
+              formatter={(value) => [`${value}%`, getMetricLabel()]}
               contentStyle={{ 
                 borderRadius: '8px', 
                 border: 'none', 
@@ -140,7 +196,7 @@ export function RepositoryComparisonChart({
               tickFormatter={(value) => `${value}%`}
             />
             <Tooltip 
-              formatter={(value) => [`${value}%`, "Score"]}
+              formatter={(value) => [`${value}%`, getMetricLabel()]}
               contentStyle={{ 
                 borderRadius: '8px', 
                 border: 'none', 

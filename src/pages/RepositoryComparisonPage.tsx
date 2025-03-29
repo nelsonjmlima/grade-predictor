@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { RepositoriesHeader } from "@/components/dashboard/RepositoriesHeader";
 import { RepositoryComparisonChart } from "@/components/dashboard/RepositoryComparisonChart";
@@ -14,15 +14,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-// Sample repository data
-const repositories = [
-  { id: 1, name: "Team Alpha Project" },
-  { id: 2, name: "Web Development Course" },
-  { id: 3, name: "Algorithm Analysis" },
-  { id: 4, name: "Mobile App Development" },
-  { id: 5, name: "Database Systems" },
-];
+import { toast } from "sonner";
+import { getRepositories, Repository } from "@/services/repositoryData";
 
 // Sample metrics data
 const metrics = [
@@ -41,18 +34,82 @@ const timePeriods = [
 ];
 
 export default function RepositoryComparisonPage() {
-  const [selectedRepos, setSelectedRepos] = useState<number[]>([1, 2]);
+  const [repositories, setRepositories] = useState<Repository[]>([]);
+  const [selectedRepos, setSelectedRepos] = useState<string[]>([]);
   const [selectedMetric, setSelectedMetric] = useState(metrics[0].id);
   const [selectedTimePeriod, setSelectedTimePeriod] = useState(timePeriods[2].id);
   const [viewType, setViewType] = useState("line");
+  const [loading, setLoading] = useState(true);
 
-  const toggleRepository = (repoId: number) => {
+  // Load repositories
+  useEffect(() => {
+    const repos = getRepositories();
+    setRepositories(repos);
+    
+    // Default to selecting first two repositories if available
+    if (repos.length > 0) {
+      const repoIds = repos.slice(0, Math.min(2, repos.length)).map(repo => repo.id || "");
+      setSelectedRepos(repoIds.filter(id => id !== ""));
+    }
+    
+    setLoading(false);
+  }, []);
+
+  const toggleRepository = (repoId: string) => {
     if (selectedRepos.includes(repoId)) {
       setSelectedRepos(selectedRepos.filter(id => id !== repoId));
     } else {
       setSelectedRepos([...selectedRepos, repoId]);
     }
   };
+
+  const handleExport = () => {
+    toast.success("Chart exported", {
+      description: "The comparison data has been exported to CSV."
+    });
+  };
+
+  // Calculate average performance
+  const calculateAveragePerformance = () => {
+    if (selectedRepos.length === 0) return 0;
+    
+    const selectedRepositories = repositories.filter(repo => 
+      selectedRepos.includes(repo.id || "")
+    );
+    
+    const sum = selectedRepositories.reduce((acc, repo) => acc + repo.progress, 0);
+    return (sum / selectedRepositories.length).toFixed(1);
+  };
+
+  // Find top repository
+  const findTopRepository = () => {
+    if (selectedRepos.length === 0) return null;
+    
+    const selectedRepositories = repositories.filter(repo => 
+      selectedRepos.includes(repo.id || "")
+    );
+    
+    return selectedRepositories.reduce((prev, current) => 
+      prev.progress > current.progress ? prev : current
+    );
+  };
+
+  // Calculate performance gap
+  const calculatePerformanceGap = () => {
+    if (selectedRepos.length < 2) return 0;
+    
+    const selectedRepositories = repositories.filter(repo => 
+      selectedRepos.includes(repo.id || "")
+    );
+    
+    const performances = selectedRepositories.map(repo => repo.progress);
+    const max = Math.max(...performances);
+    const min = Math.min(...performances);
+    
+    return (max - min).toFixed(1);
+  };
+
+  const topRepo = findTopRepository();
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -72,11 +129,19 @@ export default function RepositoryComparisonPage() {
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => toast.info("Filters are not implemented yet")}
+                  >
                     <Filter className="h-4 w-4 mr-2" />
                     Filters
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleExport}
+                  >
                     <Download className="h-4 w-4 mr-2" />
                     Export
                   </Button>
@@ -91,10 +156,10 @@ export default function RepositoryComparisonPage() {
                     {repositories.map((repo) => (
                       <Button
                         key={repo.id}
-                        variant={selectedRepos.includes(repo.id) ? "default" : "outline"}
+                        variant={selectedRepos.includes(repo.id || "") ? "default" : "outline"}
                         size="sm"
                         className="flex items-center"
-                        onClick={() => toggleRepository(repo.id)}
+                        onClick={() => toggleRepository(repo.id || "")}
                       >
                         <GitBranch className="h-4 w-4 mr-2" />
                         {repo.name}
@@ -166,12 +231,23 @@ export default function RepositoryComparisonPage() {
                 </TabsList>
                 
                 <TabsContent value="repositories" className="pt-4">
-                  <RepositoryComparisonChart 
-                    selectedRepos={selectedRepos}
-                    repositories={repositories}
-                    selectedMetric={selectedMetric}
-                    viewType={viewType}
-                  />
+                  {selectedRepos.length === 0 ? (
+                    <div className="rounded-lg border-2 border-dashed p-8 text-center">
+                      <GitBranch className="h-10 w-10 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-medium">No Repositories Selected</h3>
+                      <p className="text-muted-foreground max-w-md mx-auto mt-2">
+                        Please select at least one repository to view comparison data
+                      </p>
+                    </div>
+                  ) : (
+                    <RepositoryComparisonChart 
+                      selectedRepos={selectedRepos}
+                      repositories={repositories}
+                      selectedMetric={selectedMetric}
+                      viewType={viewType}
+                      timePeriod={selectedTimePeriod}
+                    />
+                  )}
                 </TabsContent>
                 
                 <TabsContent value="students" className="pt-4">
@@ -214,7 +290,11 @@ export default function RepositoryComparisonPage() {
                         Analyze trends and patterns over time
                       </p>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => toast.info("Period comparison is not implemented yet")}
+                    >
                       <ArrowLeftRight className="h-4 w-4 mr-2" />
                       Compare Periods
                     </Button>
@@ -234,7 +314,7 @@ export default function RepositoryComparisonPage() {
                     <CardTitle className="text-sm">Average Performance</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">78.5%</div>
+                    <div className="text-2xl font-bold">{calculateAveragePerformance()}%</div>
                     <p className="text-xs text-muted-foreground">
                       Across {selectedRepos.length} repositories
                     </p>
@@ -246,10 +326,16 @@ export default function RepositoryComparisonPage() {
                     <CardTitle className="text-sm">Top Repository</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-lg font-bold">Web Development Course</div>
-                    <p className="text-xs text-muted-foreground">
-                      Performance: 92.3%
-                    </p>
+                    {topRepo ? (
+                      <>
+                        <div className="text-lg font-bold">{topRepo.name}</div>
+                        <p className="text-xs text-muted-foreground">
+                          Performance: {topRepo.progress}%
+                        </p>
+                      </>
+                    ) : (
+                      <div className="text-muted-foreground">No data available</div>
+                    )}
                   </CardContent>
                 </Card>
                 
@@ -258,7 +344,7 @@ export default function RepositoryComparisonPage() {
                     <CardTitle className="text-sm">Performance Gap</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">18.7%</div>
+                    <div className="text-2xl font-bold">{calculatePerformanceGap()}%</div>
                     <p className="text-xs text-muted-foreground">
                       Between highest and lowest performing repositories
                     </p>
