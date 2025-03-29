@@ -1,3 +1,4 @@
+
 export interface Repository {
   name: string;
   description: string;
@@ -8,6 +9,7 @@ export interface Repository {
   progress: number;
   predictedGrade?: string;
   id?: string;
+  students?: Student[]; // Add students array to repository
 }
 
 export interface Student {
@@ -33,7 +35,8 @@ const defaultRepositories = [
     mergeRequestCount: 18,
     branchCount: 5,
     progress: 68,
-    predictedGrade: "B+"
+    predictedGrade: "B+",
+    students: [] // Initialize empty students array
   },
   {
     id: 'web-development',
@@ -44,7 +47,8 @@ const defaultRepositories = [
     mergeRequestCount: 12,
     branchCount: 3,
     progress: 75,
-    predictedGrade: "A-"
+    predictedGrade: "A-",
+    students: [] // Initialize empty students array
   },
   {
     id: 'algorithm-analysis',
@@ -54,7 +58,8 @@ const defaultRepositories = [
     commitCount: 56,
     mergeRequestCount: 7,
     branchCount: 2,
-    progress: 42
+    progress: 42,
+    students: [] // Initialize empty students array
   },
   {
     id: 'team-alpha-project',
@@ -64,7 +69,8 @@ const defaultRepositories = [
     commitCount: 203,
     mergeRequestCount: 25,
     branchCount: 7,
-    progress: 92
+    progress: 92,
+    students: [] // Initialize empty students array
   },
   {
     id: 'data-structures',
@@ -74,7 +80,8 @@ const defaultRepositories = [
     commitCount: 67,
     mergeRequestCount: 9,
     branchCount: 3,
-    progress: 51
+    progress: 51,
+    students: [] // Initialize empty students array
   }
 ];
 
@@ -120,6 +127,44 @@ export const deleteRepository = (id: string): boolean => {
   }
   
   localStorage.setItem('repositories', JSON.stringify(newRepositories));
+  return true;
+};
+
+// Get students for a repository
+export const getRepositoryStudents = (repositoryId: string): Student[] => {
+  const repositories = getRepositories();
+  const repository = repositories.find(repo => repo.id === repositoryId);
+  
+  if (repository && repository.students) {
+    return repository.students;
+  }
+  
+  // Return default students if none are stored
+  return repositoryId === 'programming-fundamentals' ? [...programmingStudents] : [...sampleStudents];
+};
+
+// Add or update a student in a repository
+export const saveRepositoryStudent = (repositoryId: string, student: Student): boolean => {
+  const repositories = getRepositories();
+  const index = repositories.findIndex(repo => repo.id === repositoryId);
+  
+  if (index === -1) return false;
+  
+  if (!repositories[index].students) {
+    repositories[index].students = [];
+  }
+  
+  const studentIndex = repositories[index].students!.findIndex(s => s.id === student.id);
+  
+  if (studentIndex >= 0) {
+    // Update existing student
+    repositories[index].students![studentIndex] = student;
+  } else {
+    // Add new student
+    repositories[index].students!.push(student);
+  }
+  
+  localStorage.setItem('repositories', JSON.stringify(repositories));
   return true;
 };
 

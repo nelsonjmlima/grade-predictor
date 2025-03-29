@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
@@ -21,9 +20,9 @@ import {
   getRepositories, 
   updateRepository, 
   Repository,
-  programmingStudents,
-  sampleStudents,
-  Student
+  Student,
+  getRepositoryStudents,
+  saveRepositoryStudent
 } from "@/services/repositoryData";
 import { DeleteRepositoryDialog } from "@/components/dashboard/DeleteRepositoryDialog";
 import { EditRepositoryDialog } from "@/components/dashboard/EditRepositoryDialog";
@@ -48,8 +47,9 @@ export default function RepositoryDetailsPage() {
       const foundRepo = allRepositories.find(repo => repo.id === id);
       if (foundRepo) {
         setRepository(foundRepo);
-        // Load students based on repository ID
-        const repoStudents = id === 'programming-fundamentals' ? [...programmingStudents] : [...sampleStudents];
+        
+        // Load students from repository
+        const repoStudents = getRepositoryStudents(id);
         setStudents(repoStudents);
       }
       setLoading(false);
@@ -98,7 +98,13 @@ export default function RepositoryDetailsPage() {
 
   const saveChanges = () => {
     if (repository && repository.id) {
-      const success = updateRepository(repository.id, repository);
+      // Update repository with current students
+      const repoWithStudents = {
+        ...repository,
+        students: students
+      };
+      
+      const success = updateRepository(repository.id, repoWithStudents);
       
       if (success) {
         setHasUnsavedChanges(false);
@@ -132,6 +138,10 @@ export default function RepositoryDetailsPage() {
   const handleStudentAdded = async (newStudent: Student) => {
     // Add student to the local state
     setStudents(prev => [...prev, newStudent]);
+    setHasUnsavedChanges(true);
+    
+    // Save student to repository
+    saveRepositoryStudent(id || '', newStudent);
     
     // Save detailed student data
     try {
@@ -148,8 +158,15 @@ export default function RepositoryDetailsPage() {
         gitlabUsername: newStudent.gitlabUsername,
         groupNumber: newStudent.groupNumber
       });
+      
+      toast.success("Student added", {
+        description: `${newStudent.name} has been added to the repository.`
+      });
     } catch (error) {
       console.error("Error saving detailed student data:", error);
+      toast.error("Error saving student data", {
+        description: "The student was added but detailed metrics could not be saved."
+      });
     }
   };
 
@@ -158,6 +175,10 @@ export default function RepositoryDetailsPage() {
     setStudents(prev => prev.map(student => 
       student.id === updatedStudent.id ? updatedStudent : student
     ));
+    setHasUnsavedChanges(true);
+    
+    // Save student to repository
+    saveRepositoryStudent(id || '', updatedStudent);
     
     // Save detailed student data
     try {
@@ -174,8 +195,15 @@ export default function RepositoryDetailsPage() {
         gitlabUsername: updatedStudent.gitlabUsername,
         groupNumber: updatedStudent.groupNumber
       });
+      
+      toast.success("Student updated", {
+        description: `${updatedStudent.name}'s information has been updated.`
+      });
     } catch (error) {
       console.error("Error updating detailed student data:", error);
+      toast.error("Error updating student data", {
+        description: "The student was updated but detailed metrics could not be saved."
+      });
     }
   };
 

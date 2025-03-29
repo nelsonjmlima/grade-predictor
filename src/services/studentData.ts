@@ -25,7 +25,7 @@ export interface StudentData {
   contributions: { date: string; count: number }[];
 }
 
-// Mock student data for demonstration purposes
+// Sample student data for demonstration purposes
 const sampleStudentData: StudentData = {
   id: "s12345",
   name: "John Doe",
@@ -109,6 +109,26 @@ const sampleStudentData: StudentData = {
 // Store for custom student data
 let customStudentData: Record<string, StudentData> = {};
 
+// Load custom student data from localStorage if available
+const loadCustomStudentData = (): void => {
+  const storedData = localStorage.getItem('customStudentData');
+  if (storedData) {
+    try {
+      customStudentData = JSON.parse(storedData);
+    } catch (error) {
+      console.error('Error loading student data from localStorage:', error);
+    }
+  }
+};
+
+// Save custom student data to localStorage
+const persistCustomStudentData = (): void => {
+  localStorage.setItem('customStudentData', JSON.stringify(customStudentData));
+};
+
+// Initialize data on module load
+loadCustomStudentData();
+
 // Simulates fetching student data
 export const getStudentData = async (studentId?: string): Promise<StudentData> => {
   return new Promise((resolve) => {
@@ -143,6 +163,9 @@ export const saveStudentData = async (studentData: Partial<StudentData> & { id: 
       
       // Store the updated data
       customStudentData[studentData.id] = updatedData;
+      
+      // Persist to localStorage
+      persistCustomStudentData();
       
       resolve(updatedData);
     }, 1000);
