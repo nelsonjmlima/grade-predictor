@@ -4,6 +4,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BookOpen, Users, GitBranch, Link, Key, User } from "lucide-react";
+import { toast } from "sonner";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -53,9 +54,31 @@ export function CreateRepositoryDialog({
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
     
-    // Simulate API call with a timeout
-    setTimeout(() => {
+    try {
+      // Simulate API call with a timeout
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       console.log("Creating repository with values:", values);
+      
+      // Create a new repository object
+      const newRepo = {
+        id: values.name.toLowerCase().replace(/\s+/g, '-'),
+        name: values.name,
+        description: values.description,
+        lastActivity: "Just now",
+        commitCount: 0,
+        mergeRequestCount: 0,
+        branchCount: 1,
+        progress: 0,
+      };
+      
+      // In a real app, we would add this to the database
+      console.log("New repository created:", newRepo);
+      
+      // Show success notification
+      toast.success("Repository created successfully", {
+        description: `${values.name} has been created and is ready to use.`,
+      });
       
       setIsSubmitting(false);
       form.reset();
@@ -64,7 +87,13 @@ export function CreateRepositoryDialog({
       if (onRepositoryCreated) {
         onRepositoryCreated();
       }
-    }, 1000);
+    } catch (error) {
+      console.error("Error creating repository:", error);
+      toast.error("Failed to create repository", {
+        description: "An error occurred while creating the repository. Please try again.",
+      });
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -157,7 +186,7 @@ export function CreateRepositoryDialog({
               name="link"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Repository Link</FormLabel>
+                  <FormLabel>Repository Link <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
                   <FormControl>
                     <div className="flex items-center space-x-2">
                       <Link className="h-4 w-4 text-muted-foreground" />
@@ -174,11 +203,16 @@ export function CreateRepositoryDialog({
               name="apiKey"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>API Key</FormLabel>
+                  <FormLabel>API Key <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
                   <FormControl>
                     <div className="flex items-center space-x-2">
                       <Key className="h-4 w-4 text-muted-foreground" />
-                      <Input placeholder="Enter repository API key" type="password" {...field} />
+                      <Input 
+                        placeholder="Enter repository API key" 
+                        type="password"
+                        showPasswordToggle 
+                        {...field} 
+                      />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -191,7 +225,7 @@ export function CreateRepositoryDialog({
               name="userId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>User ID</FormLabel>
+                  <FormLabel>User ID <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
                   <FormControl>
                     <div className="flex items-center space-x-2">
                       <User className="h-4 w-4 text-muted-foreground" />
@@ -208,7 +242,7 @@ export function CreateRepositoryDialog({
               name="students"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Student Email Addresses (optional)</FormLabel>
+                  <FormLabel>Student Email Addresses <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
                   <FormControl>
                     <Textarea 
                       placeholder="Enter student email addresses, one per line" 
