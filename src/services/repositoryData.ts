@@ -95,6 +95,32 @@ export const addRepository = (repository: Repository): void => {
   localStorage.setItem('repositories', JSON.stringify(repositories));
 };
 
+// Update an existing repository
+export const updateRepository = (id: string, updatedRepo: Partial<Repository>): Repository | null => {
+  const repositories = getRepositories();
+  const index = repositories.findIndex(repo => repo.id === id);
+  
+  if (index === -1) return null;
+  
+  repositories[index] = { ...repositories[index], ...updatedRepo };
+  localStorage.setItem('repositories', JSON.stringify(repositories));
+  
+  return repositories[index];
+};
+
+// Delete a repository
+export const deleteRepository = (id: string): boolean => {
+  const repositories = getRepositories();
+  const newRepositories = repositories.filter(repo => repo.id !== id);
+  
+  if (newRepositories.length === repositories.length) {
+    return false; // Repository not found
+  }
+  
+  localStorage.setItem('repositories', JSON.stringify(newRepositories));
+  return true;
+};
+
 // Export for compatibility with existing code
 export const allRepositories = getRepositories();
 

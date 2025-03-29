@@ -22,9 +22,21 @@ export default function RepositoriesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [repositories, setRepositories] = useState(getRepositories());
   
-  // Refresh repositories when dialog opens/closes or when component mounts
+  // Refresh repositories when dialog opens/closes, when component mounts, 
+  // or when navigating back to this page
   useEffect(() => {
-    setRepositories(getRepositories());
+    const fetchRepositories = () => {
+      setRepositories(getRepositories());
+    };
+
+    fetchRepositories();
+
+    // Add event listener for focus to refresh data when user comes back to the page
+    window.addEventListener('focus', fetchRepositories);
+    
+    return () => {
+      window.removeEventListener('focus', fetchRepositories);
+    };
   }, [dialogOpen]);
   
   const filteredRepositories = filterRepositories(repositories, searchTerm);

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
@@ -5,28 +6,73 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, GitCommit, GitBranch, GitMerge, Users, Activity } from "lucide-react";
+import { ArrowLeft, GitCommit, GitBranch, GitMerge, Users, Activity, Edit, Trash } from "lucide-react";
 import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
-import { allRepositories, sampleStudents, programmingStudents } from "@/services/repositoryData";
+import { getRepositories, sampleStudents, programmingStudents, Repository } from "@/services/repositoryData";
+import { DeleteRepositoryDialog } from "@/components/dashboard/DeleteRepositoryDialog";
+import { EditRepositoryDialog } from "@/components/dashboard/EditRepositoryDialog";
+import { toast } from "sonner";
 
 export default function RepositoryDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [repository, setRepository] = useState<any>(null);
+  const [repository, setRepository] = useState<Repository | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
-  useEffect(() => {
+  const loadRepository = () => {
     if (id) {
+      const allRepositories = getRepositories();
       const foundRepo = allRepositories.find(repo => repo.id === id);
       if (foundRepo) {
         setRepository(foundRepo);
       }
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    loadRepository();
   }, [id]);
 
   const handleGoBack = () => {
-    navigate(-1);
+    navigate("/repositories");
+  };
+
+  const handleRepositoryDeleted = () => {
+    toast.success("Redirecting to repositories", {
+      description: "Repository has been deleted successfully."
+    });
+    navigate("/repositories");
+  };
+
+  const handleRepositoryUpdated = (updatedRepo: Repository) => {
+    setRepository(updatedRepo);
+  };
+
+  const addSampleData = () => {
+    if (repository && repository.id) {
+      const updatedRepo = {
+        ...repository,
+        commitCount: repository.commitCount + 10,
+        mergeRequestCount: repository.mergeRequestCount + 2,
+        branchCount: repository.branchCount + 1,
+        progress: Math.min(100, repository.progress + 5),
+        lastActivity: "Just now"
+      };
+      
+      setRepository(updatedRepo);
+      
+      // Update in storage
+      const success = updateRepository(repository.id, updatedRepo);
+      
+      if (success) {
+        toast.success("Sample data added", {
+          description: "Repository data has been updated with sample values."
+        });
+      }
+    }
   };
 
   if (!loading && !repository) {
@@ -69,13 +115,13 @@ export default function RepositoryDetailsPage() {
                   <p className="text-muted-foreground">{repository.description}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" className="gap-2">
-                    <GitBranch className="h-4 w-4" />
-                    Branches
+                  <Button variant="outline" onClick={() => setEditDialogOpen(true)} className="gap-2">
+                    <Edit className="h-4 w-4" />
+                    Edit
                   </Button>
-                  <Button variant="outline" className="gap-2">
-                    <Users className="h-4 w-4" />
-                    Collaborators
+                  <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)} className="gap-2">
+                    <Trash className="h-4 w-4" />
+                    Delete
                   </Button>
                 </div>
               </div>
@@ -135,6 +181,14 @@ export default function RepositoryDetailsPage() {
                     <p className="text-sm text-muted-foreground pt-2">
                       Last updated: {repository.lastActivity}
                     </p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={addSampleData} 
+                      className="mt-4"
+                    >
+                      Add Sample Data
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -174,6 +228,22 @@ export default function RepositoryDetailsPage() {
                   </Card>
                 </TabsContent>
               </Tabs>
+              
+              {/* Dialogs */}
+              <DeleteRepositoryDialog 
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                repositoryId={repository.id || ""}
+                repositoryName={repository.name}
+                onRepositoryDeleted={handleRepositoryDeleted}
+              />
+              
+              <EditRepositoryDialog
+                open={editDialogOpen}
+                onOpenChange={setEditDialogOpen}
+                repository={repository}
+                onRepositoryUpdated={handleRepositoryUpdated}
+              />
             </>
           )}
         </div>

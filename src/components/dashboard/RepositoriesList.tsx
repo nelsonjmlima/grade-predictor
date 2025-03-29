@@ -75,7 +75,16 @@ export function RepositoriesList({
     );
   }
 
-  // Display all repositories, not just the first one
+  // Display message if no repositories
+  if (repositories.length === 0) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-muted-foreground">No repositories found. Create your first repository to get started.</p>
+      </div>
+    );
+  }
+
+  // Display all repositories
   return (
     <ScrollArea className="h-full">
       <div className={viewMode === 'grid' 
