@@ -14,7 +14,7 @@ export const Logo: React.FC<LogoProps> = ({ size = 36, className = "" }) => {
         <div className="absolute inset-0 bg-blue-500 blur-sm opacity-70 rounded-full"></div>
         <LineChart size={size} className="text-white relative z-10" strokeWidth={2.5} />
       </div>
-      <div className="font-bold text-xl md:text-2xl tracking-tight text-white">
+      <div className="font-bold text-2xl md:text-3xl tracking-tight text-white">
         Grade<span className="text-blue-400">Predictor</span>
       </div>
     </div>
