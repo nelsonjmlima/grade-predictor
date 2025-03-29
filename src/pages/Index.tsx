@@ -18,7 +18,7 @@ const Index = () => {
     >
       <div className="animate-scale-in text-center p-8 max-w-md">
         <Logo size={180} className="mx-auto" /> {/* 50% bigger from 120 to 180 */}
-        <p className="text-xl text-gray-200 mt-6 mb-8">Analyze GitLab metrics to predict students grades</p>
+        <p className="text-xl text-gray-200 mt-6 mb-8 whitespace-nowrap overflow-hidden text-ellipsis">Analyze GitLab metrics to predict students grades</p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
           <Button 
