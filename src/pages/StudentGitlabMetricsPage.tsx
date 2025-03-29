@@ -5,7 +5,18 @@ import { SideNav } from "@/components/dashboard/SideNav";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from "recharts";
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer, 
+  BarChart, 
+  Bar 
+} from "recharts";
 import { 
   ArrowLeft, 
   GitBranch, 
@@ -93,6 +104,11 @@ export default function StudentGitlabMetricsPage() {
     navigate(`/repositories/${id}/student/${studentId}`);
   };
 
+  // Debug logs to check data loading
+  console.log("Repository:", repository);
+  console.log("Student:", student);
+  console.log("GitLab metrics:", gitlabMetrics);
+
   // If repository or student not found
   if (!loading && (!repository || !student)) {
     return (
@@ -179,297 +195,303 @@ export default function StudentGitlabMetricsPage() {
             </div>
           </div>
           
-          {student && repository && (
-            <motion.div 
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="space-y-6"
-            >
-              <motion.div variants={itemVariants}>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h1 className="text-2xl font-semibold">{student.name} - GitLab Metrics</h1>
-                    <p className="text-muted-foreground">{repository.name}</p>
+          {loading ? (
+            <div className="flex items-center justify-center h-[400px]">
+              <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+            </div>
+          ) : (
+            student && repository && (
+              <motion.div 
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="space-y-6"
+              >
+                <motion.div variants={itemVariants}>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h1 className="text-2xl font-semibold">{student.name} - GitLab Metrics</h1>
+                      <p className="text-muted-foreground">{repository.name}</p>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
+                </motion.div>
 
-              <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base font-medium flex items-center gap-2">
-                      <GitCommit className="h-4 w-4" />
-                      Total Commits
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold">{gitlabMetrics.commits.reduce((sum, item) => sum + item.count, 0)}</p>
-                  </CardContent>
-                </Card>
+                <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base font-medium flex items-center gap-2">
+                        <GitCommit className="h-4 w-4" />
+                        Total Commits
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-bold">{gitlabMetrics.commits.reduce((sum, item) => sum + item.count, 0)}</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base font-medium flex items-center gap-2">
+                        <GitPullRequest className="h-4 w-4" />
+                        Merge Requests
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-bold">{gitlabMetrics.mergeRequests.length}</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base font-medium flex items-center gap-2">
+                        <GitBranch className="h-4 w-4" />
+                        Active Branches
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-bold">{gitlabMetrics.branches.length}</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base font-medium flex items-center gap-2">
+                        <Code className="h-4 w-4" />
+                        Lines Changed
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-bold">
+                        +{gitlabMetrics.codeAdditionsDeletions.reduce((sum, item) => sum + item.additions, 0)} / 
+                        -{gitlabMetrics.codeAdditionsDeletions.reduce((sum, item) => sum + item.deletions, 0)}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
                 
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base font-medium flex items-center gap-2">
-                      <GitPullRequest className="h-4 w-4" />
-                      Merge Requests
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold">{gitlabMetrics.mergeRequests.length}</p>
-                  </CardContent>
-                </Card>
+                <motion.div variants={itemVariants}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Commit Activity</CardTitle>
+                      <CardDescription>Number of commits over time</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-80">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart
+                            data={gitlabMetrics.commits}
+                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
+                            <XAxis dataKey="date" />
+                            <YAxis />
+                            <Tooltip 
+                              formatter={(value) => [`${value} commits`, "Count"]}
+                              contentStyle={{ 
+                                borderRadius: '8px', 
+                                border: 'none', 
+                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                                fontSize: '12px'
+                              }} 
+                            />
+                            <Legend />
+                            <Line 
+                              type="monotone" 
+                              dataKey="count" 
+                              stroke="#6366F1" 
+                              activeDot={{ r: 8 }}
+                              name="Commits"
+                              strokeWidth={2}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
                 
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base font-medium flex items-center gap-2">
-                      <GitBranch className="h-4 w-4" />
-                      Active Branches
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold">{gitlabMetrics.branches.length}</p>
-                  </CardContent>
-                </Card>
+                <motion.div variants={itemVariants}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Code Changes</CardTitle>
+                      <CardDescription>Lines added and removed over time</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-80">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart
+                            data={gitlabMetrics.codeAdditionsDeletions}
+                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
+                            <XAxis dataKey="date" />
+                            <YAxis />
+                            <Tooltip 
+                              contentStyle={{ 
+                                borderRadius: '8px', 
+                                border: 'none', 
+                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                                fontSize: '12px'
+                              }} 
+                            />
+                            <Legend />
+                            <Bar 
+                              dataKey="additions" 
+                              fill="#10B981" 
+                              name="Lines Added"
+                              radius={[4, 4, 0, 0]}
+                            />
+                            <Bar 
+                              dataKey="deletions" 
+                              fill="#EF4444" 
+                              name="Lines Deleted"
+                              radius={[4, 4, 0, 0]}
+                            />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
                 
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base font-medium flex items-center gap-2">
-                      <Code className="h-4 w-4" />
-                      Lines Changed
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold">
-                      +{gitlabMetrics.codeAdditionsDeletions.reduce((sum, item) => sum + item.additions, 0)} / 
-                      -{gitlabMetrics.codeAdditionsDeletions.reduce((sum, item) => sum + item.deletions, 0)}
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-              
-              <motion.div variants={itemVariants}>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Commit Activity</CardTitle>
-                    <CardDescription>Number of commits over time</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-80">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart
-                          data={gitlabMetrics.commits}
-                          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
-                          <XAxis dataKey="date" />
-                          <YAxis />
-                          <Tooltip 
-                            formatter={(value) => [`${value} commits`, "Count"]}
-                            contentStyle={{ 
-                              borderRadius: '8px', 
-                              border: 'none', 
-                              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                              fontSize: '12px'
-                            }} 
-                          />
-                          <Legend />
-                          <Line 
-                            type="monotone" 
-                            dataKey="count" 
-                            stroke="#6366F1" 
-                            activeDot={{ r: 8 }}
-                            name="Commits"
-                            strokeWidth={2}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-              
-              <motion.div variants={itemVariants}>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Code Changes</CardTitle>
-                    <CardDescription>Lines added and removed over time</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-80">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={gitlabMetrics.codeAdditionsDeletions}
-                          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
-                          <XAxis dataKey="date" />
-                          <YAxis />
-                          <Tooltip 
-                            contentStyle={{ 
-                              borderRadius: '8px', 
-                              border: 'none', 
-                              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                              fontSize: '12px'
-                            }} 
-                          />
-                          <Legend />
-                          <Bar 
-                            dataKey="additions" 
-                            fill="#10B981" 
-                            name="Lines Added"
-                            radius={[4, 4, 0, 0]}
-                          />
-                          <Bar 
-                            dataKey="deletions" 
-                            fill="#EF4444" 
-                            name="Lines Deleted"
-                            radius={[4, 4, 0, 0]}
-                          />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-              
-              <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Working Hours</CardTitle>
-                    <CardDescription>Activity distribution during the week</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-80">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={heatmapData}
-                          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
-                          <XAxis dataKey="day" />
-                          <YAxis />
-                          <Tooltip 
-                            contentStyle={{ 
-                              borderRadius: '8px', 
-                              border: 'none', 
-                              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                              fontSize: '12px'
-                            }} 
-                          />
-                          <Legend />
-                          <Bar 
-                            dataKey="8-12" 
-                            fill="#6366F1" 
-                            name="Morning (8-12)"
-                            radius={[4, 4, 0, 0]}
-                          />
-                          <Bar 
-                            dataKey="12-16" 
-                            fill="#F59E0B" 
-                            name="Afternoon (12-16)"
-                            radius={[4, 4, 0, 0]}
-                          />
-                          <Bar 
-                            dataKey="16-20" 
-                            fill="#10B981" 
-                            name="Evening (16-20)"
-                            radius={[4, 4, 0, 0]}
-                          />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
+                <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Working Hours</CardTitle>
+                      <CardDescription>Activity distribution during the week</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-80">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart
+                            data={heatmapData}
+                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
+                            <XAxis dataKey="day" />
+                            <YAxis />
+                            <Tooltip 
+                              contentStyle={{ 
+                                borderRadius: '8px', 
+                                border: 'none', 
+                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                                fontSize: '12px'
+                              }} 
+                            />
+                            <Legend />
+                            <Bar 
+                              dataKey="8-12" 
+                              fill="#6366F1" 
+                              name="Morning (8-12)"
+                              radius={[4, 4, 0, 0]}
+                            />
+                            <Bar 
+                              dataKey="12-16" 
+                              fill="#F59E0B" 
+                              name="Afternoon (12-16)"
+                              radius={[4, 4, 0, 0]}
+                            />
+                            <Bar 
+                              dataKey="16-20" 
+                              fill="#10B981" 
+                              name="Evening (16-20)"
+                              radius={[4, 4, 0, 0]}
+                            />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Branches</CardTitle>
+                      <CardDescription>Active branches and their commit count</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Branch Name</TableHead>
+                              <TableHead>Commits</TableHead>
+                              <TableHead>Last Activity</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {gitlabMetrics.branches.map((branch, index) => (
+                              <motion.tr
+                                key={branch.name}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                                className="border-b"
+                              >
+                                <TableCell className="font-medium">
+                                  <div className="flex items-center space-x-2">
+                                    <GitBranch className="h-4 w-4 text-muted-foreground" />
+                                    <span>{branch.name}</span>
+                                  </div>
+                                </TableCell>
+                                <TableCell>{branch.commits}</TableCell>
+                                <TableCell>{branch.lastActive}</TableCell>
+                              </motion.tr>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
                 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Branches</CardTitle>
-                    <CardDescription>Active branches and their commit count</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-hidden">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Branch Name</TableHead>
-                            <TableHead>Commits</TableHead>
-                            <TableHead>Last Activity</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {gitlabMetrics.branches.map((branch, index) => (
-                            <motion.tr
-                              key={branch.name}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: index * 0.1 }}
-                              className="border-b"
-                            >
-                              <TableCell className="font-medium">
-                                <div className="flex items-center space-x-2">
-                                  <GitBranch className="h-4 w-4 text-muted-foreground" />
-                                  <span>{branch.name}</span>
-                                </div>
-                              </TableCell>
-                              <TableCell>{branch.commits}</TableCell>
-                              <TableCell>{branch.lastActive}</TableCell>
-                            </motion.tr>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </Card>
+                <motion.div variants={itemVariants}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Merge Requests</CardTitle>
+                      <CardDescription>History of merge requests</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Date</TableHead>
+                              <TableHead>Count</TableHead>
+                              <TableHead>Status</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {gitlabMetrics.mergeRequests.map((mr, index) => (
+                              <motion.tr
+                                key={index}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                                className="border-b"
+                              >
+                                <TableCell>{mr.date}</TableCell>
+                                <TableCell>{mr.count}</TableCell>
+                                <TableCell>
+                                  <span className={`px-2 py-1 rounded-full text-xs ${
+                                    mr.status === "merged" 
+                                      ? "bg-green-100 text-green-800" 
+                                      : mr.status === "opened"
+                                      ? "bg-blue-100 text-blue-800"
+                                      : "bg-amber-100 text-amber-800"
+                                  }`}>
+                                    {mr.status.charAt(0).toUpperCase() + mr.status.slice(1)}
+                                  </span>
+                                </TableCell>
+                              </motion.tr>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               </motion.div>
-              
-              <motion.div variants={itemVariants}>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Merge Requests</CardTitle>
-                    <CardDescription>History of merge requests</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-hidden">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Count</TableHead>
-                            <TableHead>Status</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {gitlabMetrics.mergeRequests.map((mr, index) => (
-                            <motion.tr
-                              key={index}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: index * 0.1 }}
-                              className="border-b"
-                            >
-                              <TableCell>{mr.date}</TableCell>
-                              <TableCell>{mr.count}</TableCell>
-                              <TableCell>
-                                <span className={`px-2 py-1 rounded-full text-xs ${
-                                  mr.status === "merged" 
-                                    ? "bg-green-100 text-green-800" 
-                                    : mr.status === "opened"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : "bg-amber-100 text-amber-800"
-                                }`}>
-                                  {mr.status.charAt(0).toUpperCase() + mr.status.slice(1)}
-                                </span>
-                              </TableCell>
-                            </motion.tr>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </motion.div>
+            )
           )}
         </div>
       </main>
