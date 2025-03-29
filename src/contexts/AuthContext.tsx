@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -92,11 +93,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = async (email: string) => {
     try {
-      // Use the fixed production domain instead of dynamically detecting it
-      const baseUrl = "https://grade-predictor.lovable.app";
+      // Get the current domain instead of hardcoding it
+      let baseUrl = window.location.origin;
       console.log("Reset password base URL:", baseUrl);
       
-      // Configure the reset password endpoint with the correct production URL
+      // Configure the reset password endpoint with the current site URL
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${baseUrl}/reset-password?type=update`,
       });

@@ -20,8 +20,12 @@ const emailSchema = z.object({
 
 // Form schema for password update
 const passwordSchema = z.object({
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-  confirmPassword: z.string().min(6, { message: "Confirm password must be at least 6 characters" }),
+  password: z.string().min(8, { 
+    message: "Password must be at least 8 characters" 
+  })
+  .regex(/.*[0-9].*/, { message: "Password must include at least one number" })
+  .regex(/.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?].*/, { message: "Password must include at least one special character" }),
+  confirmPassword: z.string().min(8, { message: "Confirm password must be at least 8 characters" }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -54,24 +58,26 @@ export default function ResetPasswordPage() {
       if (hash && hash.includes('access_token') && hash.includes('type=recovery')) {
         console.log("Hash detected in URL, setting update mode");
         
-        // Process the recovery token
         try {
-          // Extract access token from hash
+          // Process the recovery token
           const hashParams = new URLSearchParams(hash.substring(1));
           const accessToken = hashParams.get('access_token');
           
           if (accessToken) {
-            console.log("Found access token in URL, attempting to process it");
+            console.log("Found access token in URL, setting it in the session");
             
-            // Use the session parameter instead of refresh token
-            const { data, error } = await supabase.auth.getUser(accessToken);
+            // Set the session with the access token from the URL
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: '', // We don't have a refresh token from the URL
+            });
             
             if (error) {
               console.error("Error processing recovery token:", error);
               toast.error("Invalid or expired recovery link. Please try again.");
               navigate('/reset-password');
             } else {
-              console.log("Successfully authenticated with recovery token");
+              console.log("Successfully set session with recovery token");
               // Redirect to the update password page without the hash
               navigate('/reset-password?type=update', { replace: true });
             }
@@ -184,10 +190,14 @@ export default function ResetPasswordPage() {
                                 <Input 
                                   {...field}
                                   type="password" 
+                                  showPasswordToggle
                                   className="bg-white/10 border-white/20 text-white h-12 text-lg"
                                   placeholder="••••••••"
                                 />
                               </FormControl>
+                              <p className="text-sm text-gray-400 mt-1">
+                                Password must be at least 8 characters and include a number and special character
+                              </p>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -203,6 +213,7 @@ export default function ResetPasswordPage() {
                                 <Input 
                                   {...field}
                                   type="password" 
+                                  showPasswordToggle
                                   className="bg-white/10 border-white/20 text-white h-12 text-lg"
                                   placeholder="••••••••"
                                 />
