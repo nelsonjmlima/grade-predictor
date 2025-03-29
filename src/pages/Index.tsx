@@ -1,16 +1,15 @@
 
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
+import { Logo } from "@/components/logo/Logo";
 
 const Index = () => {
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    // Redirect to login page
-    navigate("/");
-  }, [navigate]);
-  
-  return null;
+  return (
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-900 to-gray-900">
+      <div className="animate-fade-in text-center">
+        <Logo size={120} className="mx-auto" />
+      </div>
+    </div>
+  );
 };
 
 export default Index;
