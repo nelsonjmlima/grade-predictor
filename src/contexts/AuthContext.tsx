@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -93,9 +92,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = async (email: string) => {
     try {
-      // Get the absolute URL of the current site instead of using localhost
-      // This should return the full production URL
-      const baseUrl = window.location.origin;
+      // Use the fixed production domain instead of dynamically detecting it
+      const baseUrl = "https://grade-predictor.lovable.app";
       console.log("Reset password base URL:", baseUrl);
       
       // Configure the reset password endpoint with the correct production URL
