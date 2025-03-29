@@ -48,7 +48,6 @@ export default function RepositoryDetailsPage() {
       if (foundRepo) {
         setRepository(foundRepo);
         
-        // Load students from repository
         const repoStudents = getRepositoryStudents(id);
         setStudents(repoStudents);
       }
@@ -76,29 +75,8 @@ export default function RepositoryDetailsPage() {
     setHasUnsavedChanges(false);
   };
 
-  const addSampleData = () => {
-    if (repository && repository.id) {
-      const updatedRepo = {
-        ...repository,
-        commitCount: repository.commitCount + 10,
-        mergeRequestCount: repository.mergeRequestCount + 2,
-        branchCount: repository.branchCount + 1,
-        progress: Math.min(100, repository.progress + 5),
-        lastActivity: "Just now"
-      };
-      
-      setRepository(updatedRepo);
-      setHasUnsavedChanges(true);
-      
-      toast.success("Sample data added", {
-        description: "Repository data has been updated with sample values. Don't forget to save your changes."
-      });
-    }
-  };
-
   const saveChanges = () => {
     if (repository && repository.id) {
-      // Update repository with current students
       const repoWithStudents = {
         ...repository,
         students: students
@@ -136,14 +114,11 @@ export default function RepositoryDetailsPage() {
   };
 
   const handleStudentAdded = async (newStudent: Student) => {
-    // Add student to the local state
     setStudents(prev => [...prev, newStudent]);
     setHasUnsavedChanges(true);
     
-    // Save student to repository
     saveRepositoryStudent(id || '', newStudent);
     
-    // Save detailed student data
     try {
       await saveStudentData({
         id: newStudent.id,
@@ -171,16 +146,13 @@ export default function RepositoryDetailsPage() {
   };
 
   const handleStudentEdited = async (updatedStudent: Student) => {
-    // Update student in local state
     setStudents(prev => prev.map(student => 
       student.id === updatedStudent.id ? updatedStudent : student
     ));
     setHasUnsavedChanges(true);
     
-    // Save student to repository
     saveRepositoryStudent(id || '', updatedStudent);
     
-    // Save detailed student data
     try {
       await saveStudentData({
         id: updatedStudent.id,
@@ -188,9 +160,9 @@ export default function RepositoryDetailsPage() {
         email: updatedStudent.email,
         commitCount: updatedStudent.commitCount,
         currentGrade: updatedStudent.grade || 'Not Graded',
-        commitTrend: "up", // Maintain existing trend
+        commitTrend: "up",
         commitPercentChange: 0,
-        activityScore: 5.0, // Default value
+        activityScore: 5.0,
         studentNumber: updatedStudent.studentNumber,
         gitlabUsername: updatedStudent.gitlabUsername,
         groupNumber: updatedStudent.groupNumber
@@ -262,15 +234,6 @@ export default function RepositoryDetailsPage() {
                     Edit
                   </Button>
                   <Button 
-                    variant="default" 
-                    onClick={saveChanges} 
-                    className="gap-2"
-                    disabled={!hasUnsavedChanges}
-                  >
-                    <Save className="h-4 w-4" />
-                    Save Changes
-                  </Button>
-                  <Button 
                     variant="destructive" 
                     onClick={() => setDeleteDialogOpen(true)} 
                     className="gap-2"
@@ -336,14 +299,6 @@ export default function RepositoryDetailsPage() {
                     <p className="text-sm text-muted-foreground pt-2">
                       Last updated: {repository.lastActivity}
                     </p>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={addSampleData} 
-                      className="mt-4"
-                    >
-                      Add Sample Data
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -385,6 +340,18 @@ export default function RepositoryDetailsPage() {
                   </Card>
                 </TabsContent>
               </Tabs>
+              
+              <div className="flex justify-end mt-6">
+                <Button 
+                  variant="default" 
+                  onClick={saveChanges} 
+                  className="gap-2"
+                  disabled={!hasUnsavedChanges}
+                >
+                  <Save className="h-4 w-4" />
+                  Save Changes
+                </Button>
+              </div>
               
               <DeleteRepositoryDialog 
                 open={deleteDialogOpen}
