@@ -5,7 +5,7 @@ import { SideNav } from "@/components/dashboard/SideNav";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, GitCommit, User, FileText, Award, Clock, BarChart2, LineChart as LineChartIcon } from "lucide-react";
+import { ArrowLeft, GitCommit, User, FileText, Award, Clock, BarChart2, LineChart as LineChartIcon, GitBranch } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { GradeAnalyticsDialog } from "@/components/dashboard/GradeAnalyticsDialog";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from "recharts";
@@ -64,6 +64,10 @@ export default function StudentMetricsPage() {
     navigate(`/repositories/${id}`);
   };
 
+  const handleViewGitlabMetrics = () => {
+    navigate(`/repositories/${id}/student/${studentId}/gitlab`);
+  };
+
   // If repository or student not found
   if (!loading && (!repository || !student)) {
     return (
@@ -110,6 +114,14 @@ export default function StudentMetricsPage() {
                   >
                     <User className="h-4 w-4" />
                     Contact Student
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="gap-2"
+                    onClick={handleViewGitlabMetrics}
+                  >
+                    <GitBranch className="h-4 w-4" />
+                    GitLab Metrics
                   </Button>
                   <Button 
                     onClick={() => setShowGradeAnalytics(true)}
