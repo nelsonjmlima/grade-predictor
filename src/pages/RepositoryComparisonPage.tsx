@@ -40,6 +40,25 @@ export default function RepositoryComparisonPage() {
   const [selectedTimePeriod, setSelectedTimePeriod] = useState(timePeriods[2].id);
   const [viewType, setViewType] = useState("line");
   const [loading, setLoading] = useState(true);
+  const [animatedItems, setAnimatedItems] = useState<string[]>([]);
+
+  // Animation sequence function
+  const animateSequentially = () => {
+    const itemsToAnimate = [
+      "header", "controls", "repositories", 
+      "chart", "stats-avg", "stats-top", "stats-gap"
+    ];
+    
+    let delay = 100;
+    const interval = 150; // ms between each animation
+    
+    itemsToAnimate.forEach(item => {
+      setTimeout(() => {
+        setAnimatedItems(prev => [...prev, item]);
+      }, delay);
+      delay += interval;
+    });
+  };
 
   // Load repositories
   useEffect(() => {
@@ -53,6 +72,9 @@ export default function RepositoryComparisonPage() {
     }
     
     setLoading(false);
+    
+    // Start animation sequence after loading
+    setTimeout(animateSequentially, 300);
   }, []);
 
   const toggleRepository = (repoId: string) => {
@@ -117,9 +139,11 @@ export default function RepositoryComparisonPage() {
       
       <main className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-6">
-          <RepositoriesHeader onAddRepository={() => {}} />
+          <div className={`transition-all duration-500 ${animatedItems.includes("header") ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            <RepositoriesHeader onAddRepository={() => {}} />
+          </div>
           
-          <Card className="animate-fade-in">
+          <Card className={`transition-all duration-500 ${animatedItems.includes("header") ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
             <CardHeader>
               <div className="flex justify-between items-center">
                 <div>
@@ -133,6 +157,7 @@ export default function RepositoryComparisonPage() {
                     variant="outline" 
                     size="sm"
                     onClick={() => toast.info("Filters are not implemented yet")}
+                    className={`transition-all duration-300 ${animatedItems.includes("controls") ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
                   >
                     <Filter className="h-4 w-4 mr-2" />
                     Filters
@@ -141,6 +166,7 @@ export default function RepositoryComparisonPage() {
                     variant="outline" 
                     size="sm" 
                     onClick={handleExport}
+                    className={`transition-all duration-300 ${animatedItems.includes("controls") ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
                   >
                     <Download className="h-4 w-4 mr-2" />
                     Export
@@ -150,15 +176,18 @@ export default function RepositoryComparisonPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
-                <div>
+                <div className={`transition-all duration-500 ${animatedItems.includes("controls") ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                   <h3 className="text-sm font-medium mb-2">Select Repositories</h3>
                   <div className="flex flex-wrap gap-2">
-                    {repositories.map((repo) => (
+                    {repositories.map((repo, index) => (
                       <Button
                         key={repo.id}
                         variant={selectedRepos.includes(repo.id || "") ? "default" : "outline"}
                         size="sm"
-                        className="flex items-center"
+                        className={`flex items-center transition-all duration-300 ${
+                          animatedItems.includes("repositories") ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+                        }`}
+                        style={{ transitionDelay: `${index * 50}ms` }}
                         onClick={() => toggleRepository(repo.id || "")}
                       >
                         <GitBranch className="h-4 w-4 mr-2" />
@@ -168,7 +197,7 @@ export default function RepositoryComparisonPage() {
                   </div>
                 </div>
                 
-                <div className="flex flex-wrap gap-4">
+                <div className={`flex flex-wrap gap-4 transition-all duration-500 ${animatedItems.includes("controls") ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                   <div className="w-full md:w-auto">
                     <h3 className="text-sm font-medium mb-2">Metric</h3>
                     <Select value={selectedMetric} onValueChange={setSelectedMetric}>
@@ -208,6 +237,7 @@ export default function RepositoryComparisonPage() {
                         variant={viewType === "line" ? "default" : "outline"}
                         size="sm"
                         onClick={() => setViewType("line")}
+                        className="transition-all duration-200"
                       >
                         Line Chart
                       </Button>
@@ -215,6 +245,7 @@ export default function RepositoryComparisonPage() {
                         variant={viewType === "bar" ? "default" : "outline"}
                         size="sm"
                         onClick={() => setViewType("bar")}
+                        className="transition-all duration-200"
                       >
                         Bar Chart
                       </Button>
@@ -231,23 +262,25 @@ export default function RepositoryComparisonPage() {
                 </TabsList>
                 
                 <TabsContent value="repositories" className="pt-4">
-                  {selectedRepos.length === 0 ? (
-                    <div className="rounded-lg border-2 border-dashed p-8 text-center">
-                      <GitBranch className="h-10 w-10 mx-auto mb-4 text-muted-foreground" />
-                      <h3 className="text-lg font-medium">No Repositories Selected</h3>
-                      <p className="text-muted-foreground max-w-md mx-auto mt-2">
-                        Please select at least one repository to view comparison data
-                      </p>
-                    </div>
-                  ) : (
-                    <RepositoryComparisonChart 
-                      selectedRepos={selectedRepos}
-                      repositories={repositories}
-                      selectedMetric={selectedMetric}
-                      viewType={viewType}
-                      timePeriod={selectedTimePeriod}
-                    />
-                  )}
+                  <div className={`transition-all duration-500 ${animatedItems.includes("chart") ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                    {selectedRepos.length === 0 ? (
+                      <div className="rounded-lg border-2 border-dashed p-8 text-center">
+                        <GitBranch className="h-10 w-10 mx-auto mb-4 text-muted-foreground animate-bounce" />
+                        <h3 className="text-lg font-medium">No Repositories Selected</h3>
+                        <p className="text-muted-foreground max-w-md mx-auto mt-2">
+                          Please select at least one repository to view comparison data
+                        </p>
+                      </div>
+                    ) : (
+                      <RepositoryComparisonChart 
+                        selectedRepos={selectedRepos}
+                        repositories={repositories}
+                        selectedMetric={selectedMetric}
+                        viewType={viewType}
+                        timePeriod={selectedTimePeriod}
+                      />
+                    )}
+                  </div>
                 </TabsContent>
                 
                 <TabsContent value="students" className="pt-4">
@@ -309,26 +342,26 @@ export default function RepositoryComparisonPage() {
               </Tabs>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <Card>
+                <Card className={`transition-all duration-500 ${animatedItems.includes("stats-avg") ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm">Average Performance</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{calculateAveragePerformance()}%</div>
+                    <div className="text-2xl font-bold animate-fade-in">{calculateAveragePerformance()}%</div>
                     <p className="text-xs text-muted-foreground">
                       Across {selectedRepos.length} repositories
                     </p>
                   </CardContent>
                 </Card>
                 
-                <Card>
+                <Card className={`transition-all duration-500 ${animatedItems.includes("stats-top") ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm">Top Repository</CardTitle>
                   </CardHeader>
                   <CardContent>
                     {topRepo ? (
                       <>
-                        <div className="text-lg font-bold">{topRepo.name}</div>
+                        <div className="text-lg font-bold animate-fade-in">{topRepo.name}</div>
                         <p className="text-xs text-muted-foreground">
                           Performance: {topRepo.progress}%
                         </p>
@@ -339,12 +372,12 @@ export default function RepositoryComparisonPage() {
                   </CardContent>
                 </Card>
                 
-                <Card>
+                <Card className={`transition-all duration-500 ${animatedItems.includes("stats-gap") ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm">Performance Gap</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{calculatePerformanceGap()}%</div>
+                    <div className="text-2xl font-bold animate-fade-in">{calculatePerformanceGap()}%</div>
                     <p className="text-xs text-muted-foreground">
                       Between highest and lowest performing repositories
                     </p>

@@ -98,6 +98,7 @@ export function RepositoryComparisonChart({
 }: RepositoryComparisonChartProps) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [animated, setAnimated] = useState(false);
   
   // Filter repositories based on selected IDs
   const filteredRepositories = repositories.filter(repo => 
@@ -105,6 +106,8 @@ export function RepositoryComparisonChart({
   );
 
   useEffect(() => {
+    // Reset animation state when data changes
+    setAnimated(false);
     // Simulate loading data from an API
     setLoading(true);
     
@@ -112,6 +115,11 @@ export function RepositoryComparisonChart({
       const newData = generateRepositoryData(filteredRepositories, selectedMetric, timePeriod);
       setData(newData);
       setLoading(false);
+      
+      // Trigger animation after data is loaded
+      setTimeout(() => {
+        setAnimated(true);
+      }, 100);
     }, 800);
     
     return () => clearTimeout(timer);
@@ -138,7 +146,7 @@ export function RepositoryComparisonChart({
   };
 
   return (
-    <div className="h-[400px]">
+    <div className={`h-[400px] transition-opacity duration-500 ${animated ? 'opacity-100' : 'opacity-0'}`}>
       <ResponsiveContainer width="100%" height="100%">
         {viewType === "line" ? (
           <AreaChart
@@ -180,6 +188,9 @@ export function RepositoryComparisonChart({
                 fillOpacity={1}
                 fill={`url(#color-${repo.id})`}
                 strokeWidth={2}
+                animationDuration={1500}
+                animationBegin={index * 300}
+                isAnimationActive={true}
               />
             ))}
           </AreaChart>
@@ -213,6 +224,9 @@ export function RepositoryComparisonChart({
                 fill={colors[index % colors.length]}
                 radius={[4, 4, 0, 0]}
                 maxBarSize={50}
+                animationDuration={1500}
+                animationBegin={index * 300}
+                isAnimationActive={true}
               />
             ))}
           </BarChart>
