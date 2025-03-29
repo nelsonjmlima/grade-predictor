@@ -1,5 +1,5 @@
 
-import { Plus, GitlabIcon, BarChart2 } from "lucide-react";
+import { Plus, GitlabIcon, BarChart2, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -18,6 +18,10 @@ export function RepositoriesHeader({ onAddRepository }: RepositoriesHeaderProps)
     navigate("/repositories/compare");
   };
   
+  const handleRankRepositories = () => {
+    navigate("/repositories/ranking");
+  };
+  
   return (
     <div className="flex flex-col gap-4 mb-8">
       <div className="flex items-center justify-between">
@@ -28,6 +32,15 @@ export function RepositoriesHeader({ onAddRepository }: RepositoriesHeaderProps)
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-9"
+            onClick={handleRankRepositories}
+          >
+            <Trophy className="h-4 w-4 mr-2" />
+            Rankings
+          </Button>
           <Button 
             variant="outline" 
             size="sm" 
