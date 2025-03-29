@@ -1,5 +1,5 @@
 
-import { Plus, GitlabIcon, BarChart2, Trophy, User } from "lucide-react";
+import { Plus, GitlabIcon, BarChart2, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
