@@ -135,11 +135,11 @@ export function SideNav() {
           />
           <NavItem 
             icon={BarChart2} 
-            label="Analytics" 
+            label="Grade Prediction Model" 
             to="/analytics"
-            active={activeItem === "Analytics"} 
+            active={activeItem === "Grade Prediction Model"} 
             collapsed={collapsed}
-            onClick={() => setActiveItem("Analytics")}
+            onClick={() => setActiveItem("Grade Prediction Model")}
           />
           <NavItem 
             icon={Settings} 
