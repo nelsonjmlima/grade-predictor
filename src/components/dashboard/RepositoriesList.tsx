@@ -75,14 +75,9 @@ export function RepositoriesList({
     );
   }
 
-  // Find the Programming Fundamentals repository to display it first
+  // Display only Programming Fundamentals repository at the top
   const programmingFundamentalsRepo = repositories.find(repo => repo.id === 'programming-fundamentals');
-  const otherRepositories = repositories.filter(repo => repo.id !== 'programming-fundamentals');
-  
-  // Combine repositories with Programming Fundamentals first if it exists
-  const orderedRepositories = programmingFundamentalsRepo 
-    ? [programmingFundamentalsRepo, ...otherRepositories] 
-    : repositories;
+  const repositoriesToDisplay = programmingFundamentalsRepo ? [programmingFundamentalsRepo] : repositories;
 
   return (
     <ScrollArea className="h-full">
@@ -90,7 +85,7 @@ export function RepositoriesList({
         ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" 
         : "space-y-3"
       }>
-        {orderedRepositories.map((repo) => (
+        {repositoriesToDisplay.map((repo) => (
           <div 
             key={repo.name} 
             className="cursor-pointer transform transition-transform hover:scale-[1.01]"

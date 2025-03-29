@@ -6,50 +6,32 @@ import { StudentComparisonChart } from "@/components/dashboard/StudentComparison
 import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, FolderPlus } from "lucide-react";
+import { Search, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-// Sample repository data
-const repositories = [
-  {
-    name: "Team Alpha Project",
-    description: "Software Engineering final project for Team Alpha",
-    lastActivity: "Today at 13:45",
-    commitCount: 127,
-    mergeRequestCount: 18,
-    branchCount: 5,
-    progress: 68,
-    predictedGrade: "B+"
-  },
-  {
-    name: "Web Development Course",
-    description: "Web development course repository for CS301",
-    lastActivity: "Yesterday at 09:22",
-    commitCount: 84,
-    mergeRequestCount: 12,
-    branchCount: 3,
-    progress: 75,
-    predictedGrade: "A-"
-  },
-  {
-    name: "Algorithm Analysis",
-    description: "Team project for algorithm performance analysis",
-    lastActivity: "3 days ago",
-    commitCount: 56,
-    mergeRequestCount: 7,
-    branchCount: 2,
-    progress: 42
-  }
-];
-
-// Uncomment this line to show empty state
-// const repositories = [];
+// Filter to only show Programming Fundamentals repository
+const repository = {
+  id: 'programming-fundamentals',
+  name: "Programming Fundamentals 2023",
+  description: "Curso introdutório aos fundamentos de programação para alunos de Ciência da Computação",
+  lastActivity: "Hoje às 13:45",
+  commitCount: 127,
+  mergeRequestCount: 18,
+  branchCount: 5,
+  progress: 68,
+  predictedGrade: "B+"
+};
 
 export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const repositoryCount = repositories.length;
+  const navigate = useNavigate();
 
   const handleCreateRepository = () => {
     setDialogOpen(true);
+  };
+
+  const handleRepositoryClick = () => {
+    navigate(`/repositories/${repository.id}`);
   };
 
   return (
@@ -71,9 +53,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex-1">
               <p className="text-sm text-muted-foreground">
-                {repositoryCount === 0 
-                  ? "You don't have any repositories yet. Create your first repository to get started." 
-                  : ""}
+                Currently managing the Programming Fundamentals 2023 repository.
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -91,35 +71,18 @@ export default function DashboardPage() {
             </div>
           </div>
           
-          {repositories.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                {repositories.map((repo, index) => (
-                  <div key={repo.name}>
-                    <RepositoryCard {...repo} />
-                  </div>
-                ))}
-              </div>
-              
-              <div className="mb-4">
-                <StudentComparisonChart />
-              </div>
-            </>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-8">
-              <div className="bg-muted/50 p-6 rounded-lg flex flex-col items-center max-w-md">
-                <FolderPlus className="h-12 w-12 text-muted-foreground mb-3" />
-                <h3 className="text-base font-medium mb-1">No repositories found</h3>
-                <p className="text-center text-xs text-muted-foreground mb-4">
-                  Create your first repository to start tracking student progress and analyzing their performance.
-                </p>
-                <Button size="sm" className="w-full" onClick={handleCreateRepository}>
-                  <Plus className="h-4 w-4 mr-1" />
-                  Create New Repository
-                </Button>
-              </div>
+          <div className="mb-4">
+            <div 
+              className="cursor-pointer transform transition-transform hover:scale-[1.01]"
+              onClick={handleRepositoryClick}
+            >
+              <RepositoryCard {...repository} />
             </div>
-          )}
+          </div>
+          
+          <div className="mb-4">
+            <StudentComparisonChart />
+          </div>
         </div>
       </main>
 
