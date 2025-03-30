@@ -2,18 +2,23 @@
 import { useState, useEffect } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
+import { RepositoriesTable } from "@/components/dashboard/RepositoriesTable";
 import { StudentComparisonChart } from "@/components/dashboard/StudentComparisonChart";
 import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, Grid, List } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { getRepositories, Repository } from "@/services/repositoryData";
+import { getRepositories, Repository, filterRepositories, sortRepositories } from "@/services/repositoryData";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+  const [sortBy, setSortBy] = useState("recent");
   const navigate = useNavigate();
 
   // Fetch repositories on mount and when dialogOpen changes (indicating a potential new repo)
@@ -35,12 +40,10 @@ export default function DashboardPage() {
   };
 
   // Filter repositories based on search term
-  const filteredRepositories = searchTerm
-    ? repositories.filter(repo =>
-        repo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        repo.description.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : repositories;
+  const filteredRepositories = filterRepositories(repositories, searchTerm);
+  
+  // Sort repositories based on sort selection
+  const sortedRepositories = sortRepositories(filteredRepositories, sortBy);
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -76,6 +79,27 @@ export default function DashboardPage() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
+              <Select 
+                value={sortBy} 
+                onValueChange={setSortBy}
+              >
+                <SelectTrigger className="h-8 w-[130px]">
+                  <SelectValue placeholder="Sort by..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recent">Most Recent</SelectItem>
+                  <SelectItem value="name">Name</SelectItem>
+                  <SelectItem value="progress">Progress</SelectItem>
+                </SelectContent>
+              </Select>
+              <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as "grid" | "table")}>
+                <ToggleGroupItem value="grid" aria-label="Grid view">
+                  <Grid className="h-4 w-4" />
+                </ToggleGroupItem>
+                <ToggleGroupItem value="table" aria-label="Table view">
+                  <List className="h-4 w-4" />
+                </ToggleGroupItem>
+              </ToggleGroup>
               <Button size="sm" className="h-9 px-4" onClick={handleAddRepository}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Repository
@@ -83,27 +107,33 @@ export default function DashboardPage() {
             </div>
           </div>
           
-          <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredRepositories.length > 0 ? (
-              filteredRepositories.map((repo) => (
-                <div 
-                  key={repo.id || repo.name} 
-                  className="cursor-pointer transform transition-transform hover:scale-[1.01]"
-                  onClick={() => handleRepositoryClick(repo.id || '')}
-                >
-                  <RepositoryCard {...repo} />
+          {viewMode === "grid" ? (
+            <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {sortedRepositories.length > 0 ? (
+                sortedRepositories.map((repo) => (
+                  <div 
+                    key={repo.id || repo.name} 
+                    className="cursor-pointer transform transition-transform hover:scale-[1.01]"
+                    onClick={() => handleRepositoryClick(repo.id || '')}
+                  >
+                    <RepositoryCard {...repo} />
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-full p-8 text-center">
+                  <p className="text-muted-foreground">
+                    {searchTerm 
+                      ? "No repositories match your search. Try different keywords." 
+                      : "No repositories available. Add your first repository."}
+                  </p>
                 </div>
-              ))
-            ) : (
-              <div className="col-span-full p-8 text-center">
-                <p className="text-muted-foreground">
-                  {searchTerm 
-                    ? "No repositories match your search. Try different keywords." 
-                    : "No repositories available. Add your first repository."}
-                </p>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          ) : (
+            <div className="mb-4">
+              <RepositoriesTable repositories={sortedRepositories} />
+            </div>
+          )}
           
           {repositories.length > 0 && (
             <div className="mb-4">
