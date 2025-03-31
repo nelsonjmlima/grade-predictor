@@ -2,10 +2,13 @@
 import { AuthForm } from "@/components/auth/AuthForm";
 import { Logo } from "@/components/logo/Logo";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 
 export default function LoginPage() {
   const { user, isLoading } = useAuth();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const defaultTab = searchParams.get("tab") === "signup" ? "signup" : "login";
 
   // If user is already logged in, redirect to dashboard
   if (!isLoading && user) {
@@ -30,7 +33,7 @@ export default function LoginPage() {
         
         {/* Auth form on the right */}
         <div className="w-full md:w-1/2">
-          <AuthForm />
+          <AuthForm defaultTab={defaultTab} />
         </div>
       </div>
     </div>
