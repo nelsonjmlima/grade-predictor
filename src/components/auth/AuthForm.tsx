@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -106,7 +107,7 @@ export function AuthForm({ defaultTab = "login" }: AuthFormProps) {
   };
 
   return (
-    <Card className="w-full mx-auto overflow-hidden animate-scale-in bg-black/40 backdrop-blur-xl border border-white/10 text-white scale-125">
+    <Card className="w-full mx-auto overflow-hidden animate-scale-in bg-black/40 backdrop-blur-xl border border-white/10 text-white scale-100">
       <Tabs defaultValue={defaultTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 bg-white/10 text-gray-200">
           <TabsTrigger value="login" className="data-[state=active]:bg-blue-600/70 data-[state=active]:text-white text-lg py-3">
