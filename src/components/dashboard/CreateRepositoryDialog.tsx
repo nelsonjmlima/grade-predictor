@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -72,8 +73,8 @@ export function CreateRepositoryDialog({
         students: values.students || undefined
       };
       
-      // Add the repository to storage
-      addRepository(newRepo);
+      // Add the repository to storage - the type conversion happens inside addRepository
+      addRepository(newRepo as any);
       
       // Show success notification
       toast.success("Repository created successfully", {

@@ -68,7 +68,8 @@ export default function AddRepositoryPage() {
         students: values.students || undefined
       };
 
-      addRepository(newRepo);
+      // Add the repository to storage - the type conversion happens inside addRepository
+      addRepository(newRepo as any);
 
       toast.success("Repository created successfully", {
         description: `${values.name} has been created and is ready to use.`
