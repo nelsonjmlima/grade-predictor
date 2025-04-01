@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -182,7 +183,7 @@ export default function AddRepositoryPage() {
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Creating..." : "+ Add Repository"}
+                  {isSubmitting ? "Creating..." : "Save Repository"}
                 </Button>
               </CardFooter>
             </form>
