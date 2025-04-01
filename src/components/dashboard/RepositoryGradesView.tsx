@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, User, FileText, Award, Download, PlusCircle, Pencil, Users, GitBranch } from "lucide-react";
+import { BarChart, User, FileText, Award, Download, Pencil, Users, GitBranch } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { StudentFormDialog } from "@/components/dashboard/StudentFormDialog";
@@ -46,11 +46,6 @@ export function RepositoryGradesView({
     }
   };
 
-  const handleAddStudent = () => {
-    setEditingStudent(undefined);
-    setStudentFormOpen(true);
-  };
-
   const handleEditStudent = (student: Student) => {
     setEditingStudent(student);
     setStudentFormOpen(true);
@@ -81,10 +76,6 @@ export function RepositoryGradesView({
             <Button size="sm">
               <Award className="h-4 w-4 mr-2" />
               Assign Grades
-            </Button>
-            <Button variant="default" size="sm" onClick={handleAddStudent}>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Add Student
             </Button>
           </div>
         </div>
