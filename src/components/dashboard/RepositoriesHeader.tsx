@@ -1,5 +1,5 @@
 
-import { Plus, GitlabIcon, BarChart2, Trophy } from "lucide-react";
+import { GitlabIcon, BarChart2, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -10,10 +10,6 @@ interface RepositoriesHeaderProps {
 
 export function RepositoriesHeader({ onAddRepository }: RepositoriesHeaderProps) {
   const navigate = useNavigate();
-  
-  const handleAddRepository = () => {
-    navigate("/repositories/add");
-  };
   
   const handleCompareRepositories = () => {
     navigate("/repositories/compare");
@@ -72,10 +68,6 @@ export function RepositoriesHeader({ onAddRepository }: RepositoriesHeaderProps)
           >
             <GitlabIcon className="h-4 w-4 mr-2" />
             Sync Repositories
-          </Button>
-          <Button size="sm" className="h-9 px-4" onClick={handleAddRepository}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Repository
           </Button>
         </div>
       </div>

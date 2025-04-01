@@ -1,5 +1,4 @@
 
-import { SlidersHorizontal } from "lucide-react";
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
 import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -63,14 +62,6 @@ export function RepositoriesList({
           repositoryName={selectedRepository === 'programming-fundamentals' ? "Programming Fundamentals 2023" : "Advanced Programming Course"} 
           students={selectedRepository === 'programming-fundamentals' ? programmingStudents : sampleStudents} 
         />
-        <div className="mt-3 p-2 bg-muted rounded-md">
-          <p className="text-xs text-muted-foreground">
-            {selectedRepository === 'programming-fundamentals' 
-              ? "Showing detailed student data for Programming Fundamentals 2023." 
-              : "This is a template view showing how repositories with student grades would appear."} 
-            Click the <SlidersHorizontal className="h-3 w-3 inline mx-1" /> button to toggle back to regular repository view.
-          </p>
-        </div>
       </div>
     );
   }

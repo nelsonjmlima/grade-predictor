@@ -1,5 +1,5 @@
 
-import { Search, SlidersHorizontal, Grid, List, Calendar } from "lucide-react";
+import { Search, Calendar, Grid, List } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,15 +55,6 @@ export function RepositoryControls({
             <SelectItem value="progress">Progress</SelectItem>
           </SelectContent>
         </Select>
-        
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className="h-10 w-10"
-          onClick={onToggleGradesView}
-        >
-          <SlidersHorizontal className="h-4 w-4" />
-        </Button>
         
         <div className="flex border rounded-md overflow-hidden">
           <Button 
