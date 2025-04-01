@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -5,11 +6,13 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Repository } from "@/services/repositoryData";
 import { FileUp, AlertCircle } from "lucide-react";
+
 interface CSVImportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onDataImported: (data: Partial<Repository>) => void;
 }
+
 export function CSVImportDialog({
   open,
   onOpenChange,
@@ -18,6 +21,7 @@ export function CSVImportDialog({
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
@@ -30,13 +34,16 @@ export function CSVImportDialog({
       setError(null);
     }
   };
+  
   const processCSV = async () => {
     if (!file) {
       setError("Please select a CSV file first");
       return;
     }
+    
     setIsProcessing(true);
     setError(null);
+    
     try {
       const text = await file.text();
       const lines = text.split('\n');
@@ -50,8 +57,11 @@ export function CSVImportDialog({
       const headers = lines[0].split(',').map(header => header.trim());
 
       // Check for required headers
-      const requiredHeaders = ["Project_ID", "Author", "Email", "Date", "Additions", "Deletions", "Operations"];
-      const missingHeaders = requiredHeaders.filter(required => !headers.some(header => header.toLowerCase() === required.toLowerCase()));
+      const requiredHeaders = ["ProjectID", "Author", "Email", "Date", "Additions", "Deletions", "Operations"];
+      const missingHeaders = requiredHeaders.filter(required => 
+        !headers.some(header => header.toLowerCase() === required.toLowerCase())
+      );
+      
       if (missingHeaders.length > 0) {
         throw new Error(`Missing required headers: ${missingHeaders.join(", ")}`);
       }
@@ -74,7 +84,7 @@ export function CSVImportDialog({
 
       // Map CSV fields to repository fields
       const repositoryData: Partial<Repository> = {
-        projectId: result.Project_ID,
+        projectId: result.ProjectID,
         author: result.Author,
         email: result.Email,
         date: result.Date,
@@ -82,7 +92,7 @@ export function CSVImportDialog({
         deletions: result.Deletions,
         operations: result.Operations,
         // Set additional derived fields
-        name: result.Project_ID || "Unnamed Project",
+        name: result.ProjectID || "Unnamed Project",
         description: `Contributed by ${result.Author || "Unknown"}`,
         lastActivity: result.Date || new Date().toISOString(),
         commitCount: result.Operations || 0,
@@ -90,6 +100,7 @@ export function CSVImportDialog({
         branchCount: Math.floor((result.Operations || 0) / 5) || 0,
         progress: Math.min(Math.floor((result.Additions || 0) / ((result.Additions || 0) + (result.Deletions || 0) + 1) * 100), 100) || 50
       };
+      
       onDataImported(repositoryData);
       onOpenChange(false);
       setFile(null);
@@ -101,6 +112,7 @@ export function CSVImportDialog({
       setIsProcessing(false);
     }
   };
+
   return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
@@ -133,13 +145,17 @@ export function CSVImportDialog({
 
           <div className="bg-muted rounded-md p-3 text-xs">
             <p className="font-medium mb-1">Expected CSV Format:</p>
-            <pre className="overflow-x-auto">Project_ID,
+            <pre className="overflow-x-auto whitespace-pre-wrap">
+ProjectID,
 Author,
 Email,
-Date,
+Date (YYYY-MM-DDThh:mm:ss.sss+00:00),
 Additions,
 Deletions,
-Operations </pre>
+Operations</pre>
+            <p className="text-xs mt-2 text-muted-foreground">
+              Example date format: 2024-12-20T20:00:15.000+00:00
+            </p>
           </div>
         </div>
 

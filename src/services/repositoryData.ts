@@ -1,4 +1,3 @@
-
 export interface Repository {
   name: string;
   description: string;
@@ -19,7 +18,6 @@ export interface Repository {
   createdAt?: string;
   language?: string;
   technologies?: string[];
-  // New fields to match CSV format
   projectId?: string;
   author?: string;
   email?: string;
@@ -41,7 +39,6 @@ export interface Student {
   groupNumber?: number;
 }
 
-// Empty default repositories array (previously contained sample data)
 const defaultRepositories: Repository[] = [];
 
 export const getRepositories = (): Repository[] => {
@@ -119,10 +116,8 @@ export const saveRepositoryStudent = (repositoryId: string, student: Student): b
 
 export const allRepositories = getRepositories();
 
-// Empty sample students (previously contained sample data)
 export const sampleStudents: Student[] = [];
 
-// Empty programming students (previously contained sample data)
 export const programmingStudents: Student[] = [];
 
 export const filterRepositories = (repositories: Repository[], searchTerm: string): Repository[] => {
@@ -154,11 +149,9 @@ export const sortRepositories = (repositories: Repository[], sortBy: string): Re
   }
 };
 
-// Clear any existing repositories data from localStorage
 export const clearAllRepositories = (): void => {
   localStorage.removeItem('repositories');
   localStorage.setItem('repositories', JSON.stringify([]));
 };
 
-// Call this function to clear repositories when the module loads
 clearAllRepositories();
