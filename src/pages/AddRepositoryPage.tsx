@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -12,23 +11,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { addRepository } from "@/services/repositoryData";
-
 const formSchema = z.object({
-  name: z.string().min(3, { message: "Repository name must be at least 3 characters" }),
-  description: z.string().min(10, { message: "Description must be at least 10 characters" }),
+  name: z.string().min(3, {
+    message: "Repository name must be at least 3 characters"
+  }),
+  description: z.string().min(10, {
+    message: "Description must be at least 10 characters"
+  }),
   projectId: z.string().optional(),
   students: z.string().optional(),
-  link: z.string().url({ message: "Please enter a valid URL" }).optional().or(z.literal("")),
+  link: z.string().url({
+    message: "Please enter a valid URL"
+  }).optional().or(z.literal("")),
   apiKey: z.string().optional(),
-  userId: z.string().optional(),
+  userId: z.string().optional()
 });
-
 type FormValues = z.infer<typeof formSchema>;
-
 export default function AddRepositoryPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -38,13 +39,11 @@ export default function AddRepositoryPage() {
       students: "",
       link: "",
       apiKey: "",
-      userId: "",
-    },
+      userId: ""
+    }
   });
-
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
-    
     try {
       // Create a new repository object
       const newRepo = {
@@ -56,42 +55,35 @@ export default function AddRepositoryPage() {
         mergeRequestCount: 0,
         branchCount: 1,
         progress: 0,
-        projectId: values.projectId || undefined,
+        projectId: values.projectId || undefined
       };
-      
+
       // Add the repository to storage
       addRepository(newRepo);
-      
+
       // Show success notification
       toast.success("Repository created successfully", {
-        description: `${values.name} has been created and is ready to use.`,
+        description: `${values.name} has been created and is ready to use.`
       });
-      
+
       // Navigate to repositories page
       navigate("/repositories");
     } catch (error) {
       console.error("Error creating repository:", error);
       toast.error("Failed to create repository", {
-        description: "An error occurred while creating the repository. Please try again.",
+        description: "An error occurred while creating the repository. Please try again."
       });
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  return (
-    <div className="min-h-screen bg-background p-6">
+  return <div className="min-h-screen bg-background p-6">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center gap-2 mb-6">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="rounded-full"
-            onClick={() => navigate("/repositories")}
-          >
+          <Button variant="ghost" size="icon" className="rounded-full" onClick={() => navigate("/repositories")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-2xl font-semibold tracking-tight">Add New Repository</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Add Repository</h1>
         </div>
         
         <Card className="border shadow-md">
@@ -101,43 +93,29 @@ export default function AddRepositoryPage() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <CardContent className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="name" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>Repository Name</FormLabel>
                       <FormControl>
                         <Input placeholder="e.g., Software Engineering 2023" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
 
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="description" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <Textarea 
-                          placeholder="Brief description of this repository's purpose" 
-                          className="resize-none min-h-24" 
-                          {...field} 
-                        />
+                        <Textarea placeholder="Brief description of this repository's purpose" className="resize-none min-h-24" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
 
-                <FormField
-                  control={form.control}
-                  name="projectId"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="projectId" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>Project ID <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
                       <FormControl>
                         <div className="flex items-center space-x-2">
@@ -146,15 +124,11 @@ export default function AddRepositoryPage() {
                         </div>
                       </FormControl>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
 
-                <FormField
-                  control={form.control}
-                  name="link"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="link" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>Repository Link <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
                       <FormControl>
                         <div className="flex items-center space-x-2">
@@ -163,37 +137,24 @@ export default function AddRepositoryPage() {
                         </div>
                       </FormControl>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
 
-                <FormField
-                  control={form.control}
-                  name="apiKey"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="apiKey" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>API Key <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
                       <FormControl>
                         <div className="flex items-center space-x-2">
                           <Key className="h-4 w-4 text-muted-foreground" />
-                          <Input 
-                            placeholder="Enter repository API key" 
-                            type="password" 
-                            showPasswordToggle 
-                            {...field} 
-                          />
+                          <Input placeholder="Enter repository API key" type="password" showPasswordToggle {...field} />
                         </div>
                       </FormControl>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
 
-                <FormField
-                  control={form.control}
-                  name="userId"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="userId" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>User ID <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
                       <FormControl>
                         <div className="flex items-center space-x-2">
@@ -202,35 +163,20 @@ export default function AddRepositoryPage() {
                         </div>
                       </FormControl>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
 
-                <FormField
-                  control={form.control}
-                  name="students"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="students" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>Student Email Addresses <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
                       <FormControl>
-                        <Textarea 
-                          placeholder="Enter student email addresses, one per line" 
-                          className="resize-none h-24" 
-                          {...field} 
-                        />
+                        <Textarea placeholder="Enter student email addresses, one per line" className="resize-none h-24" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
               </CardContent>
               <CardFooter className="flex justify-end space-x-4 pt-6">
-                <Button 
-                  variant="outline" 
-                  type="button" 
-                  onClick={() => navigate("/repositories")}
-                  disabled={isSubmitting}
-                >
+                <Button variant="outline" type="button" onClick={() => navigate("/repositories")} disabled={isSubmitting}>
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
@@ -241,6 +187,5 @@ export default function AddRepositoryPage() {
           </Form>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 }
