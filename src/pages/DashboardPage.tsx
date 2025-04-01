@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
 import { RepositoriesTable } from "@/components/dashboard/RepositoriesTable";
-import { StudentComparisonChart } from "@/components/dashboard/StudentComparisonChart";
 import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -132,12 +131,6 @@ export default function DashboardPage() {
           ) : (
             <div className="mb-4">
               <RepositoriesTable repositories={sortedRepositories} />
-            </div>
-          )}
-          
-          {repositories.length > 0 && (
-            <div className="mb-4">
-              <StudentComparisonChart />
             </div>
           )}
         </div>
