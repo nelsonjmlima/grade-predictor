@@ -66,7 +66,7 @@ export default function DashboardPage() {
               <p className="text-sm text-muted-foreground">
                 {repositories.length > 0 
                   ? `Managing ${repositories.length} repositories.`
-                  : "No repositories available. Add your first repository."}
+                  : ""}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -124,7 +124,7 @@ export default function DashboardPage() {
                   <p className="text-muted-foreground">
                     {searchTerm 
                       ? "No repositories match your search. Try different keywords." 
-                      : "No repositories available. Add your first repository."}
+                      : ""}
                   </p>
                 </div>
               )}
