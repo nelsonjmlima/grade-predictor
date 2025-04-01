@@ -60,7 +60,12 @@ export default function AddRepositoryPage() {
         mergeRequestCount: 0,
         branchCount: 1,
         progress: 0,
-        projectId: values.projectId || undefined
+        createdAt: new Date().toISOString(),
+        projectId: values.projectId || undefined,
+        link: values.link || undefined,
+        apiKey: values.apiKey || undefined,
+        userId: values.userId || undefined,
+        students: values.students || undefined
       };
 
       addRepository(newRepo);

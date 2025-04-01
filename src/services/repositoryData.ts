@@ -1,3 +1,4 @@
+
 export interface Repository {
   name: string;
   description: string;
@@ -29,6 +30,9 @@ export interface Repository {
   totalAdds?: number;
   averageOperationsPerCommit?: number;
   averageCommitsPerWeek?: number;
+  link?: string;
+  apiKey?: string;
+  userId?: string;
 }
 
 export interface Student {
@@ -57,6 +61,28 @@ export const getRepositories = (): Repository[] => {
 
 export const addRepository = (repository: Repository): void => {
   const repositories = getRepositories();
+  
+  // Generate createdAt timestamp
+  if (!repository.createdAt) {
+    repository.createdAt = new Date().toISOString();
+  }
+  
+  // Parse student emails if provided as string
+  if (typeof repository.students === 'string' && repository.students.trim()) {
+    const emails = (repository.students as unknown as string)
+      .split('\n')
+      .map(email => email.trim())
+      .filter(email => email.length > 0);
+      
+    repository.students = emails.map(email => ({
+      id: `student-${Math.random().toString(36).substr(2, 9)}`,
+      name: email.split('@')[0],
+      email: email,
+      commitCount: 0,
+      lastActivity: 'Never'
+    }));
+  }
+  
   repositories.unshift(repository);
   localStorage.setItem('repositories', JSON.stringify(repositories));
 };
@@ -158,4 +184,5 @@ export const clearAllRepositories = (): void => {
   localStorage.setItem('repositories', JSON.stringify([]));
 };
 
+// Initialize empty repositories storage
 clearAllRepositories();

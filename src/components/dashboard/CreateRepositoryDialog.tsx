@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -65,7 +64,12 @@ export function CreateRepositoryDialog({
         mergeRequestCount: 0,
         branchCount: 1,
         progress: 0,
+        createdAt: new Date().toISOString(),
         projectId: values.projectId || undefined,
+        link: values.link || undefined,
+        apiKey: values.apiKey || undefined,
+        userId: values.userId || undefined,
+        students: values.students || undefined
       };
       
       // Add the repository to storage
