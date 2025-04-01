@@ -15,6 +15,7 @@ import RepositoriesPage from "./pages/RepositoriesPage";
 import RepositoryDetailsPage from "./pages/RepositoryDetailsPage";
 import StudentMetricsPage from "./pages/StudentMetricsPage";
 import AddRepositoryPage from "./pages/AddRepositoryPage";
+import ImportCSVPage from "./pages/ImportCSVPage";
 import RepositoryComparisonPage from "./pages/RepositoryComparisonPage";
 import RepositoryRankingPage from "./pages/RepositoryRankingPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
@@ -66,6 +67,7 @@ const App = () => {
               <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
               <Route path="/repositories" element={<ProtectedRoute><RepositoriesPage /></ProtectedRoute>} />
               <Route path="/repositories/add" element={<ProtectedRoute><AddRepositoryPage /></ProtectedRoute>} />
+              <Route path="/repositories/import-csv" element={<ProtectedRoute><ImportCSVPage /></ProtectedRoute>} />
               <Route path="/repositories/compare" element={<ProtectedRoute><RepositoryComparisonPage /></ProtectedRoute>} />
               <Route path="/repositories/ranking" element={<ProtectedRoute><RepositoryRankingPage /></ProtectedRoute>} />
               <Route path="/repositories/:id" element={<ProtectedRoute><RepositoryDetailsPage /></ProtectedRoute>} />
