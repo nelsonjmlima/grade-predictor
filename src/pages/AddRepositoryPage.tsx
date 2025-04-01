@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { addRepository } from "@/services/repositoryData";
+
 const formSchema = z.object({
   name: z.string().min(3, {
     message: "Repository name must be at least 3 characters"
@@ -26,10 +27,13 @@ const formSchema = z.object({
   apiKey: z.string().optional(),
   userId: z.string().optional()
 });
+
 type FormValues = z.infer<typeof formSchema>;
+
 export default function AddRepositoryPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -42,10 +46,10 @@ export default function AddRepositoryPage() {
       userId: ""
     }
   });
+
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
     try {
-      // Create a new repository object
       const newRepo = {
         id: values.name.toLowerCase().replace(/\s+/g, '-'),
         name: values.name,
@@ -58,15 +62,12 @@ export default function AddRepositoryPage() {
         projectId: values.projectId || undefined
       };
 
-      // Add the repository to storage
       addRepository(newRepo);
 
-      // Show success notification
       toast.success("Repository created successfully", {
         description: `${values.name} has been created and is ready to use.`
       });
 
-      // Navigate to repositories page
       navigate("/repositories");
     } catch (error) {
       console.error("Error creating repository:", error);
@@ -77,6 +78,7 @@ export default function AddRepositoryPage() {
       setIsSubmitting(false);
     }
   };
+
   return <div className="min-h-screen bg-background p-6">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center gap-2 mb-6">
@@ -180,7 +182,7 @@ export default function AddRepositoryPage() {
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Creating..." : "Create Repository"}
+                  {isSubmitting ? "Creating..." : "+ Add Repository"}
                 </Button>
               </CardFooter>
             </form>
