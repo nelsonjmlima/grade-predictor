@@ -1,11 +1,9 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ChevronRight,
   Home,
   GitBranch,
-  BarChart2,
   Settings,
   LogOut
 } from "lucide-react";
@@ -80,13 +78,11 @@ export function SideNav() {
     try {
       await signOut();
       setShowSignOutDialog(false);
-      // Navigation is handled by the auth state change listener in AuthContext
     } catch (error) {
       console.error("Error signing out:", error);
     }
   };
 
-  // Extract user information for display
   const userEmail = user?.email || "user@example.com";
   const userName = user?.user_metadata?.name || userEmail.split('@')[0] || "User";
   const userInitials = userName.slice(0, 2).toUpperCase();
@@ -132,14 +128,6 @@ export function SideNav() {
             active={activeItem === "Repositories"} 
             collapsed={collapsed}
             onClick={() => setActiveItem("Repositories")}
-          />
-          <NavItem 
-            icon={BarChart2} 
-            label="Grade Prediction Model" 
-            to="/analytics"
-            active={activeItem === "Grade Prediction Model"} 
-            collapsed={collapsed}
-            onClick={() => setActiveItem("Grade Prediction Model")}
           />
           <NavItem 
             icon={Settings} 
