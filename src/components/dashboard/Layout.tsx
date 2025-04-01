@@ -1,6 +1,6 @@
 
 import { ReactNode } from "react";
-import SideNav from "./SideNav";
+import { SideNav } from "./SideNav";
 
 interface LayoutProps {
   children: ReactNode;
