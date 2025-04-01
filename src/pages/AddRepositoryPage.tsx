@@ -1,14 +1,14 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BookOpen, Users, GitBranch, Link, Key, User, ArrowLeft } from "lucide-react";
+import { GitBranch, Link, Key, User, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { addRepository } from "@/services/repositoryData";
@@ -16,7 +16,7 @@ import { addRepository } from "@/services/repositoryData";
 const formSchema = z.object({
   name: z.string().min(3, { message: "Repository name must be at least 3 characters" }),
   description: z.string().min(10, { message: "Description must be at least 10 characters" }),
-  type: z.enum(["course", "project", "thesis"], { required_error: "Please select a repository type" }),
+  projectId: z.string().optional(),
   students: z.string().optional(),
   link: z.string().url({ message: "Please enter a valid URL" }).optional().or(z.literal("")),
   apiKey: z.string().optional(),
@@ -34,7 +34,7 @@ export default function AddRepositoryPage() {
     defaultValues: {
       name: "",
       description: "",
-      type: undefined,
+      projectId: "",
       students: "",
       link: "",
       apiKey: "",
@@ -56,6 +56,7 @@ export default function AddRepositoryPage() {
         mergeRequestCount: 0,
         branchCount: 1,
         progress: 0,
+        projectId: values.projectId || undefined,
       };
       
       // Add the repository to storage
@@ -134,40 +135,16 @@ export default function AddRepositoryPage() {
 
                 <FormField
                   control={form.control}
-                  name="type"
+                  name="projectId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Repository Type</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select repository type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="course">
-                            <div className="flex items-center">
-                              <BookOpen className="h-4 w-4 mr-2" />
-                              <span>Course</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="project">
-                            <div className="flex items-center">
-                              <GitBranch className="h-4 w-4 mr-2" />
-                              <span>Project</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="thesis">
-                            <div className="flex items-center">
-                              <Users className="h-4 w-4 mr-2" />
-                              <span>Thesis</span>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>Project ID <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
+                      <FormControl>
+                        <div className="flex items-center space-x-2">
+                          <GitBranch className="h-4 w-4 text-muted-foreground" />
+                          <Input placeholder="Enter Project ID" {...field} />
+                        </div>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
