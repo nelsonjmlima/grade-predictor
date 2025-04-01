@@ -68,7 +68,7 @@ export const addRepository = (repository: Repository): void => {
   }
   
   // Parse student emails if provided as string
-  if (typeof repository.students === 'string' && repository.students.trim()) {
+  if (repository.students && typeof repository.students === 'string' && repository.students.trim()) {
     const emails = (repository.students as unknown as string)
       .split('\n')
       .map(email => email.trim())
