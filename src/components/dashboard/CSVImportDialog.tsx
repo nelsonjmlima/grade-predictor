@@ -47,20 +47,34 @@ export function CSVImportDialog({
     try {
       const text = await file.text();
       const lines = text.split('\n');
-      const headers = lines[0].split(',').map(header => header.trim());
       
+      // Ensure we have at least a header and one data row
       if (lines.length < 2) {
         throw new Error("CSV file does not contain enough data");
       }
 
+      // Process headers
+      const headers = lines[0].split(',').map(header => header.trim());
+      
+      // Check for required headers
+      const requiredHeaders = ["Project_ID", "Author", "Email", "Date", "Additions", "Deletions", "Operations"];
+      const missingHeaders = requiredHeaders.filter(required => 
+        !headers.some(header => header.toLowerCase() === required.toLowerCase())
+      );
+      
+      if (missingHeaders.length > 0) {
+        throw new Error(`Missing required headers: ${missingHeaders.join(", ")}`);
+      }
+
+      // Process data
       const data = lines[1].split(',').map(value => value.trim());
       
+      // Create a result object mapping headers to values
       const result: Record<string, any> = {};
-      
       headers.forEach((header, index) => {
         if (data[index] !== undefined) {
           // Convert numeric values
-          if (!isNaN(Number(data[index]))) {
+          if (["Additions", "Deletions", "Operations"].includes(header) && !isNaN(Number(data[index]))) {
             result[header] = Number(data[index]);
           } else {
             result[header] = data[index];
@@ -69,21 +83,31 @@ export function CSVImportDialog({
       });
 
       // Map CSV fields to repository fields
-      const repositoryData: Partial<Repository> = {};
-      
-      if (result.commitCount !== undefined) repositoryData.commitCount = result.commitCount;
-      if (result.mergeRequestCount !== undefined) repositoryData.mergeRequestCount = result.mergeRequestCount;
-      if (result.branchCount !== undefined) repositoryData.branchCount = result.branchCount;
-      if (result.progress !== undefined) repositoryData.progress = result.progress;
-      if (result.name !== undefined) repositoryData.name = result.name;
-      if (result.description !== undefined) repositoryData.description = result.description;
-      if (result.lastActivity !== undefined) repositoryData.lastActivity = result.lastActivity;
+      const repositoryData: Partial<Repository> = {
+        projectId: result.Project_ID,
+        author: result.Author,
+        email: result.Email,
+        date: result.Date,
+        additions: result.Additions,
+        deletions: result.Deletions,
+        operations: result.Operations,
+        // Set additional derived fields
+        name: result.Project_ID || "Unnamed Project",
+        description: `Contributed by ${result.Author || "Unknown"}`,
+        lastActivity: result.Date || new Date().toISOString(),
+        commitCount: result.Operations || 0,
+        mergeRequestCount: Math.floor((result.Operations || 0) / 3) || 0,
+        branchCount: Math.floor((result.Operations || 0) / 5) || 0,
+        progress: Math.min(Math.floor(((result.Additions || 0) / ((result.Additions || 0) + (result.Deletions || 0) + 1)) * 100), 100) || 50,
+      };
       
       onDataImported(repositoryData);
       onOpenChange(false);
       setFile(null);
-    } catch (err) {
-      setError("Failed to process CSV file. Please check the format and try again.");
+      
+      toast.success("CSV data imported successfully");
+    } catch (err: any) {
+      setError(err.message || "Failed to process CSV file. Please check the format and try again.");
       console.error("CSV processing error:", err);
     } finally {
       setIsProcessing(false);
@@ -97,8 +121,7 @@ export function CSVImportDialog({
           <DialogTitle>Import CSV Data</DialogTitle>
           <DialogDescription>
             Upload a CSV file to import repository data. 
-            The CSV should include headers matching repository fields like 
-            commitCount, mergeRequestCount, branchCount, progress, etc.
+            The CSV should include headers matching the required format.
           </DialogDescription>
         </DialogHeader>
 
@@ -133,10 +156,10 @@ export function CSVImportDialog({
           )}
 
           <div className="bg-muted rounded-md p-3 text-xs">
-            <p className="font-medium mb-1">Example CSV Format:</p>
+            <p className="font-medium mb-1">Expected CSV Format:</p>
             <pre className="overflow-x-auto">
-              name,description,commitCount,mergeRequestCount,branchCount,progress,lastActivity
-              Project X,Description for Project X,150,12,5,75,Today at 12:30
+              Project_ID,Author,Email,Date,Additions,Deletions,Operations
+              project-123,John Doe,john@example.com,2024-12-20T20:00:15.000+00:00,456,123,42
             </pre>
           </div>
         </div>

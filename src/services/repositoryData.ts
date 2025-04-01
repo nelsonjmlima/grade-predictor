@@ -19,6 +19,14 @@ export interface Repository {
   createdAt?: string;
   language?: string;
   technologies?: string[];
+  // New fields to match CSV format
+  projectId?: string;
+  author?: string;
+  email?: string;
+  date?: string;
+  additions?: number;
+  deletions?: number;
+  operations?: number;
 }
 
 export interface Student {
