@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,11 +18,10 @@ const loginSchema = z.object({
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
 });
 
-// Form schema for signup
+// Form schema for signup - removed idNumber field
 const signupSchema = z.object({
   firstName: z.string().min(1, { message: "First name is required" }),
   lastName: z.string().min(1, { message: "Last name is required" }),
-  idNumber: z.string().min(1, { message: "ID Number is required" }),
   institution: z.string().min(1, { message: "Institution is required" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(8, { 
@@ -57,13 +55,12 @@ export function AuthForm({ defaultTab = "login" }: AuthFormProps) {
     },
   });
 
-  // Signup form
+  // Signup form - removed idNumber from defaultValues
   const signupForm = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
-      idNumber: "",
       institution: "",
       email: "",
       password: "",
@@ -91,7 +88,6 @@ export function AuthForm({ defaultTab = "login" }: AuthFormProps) {
     const metadata = {
       first_name: data.firstName,
       last_name: data.lastName,
-      id_number: data.idNumber,
       institution: data.institution,
     };
     
@@ -243,24 +239,6 @@ export function AuthForm({ defaultTab = "login" }: AuthFormProps) {
                     )}
                   />
                 </div>
-                
-                <FormField
-                  control={signupForm.control}
-                  name="idNumber"
-                  render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <FormLabel className="text-gray-200 text-lg">Number</FormLabel>
-                      <FormControl>
-                        <Input 
-                          {...field}
-                          placeholder="S12345" 
-                          className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-12 text-lg"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
                 
                 <FormField
                   control={signupForm.control}
