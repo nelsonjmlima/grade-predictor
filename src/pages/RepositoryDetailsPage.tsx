@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
@@ -15,8 +14,7 @@ import {
   Activity,
   Save,
   FileUp,
-  BarChart,
-  Users
+  BarChart
 } from "lucide-react";
 import { toast } from "sonner";
 import { 
@@ -32,7 +30,6 @@ import { EditRepositoryDialog } from "@/components/dashboard/EditRepositoryDialo
 import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
 import { CSVImportDialog } from "@/components/dashboard/CSVImportDialog";
 import { MetricsImportDialog } from "@/components/dashboard/MetricsImportDialog";
-import { GroupStudentComparisonChart } from "@/components/dashboard/GroupStudentComparisonChart";
 import { saveStudentData } from "@/services/studentData";
 
 export default function RepositoryDetailsPage() {
@@ -46,7 +43,6 @@ export default function RepositoryDetailsPage() {
   const [metricsImportDialogOpen, setMetricsImportDialogOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
-  const [activeTab, setActiveTab] = useState("students");
 
   const loadRepository = () => {
     if (id) {
@@ -113,11 +109,6 @@ export default function RepositoryDetailsPage() {
       
       setRepository(updatedRepo);
       setHasUnsavedChanges(true);
-      
-      // If students were imported as part of the CSV, update the students state
-      if (data.students && data.students.length > 0) {
-        setStudents(data.students);
-      }
       
       toast.success("CSV data imported", {
         description: "Repository data has been updated with imported values. Don't forget to save your changes."
@@ -241,15 +232,7 @@ export default function RepositoryDetailsPage() {
             <>
               <div className="flex justify-between items-center">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-2xl font-semibold">{repository.name}</h1>
-                    {repository.groupNumber && (
-                      <span className="bg-primary/20 text-primary px-2 py-0.5 text-xs rounded-full flex items-center">
-                        <Users className="h-3 w-3 mr-1" />
-                        Group {repository.groupNumber}
-                      </span>
-                    )}
-                  </div>
+                  <h1 className="text-2xl font-semibold">{repository.name}</h1>
                   <p className="text-muted-foreground">{repository.description}</p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -298,11 +281,6 @@ export default function RepositoryDetailsPage() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-2xl font-bold">{repository.commitCount}</p>
-                    {repository.totalCommits !== undefined && (
-                      <p className="text-xs text-muted-foreground">
-                        Total unique commits: {repository.totalCommits}
-                      </p>
-                    )}
                   </CardContent>
                 </Card>
                 
@@ -315,11 +293,6 @@ export default function RepositoryDetailsPage() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-2xl font-bold">{repository.mergeRequestCount}</p>
-                    {repository.averageOperationsPerCommit !== undefined && (
-                      <p className="text-xs text-muted-foreground">
-                        Avg. operations per commit: {repository.averageOperationsPerCommit.toFixed(1)}
-                      </p>
-                    )}
                   </CardContent>
                 </Card>
                 
@@ -331,14 +304,7 @@ export default function RepositoryDetailsPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div>
-                      <p className="text-2xl font-bold">{repository.branchCount}</p>
-                      {repository.contributorsCount !== undefined && (
-                        <p className="text-xs text-muted-foreground">
-                          Contributors: {repository.contributorsCount}
-                        </p>
-                      )}
-                    </div>
+                    <p className="text-2xl font-bold">{repository.branchCount}</p>
                   </CardContent>
                 </Card>
               </div>
@@ -357,24 +323,16 @@ export default function RepositoryDetailsPage() {
                       <span className="font-medium">{repository.progress}%</span>
                     </div>
                     <Progress value={repository.progress} className="h-2" />
-                    <div className="flex justify-between pt-2">
-                      <p className="text-sm text-muted-foreground">
-                        Last updated: {repository.lastActivity}
-                      </p>
-                      <p className="text-sm">
-                        <span className="font-medium">Code changes:</span> 
-                        <span className="text-green-600 ml-1">+{repository.additions || 0}</span> / 
-                        <span className="text-red-600 ml-1">-{repository.deletions || 0}</span>
-                      </p>
-                    </div>
+                    <p className="text-sm text-muted-foreground pt-2">
+                      Last updated: {repository.lastActivity}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
               
-              <Tabs defaultValue="students" value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <Tabs defaultValue="students" className="w-full">
                 <TabsList className="mb-4">
                   <TabsTrigger value="students">Students</TabsTrigger>
-                  <TabsTrigger value="comparison">Student Comparison</TabsTrigger>
                   <TabsTrigger value="activity">Activity</TabsTrigger>
                   <TabsTrigger value="analytics">Analytics</TabsTrigger>
                 </TabsList>
@@ -387,23 +345,6 @@ export default function RepositoryDetailsPage() {
                     onStudentAdded={handleStudentAdded}
                     onStudentEdited={handleStudentEdited}
                   />
-                </TabsContent>
-                
-                <TabsContent value="comparison">
-                  {students.length > 0 ? (
-                    <GroupStudentComparisonChart 
-                      students={students}
-                      repositoryName={repository.name}
-                    />
-                  ) : (
-                    <Card>
-                      <CardContent className="p-6">
-                        <p className="text-center py-8 text-muted-foreground">
-                          No student data available for comparison. Import student data or add students manually.
-                        </p>
-                      </CardContent>
-                    </Card>
-                  )}
                 </TabsContent>
                 
                 <TabsContent value="activity">
