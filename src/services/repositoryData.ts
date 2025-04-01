@@ -25,6 +25,10 @@ export interface Repository {
   additions?: number;
   deletions?: number;
   operations?: number;
+  totalCommits?: number;
+  totalAdds?: number;
+  averageOperationsPerCommit?: number;
+  averageCommitsPerWeek?: number;
 }
 
 export interface Student {

@@ -13,7 +13,8 @@ import {
   Edit,
   Activity,
   Save,
-  FileUp
+  FileUp,
+  BarChart
 } from "lucide-react";
 import { toast } from "sonner";
 import { 
@@ -28,6 +29,7 @@ import { DeleteRepositoryDialog } from "@/components/dashboard/DeleteRepositoryD
 import { EditRepositoryDialog } from "@/components/dashboard/EditRepositoryDialog";
 import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
 import { CSVImportDialog } from "@/components/dashboard/CSVImportDialog";
+import { MetricsImportDialog } from "@/components/dashboard/MetricsImportDialog";
 import { saveStudentData } from "@/services/studentData";
 
 export default function RepositoryDetailsPage() {
@@ -38,6 +40,7 @@ export default function RepositoryDetailsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [csvImportDialogOpen, setCsvImportDialogOpen] = useState(false);
+  const [metricsImportDialogOpen, setMetricsImportDialogOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
 
@@ -109,6 +112,22 @@ export default function RepositoryDetailsPage() {
       
       toast.success("CSV data imported", {
         description: "Repository data has been updated with imported values. Don't forget to save your changes."
+      });
+    }
+  };
+
+  const handleMetricsDataImported = (data: Partial<Repository>) => {
+    if (repository && repository.id) {
+      const updatedRepo = {
+        ...repository,
+        ...data
+      };
+      
+      setRepository(updatedRepo);
+      setHasUnsavedChanges(true);
+      
+      toast.success("Metrics data imported", {
+        description: "Repository metrics have been updated with imported values. Don't forget to save your changes."
       });
     }
   };
@@ -217,6 +236,14 @@ export default function RepositoryDetailsPage() {
                   <p className="text-muted-foreground">{repository.description}</p>
                 </div>
                 <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setMetricsImportDialogOpen(true)} 
+                    className="gap-2"
+                  >
+                    <BarChart className="h-4 w-4" />
+                    Import Metrics
+                  </Button>
                   <Button 
                     variant="outline" 
                     onClick={() => setCsvImportDialogOpen(true)} 
@@ -372,6 +399,12 @@ export default function RepositoryDetailsPage() {
                 open={csvImportDialogOpen}
                 onOpenChange={setCsvImportDialogOpen}
                 onDataImported={handleCSVDataImported}
+              />
+
+              <MetricsImportDialog
+                open={metricsImportDialogOpen}
+                onOpenChange={setMetricsImportDialogOpen}
+                onDataImported={handleMetricsDataImported}
               />
             </>
           )}
