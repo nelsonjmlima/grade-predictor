@@ -29,6 +29,8 @@ export interface Repository {
   totalAdds?: number;
   averageOperationsPerCommit?: number;
   averageCommitsPerWeek?: number;
+  groupNumber?: number;
+  groupMembers?: string[];
 }
 
 export interface Student {
@@ -132,8 +134,38 @@ export const filterRepositories = (repositories: Repository[], searchTerm: strin
   const lowerSearchTerm = searchTerm.toLowerCase();
   return repositories.filter(repo =>
     repo.name.toLowerCase().includes(lowerSearchTerm) ||
-    repo.description.toLowerCase().includes(lowerSearchTerm)
+    repo.description.toLowerCase().includes(lowerSearchTerm) ||
+    repo.projectId?.toLowerCase().includes(lowerSearchTerm) ||
+    repo.groupNumber?.toString().includes(lowerSearchTerm)
   );
+};
+
+export const groupRepositoriesByProject = (repositories: Repository[]): Record<string, Repository[]> => {
+  const grouped: Record<string, Repository[]> = {};
+  
+  repositories.forEach(repo => {
+    const key = repo.projectId || repo.name;
+    if (!grouped[key]) {
+      grouped[key] = [];
+    }
+    grouped[key].push(repo);
+  });
+  
+  return grouped;
+};
+
+export const groupRepositoriesByGroupNumber = (repositories: Repository[]): Record<string, Repository[]> => {
+  const grouped: Record<string, Repository[]> = {};
+  
+  repositories.forEach(repo => {
+    const key = repo.groupNumber ? `Group ${repo.groupNumber}` : 'Ungrouped';
+    if (!grouped[key]) {
+      grouped[key] = [];
+    }
+    grouped[key].push(repo);
+  });
+  
+  return grouped;
 };
 
 export const sortRepositories = (repositories: Repository[], sortBy: string): Repository[] => {
@@ -159,3 +191,13 @@ export const clearAllRepositories = (): void => {
 };
 
 clearAllRepositories();
+
+export const getRepositoriesByGroup = (): Record<string, Repository[]> => {
+  const repositories = getRepositories();
+  return groupRepositoriesByGroupNumber(repositories);
+};
+
+export const getRepositoriesByProject = (): Record<string, Repository[]> => {
+  const repositories = getRepositories();
+  return groupRepositoriesByProject(repositories);
+};
