@@ -66,7 +66,7 @@ export function StudentComparisonChart() {
   };
 
   return (
-    <Card className="animate-fade-in">
+    <Card>
       <CardHeader className="pb-1 pt-2">
         <div className="flex justify-between items-center">
           <div>
