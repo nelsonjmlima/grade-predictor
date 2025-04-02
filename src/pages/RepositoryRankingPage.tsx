@@ -37,15 +37,20 @@ export default function RepositoryRankingPage() {
 
   // Fetch repositories on component mount
   useEffect(() => {
-    try {
-      const repos = getRepositories();
-      setRepositories(repos);
-    } catch (error) {
-      console.error("Error fetching repositories:", error);
-      toast.error("Failed to load repositories");
-    } finally {
-      setLoading(false);
+    async function fetchRepositories() {
+      try {
+        setLoading(true);
+        const repos = await getRepositories();
+        setRepositories(repos);
+      } catch (error) {
+        console.error("Error fetching repositories:", error);
+        toast.error("Failed to load repositories");
+      } finally {
+        setLoading(false);
+      }
     }
+    
+    fetchRepositories();
   }, []);
 
   // Helper function to get the value from repository based on selected metric

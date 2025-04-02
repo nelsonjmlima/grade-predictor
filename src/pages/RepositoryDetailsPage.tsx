@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
@@ -38,17 +39,25 @@ export default function RepositoryDetailsPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
 
-  const loadRepository = () => {
+  const loadRepository = async () => {
     if (id) {
-      const allRepositories = getRepositories();
-      const foundRepo = allRepositories.find(repo => repo.id === id);
-      if (foundRepo) {
-        setRepository(foundRepo);
+      try {
+        setLoading(true);
+        const allRepositories = await getRepositories();
+        const foundRepo = allRepositories.find(repo => repo.id === id);
         
-        const repoStudents = getRepositoryStudents(id);
-        setStudents(repoStudents);
+        if (foundRepo) {
+          setRepository(foundRepo);
+          
+          const repoStudents = getRepositoryStudents(id);
+          setStudents(repoStudents);
+        }
+      } catch (error) {
+        console.error("Error loading repository:", error);
+        toast.error("Failed to load repository");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
   };
 
