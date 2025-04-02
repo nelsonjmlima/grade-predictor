@@ -6,14 +6,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { updateRepository, Repository } from "@/services/repositoryData";
 
 const formSchema = z.object({
   name: z.string().min(3, { message: "Repository name must be at least 3 characters" }),
-  description: z.string().min(10, { message: "Description must be at least 10 characters" }),
   projectId: z.string().optional(),
   id: z.string().min(1, { message: "ID is required" }),
   studentsCount: z.coerce.number().int().nonnegative(),
@@ -41,7 +39,6 @@ export function EditRepositoryDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: repository.name,
-      description: repository.description,
       projectId: repository.projectId || '',
       id: repository.id || '',
       studentsCount: studentsCount,
@@ -83,7 +80,7 @@ export function EditRepositoryDialog({
       
       const updatedRepo = updateRepository(repository.id, {
         name: values.name,
-        description: values.description,
+        description: repository.description, // Keep the existing description
         projectId: values.projectId,
         id: values.id, // Now we update the ID field
         students: updatedStudents, // Update the students array based on new count
@@ -130,23 +127,6 @@ export function EditRepositoryDialog({
                   <FormLabel>Repository Name</FormLabel>
                   <FormControl>
                     <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      className="resize-none" 
-                      {...field} 
-                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -214,4 +194,3 @@ export function EditRepositoryDialog({
     </Dialog>
   );
 }
-
