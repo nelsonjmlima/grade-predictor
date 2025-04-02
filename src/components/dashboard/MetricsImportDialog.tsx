@@ -38,7 +38,6 @@ export function MetricsImportDialog({
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isCreatingBucket, setIsCreatingBucket] = useState(false);
   const [storedFiles, setStoredFiles] = useState<CSVFile[]>([]);
   const [loadingFiles, setLoadingFiles] = useState(false);
   const [activeTab, setActiveTab] = useState("upload");
@@ -57,47 +56,28 @@ export function MetricsImportDialog({
     }
   }, [open, activeTab]);
   
-  // Function to create the bucket if it doesn't exist
-  const createBucketIfNeeded = async () => {
-    setIsCreatingBucket(true);
+  const checkBucketExists = async () => {
     setError(null);
     
     try {
-      // Check if bucket exists
-      const { data: buckets, error: listError } = await supabase
+      // Try to list files in the bucket to check if it exists and is accessible
+      const { data, error: listError } = await supabase
         .storage
-        .listBuckets();
-      
-      if (listError) {
-        console.error("Error checking buckets:", listError);
-        throw listError;
-      }
-      
-      const bucketExists = buckets?.some(bucket => bucket.name === 'csvfiles');
-      
-      if (!bucketExists) {
-        // Create the bucket
-        const { error: createError } = await supabase
-          .storage
-          .createBucket('csvfiles', {
-            public: true
-          });
-          
-        if (createError) {
-          console.error("Error creating bucket:", createError);
-          throw createError;
-        }
+        .from('csvfiles')
+        .list();
         
-        toast.success("Storage bucket created successfully");
+      if (listError) {
+        console.error("Error checking bucket:", listError);
+        setError(`Storage bucket error: ${listError.message}`);
+        return false;
       }
       
+      // If we can list files, the bucket exists and is accessible
       return true;
     } catch (err: any) {
-      setError(`Failed to create storage bucket: ${err.message || err}`);
-      console.error("Bucket creation error:", err);
+      console.error("Bucket check error:", err);
+      setError(`Failed to access storage bucket: ${err.message || err}`);
       return false;
-    } finally {
-      setIsCreatingBucket(false);
     }
   };
   
@@ -106,10 +86,10 @@ export function MetricsImportDialog({
     setError(null);
     
     try {
-      // Check if bucket exists and create it if needed
-      const bucketReady = await createBucketIfNeeded();
+      // Check if bucket exists and is accessible
+      const bucketReady = await checkBucketExists();
       if (!bucketReady) {
-        throw new Error("Storage bucket is not available");
+        throw new Error("Storage bucket is not available. Please check your Supabase configuration.");
       }
       
       const { data, error } = await supabase
@@ -161,10 +141,10 @@ export function MetricsImportDialog({
     setError(null);
     
     try {
-      // Check if bucket exists and create it if needed
-      const bucketReady = await createBucketIfNeeded();
+      // Check if bucket exists and is accessible
+      const bucketReady = await checkBucketExists();
       if (!bucketReady) {
-        throw new Error("Storage bucket is not available");
+        throw new Error("Storage bucket is not available. Please check your Supabase configuration.");
       }
       
       // Upload the CSV file to Supabase storage
@@ -174,12 +154,14 @@ export function MetricsImportDialog({
       // Upload to Supabase storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('csvfiles')
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
         
       if (uploadError) {
         console.error("Error uploading CSV file:", uploadError);
-        toast.error("Failed to store CSV file");
-        throw uploadError;
+        throw new Error(`Failed to store CSV file: ${uploadError.message}`);
       }
       
       console.log("CSV file uploaded successfully:", uploadData);
@@ -381,20 +363,19 @@ export function MetricsImportDialog({
               </div>}
             
             <DialogFooter className="px-0 pt-2">
-              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isProcessing || isCreatingBucket}>
+              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isProcessing}>
                 Cancel
               </Button>
-              {error && error.includes("bucket") && (
+              {error && error.includes("Storage bucket") && (
                 <Button 
-                  onClick={() => createBucketIfNeeded()} 
-                  disabled={isCreatingBucket} 
+                  onClick={checkBucketExists} 
                   className="gap-2"
                 >
-                  <RefreshCw className={`h-4 w-4 ${isCreatingBucket ? 'animate-spin' : ''}`} />
-                  {isCreatingBucket ? "Creating..." : "Create Storage Bucket"}
+                  <RefreshCw className="h-4 w-4" />
+                  Recheck Storage Bucket
                 </Button>
               )}
-              <Button onClick={processCSV} disabled={!file || isProcessing || isCreatingBucket} className="gap-2">
+              <Button onClick={processCSV} disabled={!file || isProcessing} className="gap-2">
                 <FileUp className="h-4 w-4" />
                 {isProcessing ? "Uploading..." : "Upload File"}
               </Button>
@@ -406,19 +387,18 @@ export function MetricsImportDialog({
               <div className="text-center py-4">
                 <p className="text-sm text-muted-foreground">Loading stored files...</p>
               </div>
-            ) : error && error.includes("bucket") ? (
+            ) : error && error.includes("Storage bucket") ? (
               <div className="text-center py-4 space-y-4">
                 <div className="flex items-center gap-2 text-destructive text-sm justify-center">
                   <AlertCircle className="h-4 w-4" />
                   <span>{error}</span>
                 </div>
                 <Button 
-                  onClick={() => createBucketIfNeeded()} 
-                  disabled={isCreatingBucket}
+                  onClick={checkBucketExists} 
                   className="gap-2"
                 >
-                  <RefreshCw className={`h-4 w-4 ${isCreatingBucket ? 'animate-spin' : ''}`} />
-                  {isCreatingBucket ? "Creating..." : "Create Storage Bucket"}
+                  <RefreshCw className="h-4 w-4" />
+                  Recheck Storage Bucket
                 </Button>
               </div>
             ) : storedFiles.length === 0 ? (
@@ -522,7 +502,7 @@ export function MetricsImportDialog({
               </div>
             )}
             
-            {error && !error.includes("bucket") && <div className="flex items-center gap-2 text-destructive text-sm">
+            {error && !error.includes("Storage bucket") && <div className="flex items-center gap-2 text-destructive text-sm">
                 <AlertCircle className="h-4 w-4" />
                 <span>{error}</span>
               </div>}
