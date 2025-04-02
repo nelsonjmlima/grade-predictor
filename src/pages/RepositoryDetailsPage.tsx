@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
@@ -6,33 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { 
-  GitBranch, 
-  GitCommit, 
-  ArrowLeft, 
-  GitMerge,
-  Edit,
-  Activity,
-  Save,
-  User
-} from "lucide-react";
+import { GitBranch, GitCommit, ArrowLeft, GitMerge, Edit, Activity, Save, User } from "lucide-react";
 import { toast } from "sonner";
-import { 
-  getRepositories, 
-  updateRepository, 
-  Repository,
-  Student,
-  getRepositoryStudents,
-  saveRepositoryStudent
-} from "@/services/repositoryData";
+import { getRepositories, updateRepository, Repository, Student, getRepositoryStudents, saveRepositoryStudent } from "@/services/repositoryData";
 import { DeleteRepositoryDialog } from "@/components/dashboard/DeleteRepositoryDialog";
 import { EditRepositoryDialog } from "@/components/dashboard/EditRepositoryDialog";
 import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
 import { saveStudentData } from "@/services/studentData";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
 export default function RepositoryDetailsPage() {
-  const { id } = useParams();
+  const {
+    id
+  } = useParams();
   const navigate = useNavigate();
   const [repository, setRepository] = useState<Repository | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,50 +24,41 @@ export default function RepositoryDetailsPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
-
   const loadRepository = () => {
     if (id) {
       const allRepositories = getRepositories();
       const foundRepo = allRepositories.find(repo => repo.id === id);
       if (foundRepo) {
         setRepository(foundRepo);
-        
         const repoStudents = getRepositoryStudents(id);
         setStudents(repoStudents);
       }
       setLoading(false);
     }
   };
-
   useEffect(() => {
     loadRepository();
   }, [id]);
-
   const handleGoBack = () => {
     navigate("/repositories");
   };
-
   const handleRepositoryDeleted = () => {
     toast.success("Redirecting to repositories", {
       description: "Repository has been deleted successfully."
     });
     navigate("/repositories");
   };
-
   const handleRepositoryUpdated = (updatedRepo: Repository) => {
     setRepository(updatedRepo);
     setHasUnsavedChanges(false);
   };
-
   const saveChanges = () => {
     if (repository && repository.id) {
       const repoWithStudents = {
         ...repository,
         students: students
       };
-      
       const success = updateRepository(repository.id, repoWithStudents);
-      
       if (success) {
         setHasUnsavedChanges(false);
         toast.success("Changes saved", {
@@ -96,13 +71,10 @@ export default function RepositoryDetailsPage() {
       }
     }
   };
-
   const handleStudentAdded = async (newStudent: Student) => {
     setStudents(prev => [...prev, newStudent]);
     setHasUnsavedChanges(true);
-    
     saveRepositoryStudent(id || '', newStudent);
-    
     try {
       await saveStudentData({
         id: newStudent.id,
@@ -117,7 +89,6 @@ export default function RepositoryDetailsPage() {
         gitlabUsername: newStudent.gitlabUsername,
         groupNumber: newStudent.groupNumber
       });
-      
       toast.success("Student added", {
         description: `${newStudent.name} has been added to the repository.`
       });
@@ -128,15 +99,10 @@ export default function RepositoryDetailsPage() {
       });
     }
   };
-
   const handleStudentEdited = async (updatedStudent: Student) => {
-    setStudents(prev => prev.map(student => 
-      student.id === updatedStudent.id ? updatedStudent : student
-    ));
+    setStudents(prev => prev.map(student => student.id === updatedStudent.id ? updatedStudent : student));
     setHasUnsavedChanges(true);
-    
     saveRepositoryStudent(id || '', updatedStudent);
-    
     try {
       await saveStudentData({
         id: updatedStudent.id,
@@ -151,7 +117,6 @@ export default function RepositoryDetailsPage() {
         gitlabUsername: updatedStudent.gitlabUsername,
         groupNumber: updatedStudent.groupNumber
       });
-      
       toast.success("Student updated", {
         description: `${updatedStudent.name}'s information has been updated.`
       });
@@ -162,10 +127,8 @@ export default function RepositoryDetailsPage() {
       });
     }
   };
-
   if (!loading && !repository) {
-    return (
-      <div className="flex h-screen overflow-hidden">
+    return <div className="flex h-screen overflow-hidden">
         <SideNav />
         <main className="flex-1 overflow-y-auto p-6 bg-background">
           <div className="max-w-6xl mx-auto space-y-6">
@@ -179,12 +142,9 @@ export default function RepositoryDetailsPage() {
             </div>
           </div>
         </main>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="flex h-screen overflow-hidden">
+  return <div className="flex h-screen overflow-hidden">
       <SideNav />
       <main className="flex-1 overflow-y-auto p-6 bg-background">
         <div className="max-w-6xl mx-auto space-y-6">
@@ -193,27 +153,18 @@ export default function RepositoryDetailsPage() {
             Back
           </Button>
           
-          {repository && (
-            <>
+          {repository && <>
               <div className="flex justify-between items-center">
                 <div>
                   <h1 className="text-2xl font-semibold">{repository.name}</h1>
                   <p className="text-muted-foreground">{repository.description}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setEditDialogOpen(true)} 
-                    className="gap-2"
-                  >
+                  <Button variant="outline" onClick={() => setEditDialogOpen(true)} className="gap-2">
                     <Edit className="h-4 w-4" />
                     Edit
                   </Button>
-                  <Button 
-                    variant="destructive" 
-                    onClick={() => setDeleteDialogOpen(true)} 
-                    className="gap-2"
-                  >
+                  <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)} className="gap-2">
                     <Edit className="h-4 w-4" />
                     Delete
                   </Button>
@@ -262,7 +213,7 @@ export default function RepositoryDetailsPage() {
                       <TableCell>{repository.weekOfPrediction || 'Not set'}</TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell className="font-medium">GitLab User</TableCell>
+                      <TableCell className="font-medium">GitLabUser</TableCell>
                       <TableCell>{repository.gitlabUser || 'N/A'}</TableCell>
                       <TableCell className="font-medium">Final Grade Prediction</TableCell>
                       <TableCell>{repository.finalGradePrediction || repository.predictedGrade || 'Not predicted'}</TableCell>
@@ -351,13 +302,7 @@ export default function RepositoryDetailsPage() {
                 </TabsList>
                 
                 <TabsContent value="students">
-                  <RepositoryGradesView 
-                    repositoryName={repository.name} 
-                    students={students}
-                    repositoryId={id}
-                    onStudentAdded={handleStudentAdded}
-                    onStudentEdited={handleStudentEdited}
-                  />
+                  <RepositoryGradesView repositoryName={repository.name} students={students} repositoryId={id} onStudentAdded={handleStudentAdded} onStudentEdited={handleStudentEdited} />
                 </TabsContent>
                 
                 <TabsContent value="activity">
@@ -382,35 +327,17 @@ export default function RepositoryDetailsPage() {
               </Tabs>
               
               <div className="flex justify-end mt-6">
-                <Button 
-                  variant="default" 
-                  onClick={saveChanges} 
-                  className="gap-2"
-                  disabled={!hasUnsavedChanges}
-                >
+                <Button variant="default" onClick={saveChanges} className="gap-2" disabled={!hasUnsavedChanges}>
                   <Save className="h-4 w-4" />
                   Save Changes
                 </Button>
               </div>
               
-              <DeleteRepositoryDialog 
-                open={deleteDialogOpen}
-                onOpenChange={setDeleteDialogOpen}
-                repositoryId={repository.id || ""}
-                repositoryName={repository.name}
-                onRepositoryDeleted={handleRepositoryDeleted}
-              />
+              <DeleteRepositoryDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} repositoryId={repository.id || ""} repositoryName={repository.name} onRepositoryDeleted={handleRepositoryDeleted} />
               
-              <EditRepositoryDialog
-                open={editDialogOpen}
-                onOpenChange={setEditDialogOpen}
-                repository={repository}
-                onRepositoryUpdated={handleRepositoryUpdated}
-              />
-            </>
-          )}
+              <EditRepositoryDialog open={editDialogOpen} onOpenChange={setEditDialogOpen} repository={repository} onRepositoryUpdated={handleRepositoryUpdated} />
+            </>}
         </div>
       </main>
-    </div>
-  );
+    </div>;
 }
