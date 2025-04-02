@@ -5,21 +5,17 @@ import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
 import { RepositoriesTable } from "@/components/dashboard/RepositoriesTable";
 import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, Plus, FileUp } from "lucide-react";
+import { Plus, FileUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getRepositories, Repository, filterRepositories, sortRepositories, updateRepository, addRepository } from "@/services/repositoryData";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CSVImportDialog } from "@/components/dashboard/CSVImportDialog";
 import { toast } from "sonner";
 
 export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [repositories, setRepositories] = useState<Repository[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
   // Always use grid mode now that we've removed the toggle
   const [viewMode] = useState<"grid">("grid");
-  const [sortBy, setSortBy] = useState("recent");
   const [csvImportDialogOpen, setCsvImportDialogOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -66,11 +62,9 @@ export default function DashboardPage() {
     });
   };
 
-  // Filter repositories based on search term
-  const filteredRepositories = filterRepositories(repositories, searchTerm);
+  // Get all repositories without filtering or sorting
+  const sortedRepositories = repositories;
 
-  // Sort repositories based on sort selection
-  const sortedRepositories = sortRepositories(filteredRepositories, sortBy);
   return <div className="flex h-screen overflow-hidden bg-background">
       <SideNav />
       
@@ -91,23 +85,6 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                <Input placeholder="Search repositories..." className="pl-8 w-[200px] h-8 text-sm" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-              </div>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="h-8 w-[130px]">
-                  <SelectValue placeholder="Sort by..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recent">Most Recent</SelectItem>
-                  <SelectItem value="name">Name</SelectItem>
-                  <SelectItem value="progress">Progress</SelectItem>
-                  <SelectItem value="operations">Operations</SelectItem>
-                  <SelectItem value="avgops">Avg Ops/Commit</SelectItem>
-                  <SelectItem value="avgcommits">Avg Commits/Week</SelectItem>
-                </SelectContent>
-              </Select>
               <Button variant="outline" size="sm" className="h-9 px-4" onClick={() => setCsvImportDialogOpen(true)}>
                 <FileUp className="h-4 w-4 mr-2" />
                 Import CSV
@@ -124,7 +101,7 @@ export default function DashboardPage() {
                   <RepositoryCard {...repo} />
                 </div>) : <div className="col-span-full p-8 text-center">
                 <p className="text-muted-foreground">
-                  {searchTerm ? "No repositories match your search. Try different keywords." : ""}
+                  No repositories found.
                 </p>
               </div>}
           </div>
