@@ -4,21 +4,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Repository, uploadCSVToSupabase } from "@/services/repositoryData";
+import { Repository } from "@/services/repositoryData";
 import { FileUp, AlertCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MetricsImportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onDataImported: (data: Partial<Repository>) => void;
-  repositoryId?: string;
 }
 
 export function MetricsImportDialog({
   open,
   onOpenChange,
-  onDataImported,
-  repositoryId = "default"
+  onDataImported
 }: MetricsImportDialogProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -47,20 +46,32 @@ export function MetricsImportDialog({
     setError(null);
     
     try {
-      // Upload CSV file to Supabase storage
-      const publicUrl = await uploadCSVToSupabase(file, repositoryId);
+      // Upload the CSV file to Supabase storage without processing its content
+      const timestamp = new Date().getTime();
+      const fileName = `metrics_${timestamp}_${file.name.replace(/\s+/g, '_')}`;
       
-      if (!publicUrl) {
-        throw new Error("Failed to upload CSV file");
+      // Upload to Supabase storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('csvfiles')
+        .upload(fileName, file);
+        
+      if (uploadError) {
+        console.error("Error uploading CSV file:", uploadError);
+        toast.error("Failed to store CSV file");
+        throw uploadError;
       }
       
-      console.log("CSV file uploaded successfully:", publicUrl);
+      console.log("CSV file uploaded successfully:", uploadData);
       toast.success("CSV file stored in backend");
 
-      // Pass back the file URL
+      // Get public URL to pass back
+      const { data: publicUrlData } = supabase.storage
+        .from('csvfiles')
+        .getPublicUrl(fileName);
+        
+      // Only send minimal data back - just the file URL
       const fileData: Partial<Repository> = {
-        csvFileUrl: publicUrl,
-        storagePath: `repositories/${repositoryId}/${file.name}`
+        csvFileUrl: publicUrlData?.publicUrl
       };
       
       onDataImported(fileData);

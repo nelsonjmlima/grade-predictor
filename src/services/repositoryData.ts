@@ -1,7 +1,4 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-
 export interface Repository {
   name: string;
   description: string;
@@ -45,7 +42,6 @@ export interface Repository {
   
   // CSV file URL from Supabase storage
   csvFileUrl?: string;
-  storagePath?: string;
 }
 
 export interface Student {
@@ -62,290 +58,165 @@ export interface Student {
 
 const defaultRepositories: Repository[] = [];
 
-// Helper function to convert Supabase repository to our app Repository format
-const convertSupabaseRepo = (repo: any): Repository => {
-  return {
-    id: repo.id,
-    name: repo.name,
-    description: repo.description,
-    lastActivity: repo.last_activity || new Date().toISOString(),
-    commitCount: repo.commit_count || 0,
-    mergeRequestCount: 0,
-    branchCount: 1,
-    progress: 0,
-    projectId: repo.project_id,
-    author: repo.author,
-    email: repo.email,
-    date: repo.created_at,
-    gitlabUser: repo.gitlab_user,
-    additions: repo.additions || 0,
-    deletions: repo.deletions || 0,
-    operations: repo.operations || 0,
-    weekOfPrediction: repo.week_of_prediction,
-    finalGradePrediction: repo.final_grade_prediction,
-    storagePath: repo.storage_path,
-    createdAt: repo.created_at
-  };
+export const getRepositories = (): Repository[] => {
+  const storedRepositories = localStorage.getItem('repositories');
+  if (storedRepositories) {
+    return JSON.parse(storedRepositories);
+  } else {
+    localStorage.setItem('repositories', JSON.stringify(defaultRepositories));
+    return defaultRepositories;
+  }
 };
 
-// Function to fetch repositories from Supabase
-export const getRepositories = async (): Promise<Repository[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('repositories')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching repositories:', error);
-      toast.error('Failed to fetch repositories');
-      // Fallback to localStorage if Supabase fails
-      const storedRepositories = localStorage.getItem('repositories');
-      if (storedRepositories) {
-        return JSON.parse(storedRepositories);
-      } else {
-        return defaultRepositories;
-      }
-    }
-
-    // Convert Supabase data to Repository format
-    return data.map(repo => convertSupabaseRepo(repo));
-  } catch (error) {
-    console.error('Error in getRepositories:', error);
-    // Fallback to localStorage if Supabase fails
-    const storedRepositories = localStorage.getItem('repositories');
-    if (storedRepositories) {
-      return JSON.parse(storedRepositories);
+export const addRepository = (repository: Repository): void => {
+  const repositories = getRepositories();
+  
+  // Generate createdAt timestamp
+  if (!repository.createdAt) {
+    repository.createdAt = new Date().toISOString();
+  }
+  
+  // Generate ID if not provided
+  if (!repository.id) {
+    repository.id = `repo-${Math.random().toString(36).substr(2, 9)}`;
+  }
+  
+  // Ensure new repositories have the fields required for the updated table
+  if (!repository.projectId) {
+    repository.projectId = repository.id || `project-${Math.random().toString(36).substr(2, 9)}`;
+  }
+  
+  if (!repository.author) {
+    repository.author = "Anonymous";
+  }
+  
+  if (!repository.email) {
+    repository.email = "no-email@example.com";
+  }
+  
+  if (!repository.date) {
+    repository.date = repository.lastActivity || new Date().toISOString();
+  }
+  
+  if (!repository.additions) {
+    repository.additions = Math.floor(Math.random() * 500);
+  }
+  
+  if (!repository.deletions) {
+    repository.deletions = Math.floor(Math.random() * 200);
+  }
+  
+  if (!repository.operations) {
+    repository.operations = repository.additions + repository.deletions;
+  }
+  
+  // Add the new fields with random data for demonstration
+  if (!repository.totalAdditions) {
+    repository.totalAdditions = Math.floor(Math.random() * 2000) + repository.additions;
+  }
+  
+  if (!repository.totalDeletions) {
+    repository.totalDeletions = Math.floor(Math.random() * 1000) + repository.deletions;
+  }
+  
+  if (!repository.totalOperations) {
+    repository.totalOperations = repository.totalAdditions + repository.totalDeletions;
+  }
+  
+  if (!repository.averageOperationsPerCommit) {
+    const commitCount = repository.commitCount || Math.floor(Math.random() * 50) + 1;
+    repository.averageOperationsPerCommit = Math.round(repository.totalOperations / commitCount * 10) / 10;
+  }
+  
+  if (!repository.averageCommitsPerWeek) {
+    repository.averageCommitsPerWeek = Math.floor(Math.random() * 20) + 1;
+  }
+  
+  // New fields for the updated header
+  if (!repository.gitlabUser) {
+    repository.gitlabUser = "gitlab_" + repository.author?.toLowerCase().replace(/\s+/g, "_") || "gitlab_user";
+  }
+  
+  if (!repository.weekOfPrediction) {
+    // Generate a random week in the current year
+    const year = new Date().getFullYear();
+    const week = Math.floor(Math.random() * 52) + 1;
+    repository.weekOfPrediction = `Week ${week}, ${year}`;
+  }
+  
+  if (!repository.finalGradePrediction) {
+    const grades = ["A", "B", "C", "D", "F"];
+    const randomIndex = Math.floor(Math.random() * grades.length);
+    repository.finalGradePrediction = grades[randomIndex];
+  }
+  
+  // Parse student emails if provided as string
+  if (repository.students && typeof repository.students === 'string') {
+    const emailsText = repository.students as unknown as string;
+    if (emailsText.trim()) {
+      const emails = emailsText
+        .split('\n')
+        .map(email => email.trim())
+        .filter(email => email.length > 0);
+        
+      repository.students = emails.map(email => ({
+        id: `student-${Math.random().toString(36).substr(2, 9)}`,
+        name: email.split('@')[0],
+        email: email,
+        commitCount: 0,
+        lastActivity: 'Never'
+      }));
     } else {
-      return defaultRepositories;
+      // Empty string case
+      repository.students = [];
     }
   }
+  
+  repositories.unshift(repository);
+  localStorage.setItem('repositories', JSON.stringify(repositories));
 };
 
-// Function to add a repository to Supabase
-export const addRepository = async (repository: Repository): Promise<Repository> => {
-  try {
-    // Generate ID if not provided
-    if (!repository.id) {
-      repository.id = `repo-${Math.random().toString(36).substr(2, 9)}`;
-    }
+export const updateRepository = (id: string, updatedRepo: Partial<Repository>): Repository | null => {
+  const repositories = getRepositories();
+  const index = repositories.findIndex(repo => repo.id === id);
+  
+  if (index === -1) {
+    // If repository with this ID doesn't exist, try to find by projectId
+    const projectIdIndex = repositories.findIndex(repo => 
+      repo.projectId === updatedRepo.projectId
+    );
     
-    // Format for Supabase
-    const supabaseRepo = {
-      id: repository.id,
-      name: repository.name,
-      description: repository.description,
-      project_id: repository.projectId,
-      author: repository.author || "Anonymous",
-      email: repository.email || "no-email@example.com",
-      gitlab_user: repository.gitlabUser || `gitlab_${repository.author?.toLowerCase().replace(/\s+/g, "_") || "gitlab_user"}`,
-      commit_count: repository.commitCount || 0,
-      additions: repository.additions || Math.floor(Math.random() * 500),
-      deletions: repository.deletions || Math.floor(Math.random() * 200),
-      operations: repository.operations || (repository.additions || 0) + (repository.deletions || 0),
-      week_of_prediction: repository.weekOfPrediction || `Week ${Math.floor(Math.random() * 52) + 1}, ${new Date().getFullYear()}`,
-      final_grade_prediction: repository.finalGradePrediction || ["A", "B", "C", "D", "F"][Math.floor(Math.random() * 5)],
-      last_activity: repository.lastActivity || new Date().toISOString(),
-      storage_path: repository.storagePath || `repositories/${repository.id}`
-    };
-
-    const { data: insertedRepo, error } = await supabase
-      .from('repositories')
-      .insert(supabaseRepo)
-      .select('*')
-      .single();
-
-    if (error) {
-      console.error('Error adding repository to Supabase:', error);
-      toast.error('Failed to add repository to database');
-      
-      // Fallback to localStorage if Supabase fails
-      const repositories = localStorage.getItem('repositories') ? 
-        JSON.parse(localStorage.getItem('repositories') || '[]') : 
-        [];
-      repositories.unshift(repository);
-      localStorage.setItem('repositories', JSON.stringify(repositories));
-      return repository;
-    }
-
-    if (insertedRepo) {
-      const convertedRepo = convertSupabaseRepo(insertedRepo);
-      
-      // Also update localStorage for offline capability
-      const repositories = localStorage.getItem('repositories') ? 
-        JSON.parse(localStorage.getItem('repositories') || '[]') : 
-        [];
-      repositories.unshift(convertedRepo);
-      localStorage.setItem('repositories', JSON.stringify(repositories));
-      
-      // If CSV file URL was provided, upload it to storage
-      if (repository.csvFileUrl) {
-        updateRepository(convertedRepo.id || '', { csvFileUrl: repository.csvFileUrl });
-      }
-      
-      return convertedRepo;
-    }
-    
-    throw new Error('Failed to add repository');
-  } catch (error) {
-    console.error('Error in addRepository:', error);
-    toast.error('Failed to add repository');
-    
-    // Fallback to localStorage
-    const repositories = localStorage.getItem('repositories') ? 
-      JSON.parse(localStorage.getItem('repositories') || '[]') : 
-      [];
-    repositories.unshift(repository);
-    localStorage.setItem('repositories', JSON.stringify(repositories));
-    
-    return repository;
-  }
-};
-
-export const updateRepository = async (id: string, updatedRepo: Partial<Repository>): Promise<Repository | null> => {
-  try {
-    // Format for Supabase
-    const supabaseUpdates: Record<string, any> = {};
-    
-    if (updatedRepo.name) supabaseUpdates.name = updatedRepo.name;
-    if (updatedRepo.description) supabaseUpdates.description = updatedRepo.description;
-    if (updatedRepo.projectId) supabaseUpdates.project_id = updatedRepo.projectId;
-    if (updatedRepo.author) supabaseUpdates.author = updatedRepo.author;
-    if (updatedRepo.email) supabaseUpdates.email = updatedRepo.email;
-    if (updatedRepo.gitlabUser) supabaseUpdates.gitlab_user = updatedRepo.gitlabUser;
-    if (updatedRepo.commitCount) supabaseUpdates.commit_count = updatedRepo.commitCount;
-    if (updatedRepo.additions) supabaseUpdates.additions = updatedRepo.additions;
-    if (updatedRepo.deletions) supabaseUpdates.deletions = updatedRepo.deletions;
-    if (updatedRepo.operations) supabaseUpdates.operations = updatedRepo.operations;
-    if (updatedRepo.weekOfPrediction) supabaseUpdates.week_of_prediction = updatedRepo.weekOfPrediction;
-    if (updatedRepo.finalGradePrediction) supabaseUpdates.final_grade_prediction = updatedRepo.finalGradePrediction;
-    if (updatedRepo.lastActivity) supabaseUpdates.last_activity = updatedRepo.lastActivity;
-    if (updatedRepo.storagePath) supabaseUpdates.storage_path = updatedRepo.storagePath;
-    if (updatedRepo.csvFileUrl) supabaseUpdates.csv_file_url = updatedRepo.csvFileUrl;
-    
-    const { data: updatedSupabaseRepo, error } = await supabase
-      .from('repositories')
-      .update(supabaseUpdates)
-      .eq('id', id)
-      .select('*')
-      .single();
-    
-    if (error) {
-      console.error('Error updating repository in Supabase:', error);
-      toast.error('Failed to update repository in database');
-      
-      // Fallback to localStorage
-      const repositories = localStorage.getItem('repositories') ? 
-        JSON.parse(localStorage.getItem('repositories') || '[]') : 
-        [];
-      const index = repositories.findIndex((repo: Repository) => repo.id === id);
-      
-      if (index === -1) {
-        return null;
-      }
-      
-      repositories[index] = { ...repositories[index], ...updatedRepo };
-      localStorage.setItem('repositories', JSON.stringify(repositories));
-      
-      return repositories[index];
-    }
-    
-    if (updatedSupabaseRepo) {
-      const convertedRepo = convertSupabaseRepo(updatedSupabaseRepo);
-      
-      // Also update localStorage
-      const repositories = localStorage.getItem('repositories') ? 
-        JSON.parse(localStorage.getItem('repositories') || '[]') : 
-        [];
-      const index = repositories.findIndex((repo: Repository) => repo.id === id);
-      
-      if (index !== -1) {
-        repositories[index] = { ...repositories[index], ...convertedRepo };
-        localStorage.setItem('repositories', JSON.stringify(repositories));
-      }
-      
-      return convertedRepo;
-    }
-    
-    return null;
-  } catch (error) {
-    console.error('Error in updateRepository:', error);
-    toast.error('Failed to update repository');
-    
-    // Fallback to localStorage
-    const repositories = localStorage.getItem('repositories') ? 
-      JSON.parse(localStorage.getItem('repositories') || '[]') : 
-      [];
-    const index = repositories.findIndex((repo: Repository) => repo.id === id);
-    
-    if (index === -1) {
+    if (projectIdIndex === -1) {
       return null;
     }
     
-    repositories[index] = { ...repositories[index], ...updatedRepo };
+    repositories[projectIdIndex] = { ...repositories[projectIdIndex], ...updatedRepo };
     localStorage.setItem('repositories', JSON.stringify(repositories));
     
-    return repositories[index];
+    return repositories[projectIdIndex];
   }
+  
+  repositories[index] = { ...repositories[index], ...updatedRepo };
+  localStorage.setItem('repositories', JSON.stringify(repositories));
+  
+  return repositories[index];
 };
 
-export const deleteRepository = async (id: string): Promise<boolean> => {
-  try {
-    const { error } = await supabase
-      .from('repositories')
-      .delete()
-      .eq('id', id);
-    
-    if (error) {
-      console.error('Error deleting repository from Supabase:', error);
-      toast.error('Failed to delete repository from database');
-      
-      // Fallback to localStorage
-      const repositories = localStorage.getItem('repositories') ? 
-        JSON.parse(localStorage.getItem('repositories') || '[]') : 
-        [];
-      const newRepositories = repositories.filter((repo: Repository) => repo.id !== id);
-      
-      if (newRepositories.length === repositories.length) {
-        return false;
-      }
-      
-      localStorage.setItem('repositories', JSON.stringify(newRepositories));
-      return true;
-    }
-    
-    // Also update localStorage
-    const repositories = localStorage.getItem('repositories') ? 
-      JSON.parse(localStorage.getItem('repositories') || '[]') : 
-      [];
-    const newRepositories = repositories.filter((repo: Repository) => repo.id !== id);
-    localStorage.setItem('repositories', JSON.stringify(newRepositories));
-    
-    return true;
-  } catch (error) {
-    console.error('Error in deleteRepository:', error);
-    toast.error('Failed to delete repository');
-    
-    // Fallback to localStorage
-    const repositories = localStorage.getItem('repositories') ? 
-      JSON.parse(localStorage.getItem('repositories') || '[]') : 
-      [];
-    const newRepositories = repositories.filter((repo: Repository) => repo.id !== id);
-    
-    if (newRepositories.length === repositories.length) {
-      return false;
-    }
-    
-    localStorage.setItem('repositories', JSON.stringify(newRepositories));
-    return true;
+export const deleteRepository = (id: string): boolean => {
+  const repositories = getRepositories();
+  const newRepositories = repositories.filter(repo => repo.id !== id);
+  
+  if (newRepositories.length === repositories.length) {
+    return false;
   }
+  
+  localStorage.setItem('repositories', JSON.stringify(newRepositories));
+  return true;
 };
 
 export const getRepositoryStudents = (repositoryId: string): Student[] => {
-  const repositories = localStorage.getItem('repositories') ? 
-    JSON.parse(localStorage.getItem('repositories') || '[]') : 
-    [];
-  const repository = repositories.find((repo: Repository) => repo.id === repositoryId);
+  const repositories = getRepositories();
+  const repository = repositories.find(repo => repo.id === repositoryId);
   
   if (repository && repository.students) {
     return repository.students;
@@ -355,10 +226,8 @@ export const getRepositoryStudents = (repositoryId: string): Student[] => {
 };
 
 export const saveRepositoryStudent = (repositoryId: string, student: Student): boolean => {
-  const repositories = localStorage.getItem('repositories') ? 
-    JSON.parse(localStorage.getItem('repositories') || '[]') : 
-    [];
-  const index = repositories.findIndex((repo: Repository) => repo.id === repositoryId);
+  const repositories = getRepositories();
+  const index = repositories.findIndex(repo => repo.id === repositoryId);
   
   if (index === -1) return false;
   
@@ -377,6 +246,8 @@ export const saveRepositoryStudent = (repositoryId: string, student: Student): b
   localStorage.setItem('repositories', JSON.stringify(repositories));
   return true;
 };
+
+export const allRepositories = getRepositories();
 
 export const sampleStudents: Student[] = [];
 
@@ -424,52 +295,10 @@ export const sortRepositories = (repositories: Repository[], sortBy: string): Re
   }
 };
 
-export const clearAllRepositories = async (): Promise<void> => {
-  try {
-    const { error } = await supabase
-      .from('repositories')
-      .delete()
-      .neq('id', 'placeholder'); // Delete all entries
-    
-    if (error) {
-      console.error('Error clearing repositories in Supabase:', error);
-      toast.error('Failed to clear repositories from database');
-    }
-  } catch (error) {
-    console.error('Error in clearAllRepositories:', error);
-  }
-  
-  // Clear localStorage as well
+export const clearAllRepositories = (): void => {
   localStorage.removeItem('repositories');
   localStorage.setItem('repositories', JSON.stringify([]));
 };
 
-// Fix for the missing import in MetricsImportDialog.tsx
-export const uploadCSVToSupabase = async (file: File, repositoryId: string): Promise<string | null> => {
-  try {
-    const timestamp = new Date().getTime();
-    const fileName = `metrics_${timestamp}_${file.name.replace(/\s+/g, '_')}`;
-    const filePath = `repositories/${repositoryId}/${fileName}`;
-    
-    // Upload to Supabase storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('repositories')
-      .upload(filePath, file);
-      
-    if (uploadError) {
-      console.error("Error uploading CSV file:", uploadError);
-      toast.error("Failed to store CSV file");
-      throw uploadError;
-    }
-    
-    // Get public URL
-    const { data: publicUrlData } = supabase.storage
-      .from('repositories')
-      .getPublicUrl(filePath);
-      
-    return publicUrlData?.publicUrl || null;
-  } catch (error) {
-    console.error("CSV upload error:", error);
-    return null;
-  }
-};
+// Initialize empty repositories storage
+clearAllRepositories();
