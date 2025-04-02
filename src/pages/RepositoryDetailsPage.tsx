@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
@@ -38,17 +39,25 @@ export default function RepositoryDetailsPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
 
-  const loadRepository = () => {
+  const loadRepository = async () => {
+    setLoading(true);
     if (id) {
-      const allRepositories = getRepositories();
-      const foundRepo = allRepositories.find(repo => repo.id === id);
-      if (foundRepo) {
-        setRepository(foundRepo);
+      try {
+        const allRepositories = await getRepositories();
+        const foundRepo = allRepositories.find(repo => repo.id === id);
         
-        const repoStudents = getRepositoryStudents(id);
-        setStudents(repoStudents);
+        if (foundRepo) {
+          setRepository(foundRepo);
+          
+          const repoStudents = getRepositoryStudents(id);
+          setStudents(repoStudents);
+        }
+      } catch (error) {
+        console.error("Error loading repository:", error);
+        toast.error("Failed to load repository data");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
   };
 
@@ -72,21 +81,28 @@ export default function RepositoryDetailsPage() {
     setHasUnsavedChanges(false);
   };
 
-  const saveChanges = () => {
+  const saveChanges = async () => {
     if (repository && repository.id) {
-      const repoWithStudents = {
-        ...repository,
-        students: students
-      };
-      
-      const success = updateRepository(repository.id, repoWithStudents);
-      
-      if (success) {
-        setHasUnsavedChanges(false);
-        toast.success("Changes saved", {
-          description: "Repository data has been saved successfully."
-        });
-      } else {
+      try {
+        const repoWithStudents = {
+          ...repository,
+          students: students
+        };
+        
+        const updatedRepo = await updateRepository(repository.id, repoWithStudents);
+        
+        if (updatedRepo) {
+          setHasUnsavedChanges(false);
+          toast.success("Changes saved", {
+            description: "Repository data has been saved successfully."
+          });
+        } else {
+          toast.error("Failed to save changes", {
+            description: "An error occurred while saving your changes."
+          });
+        }
+      } catch (error) {
+        console.error("Error saving repository:", error);
         toast.error("Failed to save changes", {
           description: "An error occurred while saving your changes."
         });
@@ -190,7 +206,11 @@ export default function RepositoryDetailsPage() {
             Back
           </Button>
           
-          {repository && (
+          {loading ? (
+            <div className="flex justify-center items-center py-10">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+            </div>
+          ) : repository && (
             <>
               <div className="flex justify-between items-center">
                 <div>
