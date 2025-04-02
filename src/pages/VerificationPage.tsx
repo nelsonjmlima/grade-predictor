@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { ShieldCheck, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -23,7 +22,6 @@ export default function VerificationPage() {
     const performVerification = async () => {
       if (!user) {
         // Handle case where there's no user
-        toast.error("No user found. Please log in again.");
         navigate("/");
         return;
       }
@@ -51,12 +49,10 @@ export default function VerificationPage() {
         setTimeout(() => {
           setVerificationSteps(prev => ({ ...prev, permissions: true }));
           setVerificationComplete(true);
-          toast.success("User verification complete successful");
         }, 1000);
         
       } catch (error) {
         console.error("Verification error:", error);
-        toast.error("An error occurred during verification. Please try again.");
       }
     };
 
@@ -104,7 +100,12 @@ export default function VerificationPage() {
                   </div>
                   <p className="text-sm text-gray-300">Verifying credentials...</p>
                 </div>
-              ) : null}
+              ) : (
+                <div className="flex items-center space-x-2 bg-blue-500/20 text-blue-200 p-4 rounded-md">
+                  <ShieldCheck className="h-5 w-5" />
+                  <span>User verification complete successful</span>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
