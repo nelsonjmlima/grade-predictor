@@ -13,6 +13,8 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CSVImportDialog } from "@/components/dashboard/CSVImportDialog";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+
 export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [repositories, setRepositories] = useState<Repository[]>([]);
@@ -20,29 +22,44 @@ export default function DashboardPage() {
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
   const [sortBy, setSortBy] = useState("recent");
   const [csvImportDialogOpen, setCsvImportDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   // Fetch repositories on mount and when dialogOpen changes (indicating a potential new repo)
   useEffect(() => {
-    const fetchedRepositories = getRepositories();
+    const fetchRepositories = async () => {
+      setIsLoading(true);
+      try {
+        const fetchedRepositories = await getRepositories();
+        setRepositories(fetchedRepositories);
+      } catch (error) {
+        console.error("Error fetching repositories:", error);
+        toast.error("Failed to load repositories", {
+          description: "Please try again later.",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    // Ensure repositories have the required fields for the updated table
-    const enhancedRepositories = fetchedRepositories.map(repo => ({
-      ...repo,
-      projectId: repo.projectId || repo.id || `project-${Math.random().toString(36).substr(2, 9)}`,
-      author: repo.author || "Anonymous",
-      email: repo.email || "no-email@example.com",
-      date: repo.date || repo.lastActivity,
-      additions: repo.additions || Math.floor(Math.random() * 500),
-      deletions: repo.deletions || Math.floor(Math.random() * 200),
-      operations: repo.operations || (repo.additions && repo.deletions ? repo.additions + repo.deletions : repo.commitCount),
-      totalAdditions: repo.totalAdditions || Math.floor(Math.random() * 2000) + (repo.additions || 0),
-      totalDeletions: repo.totalDeletions || Math.floor(Math.random() * 1000) + (repo.deletions || 0),
-      totalOperations: repo.totalOperations || (repo.totalAdditions && repo.totalDeletions ? repo.totalAdditions + repo.totalDeletions : repo.additions && repo.deletions ? (repo.additions + repo.deletions) * 5 : 0),
-      averageOperationsPerCommit: repo.averageOperationsPerCommit || (repo.commitCount ? Math.round(((repo.additions || 0) + (repo.deletions || 0)) / repo.commitCount * 10) / 10 : Math.floor(Math.random() * 20) + 5),
-      averageCommitsPerWeek: repo.averageCommitsPerWeek || Math.floor(Math.random() * 20) + 1
-    }));
-    setRepositories(enhancedRepositories);
+    fetchRepositories();
+
+    // Set up realtime subscription for repository changes
+    const channel = supabase
+      .channel('public:repositories')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'repositories' 
+      }, () => {
+        // Refresh repositories when any change happens
+        fetchRepositories();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [dialogOpen, csvImportDialogOpen]);
   
   const handleCreateRepository = () => {
@@ -57,12 +74,50 @@ export default function DashboardPage() {
     navigate("/repositories/add");
   };
 
-  // Modified data import handler that only uploads the CSV file without creating a repository
-  const handleCSVDataImported = (data: Partial<Repository>) => {
-    // Only upload the CSV file, don't create or update any repository
-    toast.success("CSV file uploaded", {
-      description: "The CSV file has been stored in the backend."
-    });
+  // Modified data import handler to upload CSV file to Supabase storage
+  const handleCSVDataImported = async (data: Partial<Repository>) => {
+    if (!data.csvFileUrl) {
+      toast.error("No CSV file provided", {
+        description: "Please upload a CSV file."
+      });
+      return;
+    }
+
+    try {
+      // Create a new repository with the CSV data
+      const newRepo: Repository = {
+        name: data.name || `Repository ${new Date().toLocaleDateString()}`,
+        description: data.description || "CSV imported repository",
+        lastActivity: new Date().toISOString(),
+        commitCount: data.commitCount || 0,
+        mergeRequestCount: 0,
+        branchCount: 1,
+        progress: 0,
+        projectId: data.projectId,
+        author: data.author,
+        email: data.email,
+        gitlabUser: data.gitlabUser,
+        additions: data.additions,
+        deletions: data.deletions,
+        operations: data.operations,
+        weekOfPrediction: data.weekOfPrediction,
+        finalGradePrediction: data.finalGradePrediction,
+        csvFileUrl: data.csvFileUrl
+      };
+
+      const createdRepo = await addRepository(newRepo);
+      
+      if (createdRepo) {
+        toast.success("Repository created from CSV", {
+          description: "The repository has been created with the imported data."
+        });
+      }
+    } catch (error) {
+      console.error("Error creating repository from CSV:", error);
+      toast.error("Failed to create repository", {
+        description: "An error occurred while processing your data. Please try again."
+      });
+    }
   };
 
   // Filter repositories based on search term
@@ -70,7 +125,9 @@ export default function DashboardPage() {
 
   // Sort repositories based on sort selection
   const sortedRepositories = sortRepositories(filteredRepositories, sortBy);
-  return <div className="flex h-screen overflow-hidden bg-background">
+  
+  return (
+    <div className="flex h-screen overflow-hidden bg-background">
       <SideNav />
       
       <main className="flex-1 overflow-y-auto">
@@ -86,7 +143,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex-1">
               <p className="text-sm text-muted-foreground">
-                {repositories.length > 0 ? `Managing ${repositories.length} repositories.` : ""}
+                {repositories.length > 0 ? `Managing ${repositories.length} repositories.` : isLoading ? "Loading repositories..." : "No repositories found. Add your first repository to get started."}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -126,26 +183,53 @@ export default function DashboardPage() {
             </div>
           </div>
           
-          {viewMode === "grid" ? <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {sortedRepositories.length > 0 ? sortedRepositories.map(repo => <div key={repo.id || repo.name} className="cursor-pointer transform transition-transform hover:scale-[1.01]" onClick={() => handleRepositoryClick(repo.id || '')}>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-10">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+            </div>
+          ) : viewMode === "grid" ? (
+            <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {sortedRepositories.length > 0 ? (
+                sortedRepositories.map(repo => (
+                  <div 
+                    key={repo.id} 
+                    className="cursor-pointer transform transition-transform hover:scale-[1.01]" 
+                    onClick={() => handleRepositoryClick(repo.id || '')}
+                  >
                     <RepositoryCard {...repo} />
-                  </div>) : <div className="col-span-full p-8 text-center">
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-full p-8 text-center">
                   <p className="text-muted-foreground">
                     {searchTerm ? "No repositories match your search. Try different keywords." : ""}
                   </p>
-                </div>}
-            </div> : <div className="mb-4">
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="mb-4">
               <RepositoriesTable repositories={sortedRepositories} />
-            </div>}
+            </div>
+          )}
         </div>
       </main>
 
-      <CreateRepositoryDialog open={dialogOpen} onOpenChange={setDialogOpen} onRepositoryCreated={() => {
-      // Refresh repositories after creation
-      const updatedRepositories = getRepositories();
-      setRepositories(updatedRepositories);
-    }} />
+      <CreateRepositoryDialog 
+        open={dialogOpen} 
+        onOpenChange={setDialogOpen} 
+        onRepositoryCreated={async () => {
+          // Refresh repositories after creation
+          const updatedRepositories = await getRepositories();
+          setRepositories(updatedRepositories);
+        }} 
+      />
 
-      <CSVImportDialog open={csvImportDialogOpen} onOpenChange={setCsvImportDialogOpen} onDataImported={handleCSVDataImported} />
-    </div>;
+      <CSVImportDialog 
+        open={csvImportDialogOpen} 
+        onOpenChange={setCsvImportDialogOpen} 
+        onDataImported={handleCSVDataImported} 
+      />
+    </div>
+  );
 }
