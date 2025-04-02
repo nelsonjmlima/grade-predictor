@@ -1,4 +1,3 @@
-
 export interface Repository {
   name: string;
   description: string;
@@ -68,6 +67,11 @@ export const addRepository = (repository: Repository): void => {
   // Generate createdAt timestamp
   if (!repository.createdAt) {
     repository.createdAt = new Date().toISOString();
+  }
+  
+  // Generate ID if not provided
+  if (!repository.id) {
+    repository.id = `repo-${Math.random().toString(36).substr(2, 9)}`;
   }
   
   // Ensure new repositories have the fields required for the updated table
@@ -151,7 +155,21 @@ export const updateRepository = (id: string, updatedRepo: Partial<Repository>): 
   const repositories = getRepositories();
   const index = repositories.findIndex(repo => repo.id === id);
   
-  if (index === -1) return null;
+  if (index === -1) {
+    // If repository with this ID doesn't exist, try to find by projectId
+    const projectIdIndex = repositories.findIndex(repo => 
+      repo.projectId === updatedRepo.projectId
+    );
+    
+    if (projectIdIndex === -1) {
+      return null;
+    }
+    
+    repositories[projectIdIndex] = { ...repositories[projectIdIndex], ...updatedRepo };
+    localStorage.setItem('repositories', JSON.stringify(repositories));
+    
+    return repositories[projectIdIndex];
+  }
   
   repositories[index] = { ...repositories[index], ...updatedRepo };
   localStorage.setItem('repositories', JSON.stringify(repositories));
@@ -217,8 +235,11 @@ export const filterRepositories = (repositories: Repository[], searchTerm: strin
 
   const lowerSearchTerm = searchTerm.toLowerCase();
   return repositories.filter(repo =>
-    repo.name.toLowerCase().includes(lowerSearchTerm) ||
-    repo.description.toLowerCase().includes(lowerSearchTerm)
+    (repo.name?.toLowerCase().includes(lowerSearchTerm) || false) ||
+    (repo.description?.toLowerCase().includes(lowerSearchTerm) || false) ||
+    (repo.projectId?.toLowerCase().includes(lowerSearchTerm) || false) ||
+    (repo.author?.toLowerCase().includes(lowerSearchTerm) || false) ||
+    (repo.email?.toLowerCase().includes(lowerSearchTerm) || false)
   );
 };
 
@@ -231,9 +252,9 @@ export const sortRepositories = (repositories: Repository[], sortBy: string): Re
         return bTime.getTime() - aTime.getTime();
       });
     case 'name':
-      return repositories.sort((a, b) => a.name.localeCompare(b.name));
+      return repositories.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     case 'progress':
-      return repositories.sort((a, b) => b.progress - a.progress);
+      return repositories.sort((a, b) => (b.progress || 0) - (a.progress || 0));
     case 'operations':
       return repositories.sort((a, b) => {
         const aOperations = a.totalOperations || a.operations || (a.additions && a.deletions ? a.additions + a.deletions : a.commitCount || 0);

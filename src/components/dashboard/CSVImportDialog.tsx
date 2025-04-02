@@ -46,7 +46,7 @@ export function CSVImportDialog({
     
     try {
       const text = await file.text();
-      const lines = text.split('\n');
+      const lines = text.split('\n').filter(line => line.trim().length > 0);
 
       // Ensure we have at least a header and one data row
       if (lines.length < 2) {
@@ -98,7 +98,14 @@ export function CSVImportDialog({
         commitCount: result.Operations || 0,
         mergeRequestCount: Math.floor((result.Operations || 0) / 3) || 0,
         branchCount: Math.floor((result.Operations || 0) / 5) || 0,
-        progress: Math.min(Math.floor((result.Additions || 0) / ((result.Additions || 0) + (result.Deletions || 0) + 1) * 100), 100) || 50
+        progress: Math.min(Math.floor((result.Additions || 0) / ((result.Additions || 0) + (result.Deletions || 0) + 1) * 100), 100) || 50,
+        
+        // Add total fields if not present
+        totalAdditions: result.Additions ? result.Additions * 5 : undefined, 
+        totalDeletions: result.Deletions ? result.Deletions * 3 : undefined,
+        totalOperations: result.Operations ? result.Operations * 4 : undefined,
+        averageOperationsPerCommit: result.Operations && result.Operations > 0 ? Math.round(result.Operations / 3) : undefined,
+        averageCommitsPerWeek: result.Operations && result.Operations > 0 ? Math.round(result.Operations / 12) : undefined
       };
       
       onDataImported(repositoryData);

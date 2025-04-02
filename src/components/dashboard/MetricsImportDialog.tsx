@@ -46,7 +46,7 @@ export function MetricsImportDialog({
     
     try {
       const text = await file.text();
-      const lines = text.split('\n');
+      const lines = text.split('\n').filter(line => line.trim().length > 0);
 
       // Ensure we have at least a header and one data row
       if (lines.length < 2) {
@@ -86,7 +86,7 @@ export function MetricsImportDialog({
       const repositoryData: Partial<Repository> = {
         author: result.Author,
         projectId: result.ProjectID,
-        commitCount: result.totalcommits, // Changed from totalCommits to commitCount
+        commitCount: result.totalcommits,
         totalAdditions: result.totaladds,
         averageOperationsPerCommit: result.average_operations_commit,
         averageCommitsPerWeek: result.average_commit_week,
