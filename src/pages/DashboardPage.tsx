@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
@@ -14,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CSVImportDialog } from "@/components/dashboard/CSVImportDialog";
 import { MetricsImportDialog } from "@/components/dashboard/MetricsImportDialog";
 import { toast } from "sonner";
-
 export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [repositories, setRepositories] = useState<Repository[]>([]);
@@ -28,7 +26,7 @@ export default function DashboardPage() {
   // Fetch repositories on mount and when dialogOpen changes (indicating a potential new repo)
   useEffect(() => {
     const fetchedRepositories = getRepositories();
-    
+
     // Ensure repositories have the required fields for the updated table
     const enhancedRepositories = fetchedRepositories.map(repo => ({
       ...repo,
@@ -41,26 +39,18 @@ export default function DashboardPage() {
       operations: repo.operations || (repo.additions && repo.deletions ? repo.additions + repo.deletions : repo.commitCount),
       totalAdditions: repo.totalAdditions || Math.floor(Math.random() * 2000) + (repo.additions || 0),
       totalDeletions: repo.totalDeletions || Math.floor(Math.random() * 1000) + (repo.deletions || 0),
-      totalOperations: repo.totalOperations || 
-        (repo.totalAdditions && repo.totalDeletions ? 
-          repo.totalAdditions + repo.totalDeletions : 
-          (repo.additions && repo.deletions ? (repo.additions + repo.deletions) * 5 : 0)),
-      averageOperationsPerCommit: repo.averageOperationsPerCommit || 
-        (repo.commitCount ? Math.round(((repo.additions || 0) + (repo.deletions || 0)) / repo.commitCount * 10) / 10 : Math.floor(Math.random() * 20) + 5),
+      totalOperations: repo.totalOperations || (repo.totalAdditions && repo.totalDeletions ? repo.totalAdditions + repo.totalDeletions : repo.additions && repo.deletions ? (repo.additions + repo.deletions) * 5 : 0),
+      averageOperationsPerCommit: repo.averageOperationsPerCommit || (repo.commitCount ? Math.round(((repo.additions || 0) + (repo.deletions || 0)) / repo.commitCount * 10) / 10 : Math.floor(Math.random() * 20) + 5),
       averageCommitsPerWeek: repo.averageCommitsPerWeek || Math.floor(Math.random() * 20) + 1
     }));
-    
     setRepositories(enhancedRepositories);
   }, [dialogOpen, csvImportDialogOpen, metricsImportDialogOpen]);
-
   const handleCreateRepository = () => {
     setDialogOpen(true);
   };
-
   const handleRepositoryClick = (repoId: string) => {
     navigate(`/repositories/${repoId}`);
   };
-
   const handleAddRepository = () => {
     navigate("/repositories/add");
   };
@@ -73,14 +63,16 @@ export default function DashboardPage() {
       });
       return;
     }
-    
+
     // Check if the repository with this projectId already exists
     const existingRepos = getRepositories();
     const existingRepo = existingRepos.find(repo => repo.projectId === data.projectId);
-    
     if (existingRepo) {
       // Update existing repository
-      const updatedRepo = { ...existingRepo, ...data };
+      const updatedRepo = {
+        ...existingRepo,
+        ...data
+      };
       updateRepository(existingRepo.id || '', updatedRepo);
       toast.success("Repository updated", {
         description: `Repository ${data.projectId} has been updated with imported data.`
@@ -98,18 +90,17 @@ export default function DashboardPage() {
         progress: Math.min(Math.floor((data.additions || 0) / ((data.additions || 0) + (data.deletions || 0) + 1) * 100), 100) || 50,
         ...data
       };
-      
       addRepository(newRepo);
       toast.success("Repository created", {
         description: `New repository ${data.projectId} has been created from imported data.`
       });
     }
-    
+
     // Refresh repositories to show the changes
     const updatedRepositories = getRepositories();
     setRepositories(updatedRepositories);
   };
-  
+
   // Handle metrics data import
   const handleMetricsDataImported = (data: Partial<Repository>) => {
     if (!data.projectId) {
@@ -122,18 +113,14 @@ export default function DashboardPage() {
     // Check if the repository with this projectId already exists
     const existingRepos = getRepositories();
     const existingRepo = existingRepos.find(repo => repo.projectId === data.projectId);
-    
     if (existingRepo) {
       // Update existing repository with metrics data
-      const updatedRepo = { 
-        ...existingRepo, 
+      const updatedRepo = {
+        ...existingRepo,
         ...data,
         // Update additional fields based on metrics
-        totalOperations: data.totalAdditions && data.totalDeletions ? 
-          data.totalAdditions + data.totalDeletions : 
-          existingRepo.totalOperations
+        totalOperations: data.totalAdditions && data.totalDeletions ? data.totalAdditions + data.totalDeletions : existingRepo.totalOperations
       };
-      
       updateRepository(existingRepo.id || '', updatedRepo);
       toast.success("Repository metrics updated", {
         description: `Repository ${data.projectId} metrics have been updated.`
@@ -154,13 +141,12 @@ export default function DashboardPage() {
         operations: Math.floor((data.totalAdditions || 0) / 10) + Math.floor((data.totalDeletions || 0) / 20),
         ...data
       };
-      
       addRepository(newRepo);
       toast.success("Repository created", {
         description: `New repository ${data.projectId} has been created from metrics data.`
       });
     }
-    
+
     // Refresh repositories to show the changes
     const updatedRepositories = getRepositories();
     setRepositories(updatedRepositories);
@@ -168,21 +154,17 @@ export default function DashboardPage() {
 
   // Filter repositories based on search term
   const filteredRepositories = filterRepositories(repositories, searchTerm);
-  
+
   // Sort repositories based on sort selection
   const sortedRepositories = sortRepositories(filteredRepositories, sortBy);
-
-  return (
-    <div className="flex h-screen overflow-hidden bg-background">
+  return <div className="flex h-screen overflow-hidden bg-background">
       <SideNav />
       
       <main className="flex-1 overflow-y-auto">
         <div className="p-4">
           <div className="flex flex-col mb-4">
             <h1 className="text-xl font-semibold tracking-tight">Dashboard</h1>
-            <p className="text-sm text-muted-foreground">
-              Manage your repositories and analyze student performance
-            </p>
+            <p className="text-sm text-muted-foreground">Manage your repositories</p>
             <p className="text-base font-medium text-primary mt-1">
               Bem-vindo Sr. Professor
             </p>
@@ -191,25 +173,15 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex-1">
               <p className="text-sm text-muted-foreground">
-                {repositories.length > 0 
-                  ? `Managing ${repositories.length} repositories.`
-                  : ""}
+                {repositories.length > 0 ? `Managing ${repositories.length} repositories.` : ""}
               </p>
             </div>
             <div className="flex items-center gap-2">
               <div className="relative">
                 <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                <Input 
-                  placeholder="Search repositories..." 
-                  className="pl-8 w-[200px] h-8 text-sm"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+                <Input placeholder="Search repositories..." className="pl-8 w-[200px] h-8 text-sm" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
               </div>
-              <Select 
-                value={sortBy} 
-                onValueChange={setSortBy}
-              >
+              <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="h-8 w-[130px]">
                   <SelectValue placeholder="Sort by..." />
                 </SelectTrigger>
@@ -222,7 +194,7 @@ export default function DashboardPage() {
                   <SelectItem value="avgcommits">Avg Commits/Week</SelectItem>
                 </SelectContent>
               </Select>
-              <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as "grid" | "table")}>
+              <ToggleGroup type="single" value={viewMode} onValueChange={value => value && setViewMode(value as "grid" | "table")}>
                 <ToggleGroupItem value="grid" aria-label="Grid view">
                   <Grid className="h-4 w-4" />
                 </ToggleGroupItem>
@@ -230,21 +202,11 @@ export default function DashboardPage() {
                   <List className="h-4 w-4" />
                 </ToggleGroupItem>
               </ToggleGroup>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-9 px-4" 
-                onClick={() => setCsvImportDialogOpen(true)}
-              >
+              <Button variant="outline" size="sm" className="h-9 px-4" onClick={() => setCsvImportDialogOpen(true)}>
                 <FileUp className="h-4 w-4 mr-2" />
                 Import CSV
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-9 px-4" 
-                onClick={() => setMetricsImportDialogOpen(true)}
-              >
+              <Button variant="outline" size="sm" className="h-9 px-4" onClick={() => setMetricsImportDialogOpen(true)}>
                 <FileUp className="h-4 w-4 mr-2" />
                 Import Metrics
               </Button>
@@ -255,57 +217,28 @@ export default function DashboardPage() {
             </div>
           </div>
           
-          {viewMode === "grid" ? (
-            <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {sortedRepositories.length > 0 ? (
-                sortedRepositories.map((repo) => (
-                  <div 
-                    key={repo.id || repo.name} 
-                    className="cursor-pointer transform transition-transform hover:scale-[1.01]"
-                    onClick={() => handleRepositoryClick(repo.id || '')}
-                  >
+          {viewMode === "grid" ? <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {sortedRepositories.length > 0 ? sortedRepositories.map(repo => <div key={repo.id || repo.name} className="cursor-pointer transform transition-transform hover:scale-[1.01]" onClick={() => handleRepositoryClick(repo.id || '')}>
                     <RepositoryCard {...repo} />
-                  </div>
-                ))
-              ) : (
-                <div className="col-span-full p-8 text-center">
+                  </div>) : <div className="col-span-full p-8 text-center">
                   <p className="text-muted-foreground">
-                    {searchTerm 
-                      ? "No repositories match your search. Try different keywords." 
-                      : ""}
+                    {searchTerm ? "No repositories match your search. Try different keywords." : ""}
                   </p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="mb-4">
+                </div>}
+            </div> : <div className="mb-4">
               <RepositoriesTable repositories={sortedRepositories} />
-            </div>
-          )}
+            </div>}
         </div>
       </main>
 
-      <CreateRepositoryDialog 
-        open={dialogOpen} 
-        onOpenChange={setDialogOpen} 
-        onRepositoryCreated={() => {
-          // Refresh repositories after creation
-          const updatedRepositories = getRepositories();
-          setRepositories(updatedRepositories);
-        }}
-      />
+      <CreateRepositoryDialog open={dialogOpen} onOpenChange={setDialogOpen} onRepositoryCreated={() => {
+      // Refresh repositories after creation
+      const updatedRepositories = getRepositories();
+      setRepositories(updatedRepositories);
+    }} />
 
-      <CSVImportDialog
-        open={csvImportDialogOpen}
-        onOpenChange={setCsvImportDialogOpen}
-        onDataImported={handleCSVDataImported}
-      />
+      <CSVImportDialog open={csvImportDialogOpen} onOpenChange={setCsvImportDialogOpen} onDataImported={handleCSVDataImported} />
 
-      <MetricsImportDialog
-        open={metricsImportDialogOpen}
-        onOpenChange={setMetricsImportDialogOpen}
-        onDataImported={handleMetricsDataImported}
-      />
-    </div>
-  );
+      <MetricsImportDialog open={metricsImportDialogOpen} onOpenChange={setMetricsImportDialogOpen} onDataImported={handleMetricsDataImported} />
+    </div>;
 }
