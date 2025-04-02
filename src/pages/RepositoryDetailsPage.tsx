@@ -14,7 +14,6 @@ import {
   Edit,
   Activity,
   Save,
-  BarChart,
   FileUp
 } from "lucide-react";
 import { toast } from "sonner";
@@ -29,7 +28,6 @@ import {
 import { DeleteRepositoryDialog } from "@/components/dashboard/DeleteRepositoryDialog";
 import { EditRepositoryDialog } from "@/components/dashboard/EditRepositoryDialog";
 import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
-import { MetricsImportDialog } from "@/components/dashboard/MetricsImportDialog";
 import { CSVImportDialog } from "@/components/dashboard/CSVImportDialog";
 import { saveStudentData } from "@/services/studentData";
 
@@ -40,7 +38,6 @@ export default function RepositoryDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [metricsImportDialogOpen, setMetricsImportDialogOpen] = useState(false);
   const [csvImportDialogOpen, setCsvImportDialogOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
@@ -98,22 +95,6 @@ export default function RepositoryDetailsPage() {
           description: "An error occurred while saving your changes."
         });
       }
-    }
-  };
-
-  const handleMetricsDataImported = (data: Partial<Repository>) => {
-    if (repository && repository.id) {
-      const updatedRepo = {
-        ...repository,
-        ...data
-      };
-      
-      setRepository(updatedRepo);
-      setHasUnsavedChanges(true);
-      
-      toast.success("Metrics data imported", {
-        description: "Repository metrics have been updated with imported values. Don't forget to save your changes."
-      });
     }
   };
 
@@ -244,14 +225,6 @@ export default function RepositoryDetailsPage() {
                   >
                     <FileUp className="h-4 w-4" />
                     Import CSV Data
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setMetricsImportDialogOpen(true)} 
-                    className="gap-2"
-                  >
-                    <BarChart className="h-4 w-4" />
-                    Import Metrics
                   </Button>
                   <Button 
                     variant="outline" 
@@ -394,12 +367,6 @@ export default function RepositoryDetailsPage() {
                 onOpenChange={setEditDialogOpen}
                 repository={repository}
                 onRepositoryUpdated={handleRepositoryUpdated}
-              />
-
-              <MetricsImportDialog
-                open={metricsImportDialogOpen}
-                onOpenChange={setMetricsImportDialogOpen}
-                onDataImported={handleMetricsDataImported}
               />
 
               <CSVImportDialog

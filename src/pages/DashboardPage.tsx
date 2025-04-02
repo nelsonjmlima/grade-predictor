@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
@@ -11,7 +12,6 @@ import { getRepositories, Repository, filterRepositories, sortRepositories, upda
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CSVImportDialog } from "@/components/dashboard/CSVImportDialog";
-import { MetricsImportDialog } from "@/components/dashboard/MetricsImportDialog";
 import { toast } from "sonner";
 export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -20,7 +20,6 @@ export default function DashboardPage() {
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
   const [sortBy, setSortBy] = useState("recent");
   const [csvImportDialogOpen, setCsvImportDialogOpen] = useState(false);
-  const [metricsImportDialogOpen, setMetricsImportDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   // Fetch repositories on mount and when dialogOpen changes (indicating a potential new repo)
@@ -44,7 +43,7 @@ export default function DashboardPage() {
       averageCommitsPerWeek: repo.averageCommitsPerWeek || Math.floor(Math.random() * 20) + 1
     }));
     setRepositories(enhancedRepositories);
-  }, [dialogOpen, csvImportDialogOpen, metricsImportDialogOpen]);
+  }, [dialogOpen, csvImportDialogOpen]);
   
   const handleCreateRepository = () => {
     setDialogOpen(true);
@@ -63,14 +62,6 @@ export default function DashboardPage() {
     // Only upload the CSV file, don't create or update any repository
     toast.success("CSV file uploaded", {
       description: "The CSV file has been stored in the backend."
-    });
-  };
-
-  // Modified metrics import handler that only uploads the file without creating a repository
-  const handleMetricsDataImported = (data: Partial<Repository>) => {
-    // Only upload the metrics file, don't create or update any repository
-    toast.success("Metrics file uploaded", {
-      description: "The metrics file has been stored in the backend."
     });
   };
 
@@ -128,10 +119,6 @@ export default function DashboardPage() {
                 <FileUp className="h-4 w-4 mr-2" />
                 Import CSV
               </Button>
-              <Button variant="outline" size="sm" className="h-9 px-4" onClick={() => setMetricsImportDialogOpen(true)}>
-                <FileUp className="h-4 w-4 mr-2" />
-                Import Metrics
-              </Button>
               <Button size="sm" className="h-9 px-4" onClick={handleAddRepository}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Repository
@@ -160,7 +147,5 @@ export default function DashboardPage() {
     }} />
 
       <CSVImportDialog open={csvImportDialogOpen} onOpenChange={setCsvImportDialogOpen} onDataImported={handleCSVDataImported} />
-
-      <MetricsImportDialog open={metricsImportDialogOpen} onOpenChange={setMetricsImportDialogOpen} onDataImported={handleMetricsDataImported} />
     </div>;
 }
