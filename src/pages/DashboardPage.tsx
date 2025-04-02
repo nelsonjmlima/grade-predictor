@@ -8,14 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Plus, FileUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getRepositories, Repository, filterRepositories, sortRepositories, updateRepository, addRepository } from "@/services/repositoryData";
-import { CSVImportDialog } from "@/components/dashboard/CSVImportDialog";
+import { MetricsImportDialog } from "@/components/dashboard/MetricsImportDialog";
 import { toast } from "sonner";
+
 export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [repositories, setRepositories] = useState<Repository[]>([]);
   // Always use grid mode now that we've removed the toggle
   const [viewMode] = useState<"grid">("grid");
-  const [csvImportDialogOpen, setCsvImportDialogOpen] = useState(false);
+  const [metricsImportDialogOpen, setMetricsImportDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   // Fetch repositories on mount and when dialogOpen changes (indicating a potential new repo)
@@ -39,27 +40,67 @@ export default function DashboardPage() {
       averageCommitsPerWeek: repo.averageCommitsPerWeek || Math.floor(Math.random() * 20) + 1
     }));
     setRepositories(enhancedRepositories);
-  }, [dialogOpen, csvImportDialogOpen]);
+  }, [dialogOpen, metricsImportDialogOpen]);
+  
   const handleCreateRepository = () => {
     setDialogOpen(true);
   };
+  
   const handleRepositoryClick = (repoId: string) => {
     navigate(`/repositories/${repoId}`);
   };
+  
   const handleAddRepository = () => {
     navigate("/repositories/add");
   };
 
-  // Modified data import handler that only uploads the CSV file without creating a repository
-  const handleCSVDataImported = (data: Partial<Repository>) => {
-    // Only upload the CSV file, don't create or update any repository
-    toast.success("CSV file uploaded", {
-      description: "The CSV file has been stored in the backend."
-    });
+  // Handle data import from the metrics import dialog
+  const handleMetricsDataImported = (data: Partial<Repository>) => {
+    if (!data.projectId) {
+      toast.success("CSV file uploaded", {
+        description: "The CSV file has been stored in the backend."
+      });
+      return;
+    }
+    
+    // Check if repository with this project ID already exists
+    const existingRepo = repositories.find(repo => repo.projectId === data.projectId);
+    
+    if (existingRepo) {
+      // Update existing repository with imported data
+      const updatedRepo = updateRepository(existingRepo.id || '', data);
+      if (updatedRepo) {
+        toast.success("Repository updated", {
+          description: `Repository data for ${data.projectId} has been updated.`
+        });
+      } else {
+        toast.error("Update failed", {
+          description: "Failed to update repository with imported data."
+        });
+      }
+    } else {
+      // Create a new repository with the imported data
+      const newRepository: Repository = {
+        name: data.projectId || "New Repository",
+        description: `Repository for ${data.author || 'Unknown Author'}`,
+        lastActivity: data.date || new Date().toISOString(),
+        commitCount: 0,
+        mergeRequestCount: 0,
+        branchCount: 0,
+        progress: 0,
+        ...data
+      };
+      
+      addRepository(newRepository);
+      toast.success("Repository created", {
+        description: `New repository created for ${data.projectId}.`
+      });
+    }
   };
 
   // Get all repositories without filtering or sorting
   const sortedRepositories = repositories;
+  
   return <div className="flex h-screen overflow-hidden bg-background">
       <SideNav />
       
@@ -84,7 +125,7 @@ export default function DashboardPage() {
                 variant="outline" 
                 size="lg" 
                 className="h-14 px-6 text-base" 
-                onClick={() => setCsvImportDialogOpen(true)}
+                onClick={() => setMetricsImportDialogOpen(true)}
               >
                 <FileUp className="h-5 w-5 mr-2" />
                 Import CSV
@@ -118,6 +159,6 @@ export default function DashboardPage() {
       setRepositories(updatedRepositories);
     }} />
 
-      <CSVImportDialog open={csvImportDialogOpen} onOpenChange={setCsvImportDialogOpen} onDataImported={handleCSVDataImported} />
+      <MetricsImportDialog open={metricsImportDialogOpen} onOpenChange={setMetricsImportDialogOpen} onDataImported={handleMetricsDataImported} />
     </div>;
 }

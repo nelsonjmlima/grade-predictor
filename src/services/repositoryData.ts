@@ -178,25 +178,25 @@ export const addRepository = (repository: Repository): void => {
 
 export const updateRepository = (id: string, updatedRepo: Partial<Repository>): Repository | null => {
   const repositories = getRepositories();
-  const index = repositories.findIndex(repo => repo.id === id);
   
-  if (index === -1) {
-    // If repository with this ID doesn't exist, try to find by projectId
-    const projectIdIndex = repositories.findIndex(repo => 
+  // Try to find by ID first
+  let index = repositories.findIndex(repo => repo.id === id);
+  
+  // If not found by ID, try to find by projectId (for CSV import matching)
+  if (index === -1 && updatedRepo.projectId) {
+    index = repositories.findIndex(repo => 
       repo.projectId === updatedRepo.projectId
     );
-    
-    if (projectIdIndex === -1) {
-      return null;
-    }
-    
-    repositories[projectIdIndex] = { ...repositories[projectIdIndex], ...updatedRepo };
-    localStorage.setItem('repositories', JSON.stringify(repositories));
-    
-    return repositories[projectIdIndex];
   }
   
+  if (index === -1) {
+    return null;
+  }
+  
+  // Merge the repositories
   repositories[index] = { ...repositories[index], ...updatedRepo };
+  
+  // Save to localStorage
   localStorage.setItem('repositories', JSON.stringify(repositories));
   
   return repositories[index];

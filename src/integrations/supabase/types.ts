@@ -15,6 +15,7 @@ export type Database = {
           author: string | null
           commit_count: number | null
           created_at: string | null
+          csv_file_url: string | null
           deletions: number | null
           description: string | null
           email: string | null
@@ -35,6 +36,7 @@ export type Database = {
           author?: string | null
           commit_count?: number | null
           created_at?: string | null
+          csv_file_url?: string | null
           deletions?: number | null
           description?: string | null
           email?: string | null
@@ -55,6 +57,7 @@ export type Database = {
           author?: string | null
           commit_count?: number | null
           created_at?: string | null
+          csv_file_url?: string | null
           deletions?: number | null
           description?: string | null
           email?: string | null
