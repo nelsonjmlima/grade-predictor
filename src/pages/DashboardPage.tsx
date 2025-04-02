@@ -6,10 +6,9 @@ import { RepositoriesTable } from "@/components/dashboard/RepositoriesTable";
 import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Grid, List, FileUp } from "lucide-react";
+import { Search, Plus, FileUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getRepositories, Repository, filterRepositories, sortRepositories, updateRepository, addRepository } from "@/services/repositoryData";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CSVImportDialog } from "@/components/dashboard/CSVImportDialog";
 import { toast } from "sonner";
@@ -18,7 +17,8 @@ export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+  // Always use grid mode now that we've removed the toggle
+  const [viewMode] = useState<"grid">("grid");
   const [sortBy, setSortBy] = useState("recent");
   const [csvImportDialogOpen, setCsvImportDialogOpen] = useState(false);
   const navigate = useNavigate();
@@ -108,14 +108,6 @@ export default function DashboardPage() {
                   <SelectItem value="avgcommits">Avg Commits/Week</SelectItem>
                 </SelectContent>
               </Select>
-              <ToggleGroup type="single" value={viewMode} onValueChange={value => value && setViewMode(value as "grid" | "table")}>
-                <ToggleGroupItem value="grid" aria-label="Grid view">
-                  <Grid className="h-4 w-4" />
-                </ToggleGroupItem>
-                <ToggleGroupItem value="table" aria-label="Table view">
-                  <List className="h-4 w-4" />
-                </ToggleGroupItem>
-              </ToggleGroup>
               <Button variant="outline" size="sm" className="h-9 px-4" onClick={() => setCsvImportDialogOpen(true)}>
                 <FileUp className="h-4 w-4 mr-2" />
                 Import CSV
@@ -127,17 +119,15 @@ export default function DashboardPage() {
             </div>
           </div>
           
-          {viewMode === "grid" ? <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {sortedRepositories.length > 0 ? sortedRepositories.map(repo => <div key={repo.id || repo.name} className="cursor-pointer transform transition-transform hover:scale-[1.01]" onClick={() => handleRepositoryClick(repo.id || '')}>
-                    <RepositoryCard {...repo} />
-                  </div>) : <div className="col-span-full p-8 text-center">
-                  <p className="text-muted-foreground">
-                    {searchTerm ? "No repositories match your search. Try different keywords." : ""}
-                  </p>
-                </div>}
-            </div> : <div className="mb-4">
-              <RepositoriesTable repositories={sortedRepositories} />
-            </div>}
+          <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {sortedRepositories.length > 0 ? sortedRepositories.map(repo => <div key={repo.id || repo.name} className="cursor-pointer transform transition-transform hover:scale-[1.01]" onClick={() => handleRepositoryClick(repo.id || '')}>
+                  <RepositoryCard {...repo} />
+                </div>) : <div className="col-span-full p-8 text-center">
+                <p className="text-muted-foreground">
+                  {searchTerm ? "No repositories match your search. Try different keywords." : ""}
+                </p>
+              </div>}
+          </div>
         </div>
       </main>
 
