@@ -1,11 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { GitBranch, GitCommit, ArrowLeft, GitMerge, Edit, Activity, Save, User, Users } from "lucide-react";
+import { GitBranch, GitCommit, ArrowLeft, GitMerge, Edit, Save } from "lucide-react";
 import { toast } from "sonner";
 import { getRepositories, updateRepository, Repository, Student, getRepositoryStudents, saveRepositoryStudent } from "@/services/repositoryData";
 import { DeleteRepositoryDialog } from "@/components/dashboard/DeleteRepositoryDialog";
