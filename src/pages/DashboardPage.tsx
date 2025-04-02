@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
@@ -10,7 +9,6 @@ import { useNavigate } from "react-router-dom";
 import { getRepositories, Repository, filterRepositories, sortRepositories, updateRepository, addRepository } from "@/services/repositoryData";
 import { CSVImportDialog } from "@/components/dashboard/CSVImportDialog";
 import { toast } from "sonner";
-
 export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [repositories, setRepositories] = useState<Repository[]>([]);
@@ -41,15 +39,12 @@ export default function DashboardPage() {
     }));
     setRepositories(enhancedRepositories);
   }, [dialogOpen, csvImportDialogOpen]);
-  
   const handleCreateRepository = () => {
     setDialogOpen(true);
   };
-  
   const handleRepositoryClick = (repoId: string) => {
     navigate(`/repositories/${repoId}`);
   };
-  
   const handleAddRepository = () => {
     navigate("/repositories/add");
   };
@@ -64,7 +59,6 @@ export default function DashboardPage() {
 
   // Get all repositories without filtering or sorting
   const sortedRepositories = repositories;
-
   return <div className="flex h-screen overflow-hidden bg-background">
       <SideNav />
       
@@ -78,7 +72,7 @@ export default function DashboardPage() {
             </p>
           </div>
           
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 rounded-2xl">
             <div className="flex-1">
               <p className="text-sm text-muted-foreground">
                 {repositories.length > 0 ? `Managing ${repositories.length} repositories.` : ""}
