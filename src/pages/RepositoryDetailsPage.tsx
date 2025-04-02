@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { GitBranch, GitCommit, ArrowLeft, GitMerge, Edit, Activity, Save, Users } from "lucide-react";
+import { GitBranch, GitCommit, ArrowLeft, GitMerge, Edit, Activity, Save, User } from "lucide-react";
 import { toast } from "sonner";
 import { getRepositories, updateRepository, Repository, Student, getRepositoryStudents, saveRepositoryStudent } from "@/services/repositoryData";
 import { DeleteRepositoryDialog } from "@/components/dashboard/DeleteRepositoryDialog";
@@ -13,7 +13,6 @@ import { EditRepositoryDialog } from "@/components/dashboard/EditRepositoryDialo
 import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
 import { saveStudentData } from "@/services/studentData";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
 export default function RepositoryDetailsPage() {
   const {
     id
@@ -25,7 +24,6 @@ export default function RepositoryDetailsPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
-
   const loadRepository = () => {
     if (id) {
       const allRepositories = getRepositories();
@@ -38,27 +36,22 @@ export default function RepositoryDetailsPage() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     loadRepository();
   }, [id]);
-
   const handleGoBack = () => {
     navigate("/repositories");
   };
-
   const handleRepositoryDeleted = () => {
     toast.success("Redirecting to repositories", {
       description: "Repository has been deleted successfully."
     });
     navigate("/repositories");
   };
-
   const handleRepositoryUpdated = (updatedRepo: Repository) => {
     setRepository(updatedRepo);
     setHasUnsavedChanges(false);
   };
-
   const saveChanges = () => {
     if (repository && repository.id) {
       const repoWithStudents = {
@@ -78,7 +71,6 @@ export default function RepositoryDetailsPage() {
       }
     }
   };
-
   const handleStudentAdded = async (newStudent: Student) => {
     setStudents(prev => [...prev, newStudent]);
     setHasUnsavedChanges(true);
@@ -107,7 +99,6 @@ export default function RepositoryDetailsPage() {
       });
     }
   };
-
   const handleStudentEdited = async (updatedStudent: Student) => {
     setStudents(prev => prev.map(student => student.id === updatedStudent.id ? updatedStudent : student));
     setHasUnsavedChanges(true);
@@ -136,7 +127,6 @@ export default function RepositoryDetailsPage() {
       });
     }
   };
-
   if (!loading && !repository) {
     return <div className="flex h-screen overflow-hidden">
         <SideNav />
@@ -154,7 +144,6 @@ export default function RepositoryDetailsPage() {
         </main>
       </div>;
   }
-
   return <div className="flex h-screen overflow-hidden">
       <SideNav />
       <main className="flex-1 overflow-y-auto p-6 bg-background">
@@ -182,26 +171,65 @@ export default function RepositoryDetailsPage() {
                 </div>
               </div>
               
-              <div className="w-full rounded-md border overflow-hidden mb-4">
+              {/* Replaced cards with a detailed table */}
+              <div className="w-full rounded-md border overflow-hidden">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-1/6">ID</TableHead>
-                      <TableHead className="w-1/6">Author</TableHead>
-                      <TableHead className="w-1/6">Email</TableHead>
-                      <TableHead className="w-1/6">GitLabUser</TableHead>
-                      <TableHead className="w-1/6">Last Activity</TableHead>
-                      <TableHead className="w-1/6">Grade Prediction</TableHead>
+                      <TableHead className="w-[250px]">Repository Details</TableHead>
+                      <TableHead>Value</TableHead>
+                      <TableHead className="w-[250px]">Activity Metrics</TableHead>
+                      <TableHead>Value</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     <TableRow>
-                      <TableCell className="font-medium">{repository.projectId || repository.id || 'N/A'}</TableCell>
-                      <TableCell>{repository.author || 'N/A'}</TableCell>
+                      <TableCell className="font-medium">ProjectID</TableCell>
+                      <TableCell>{repository.projectId || 'N/A'}</TableCell>
+                      <TableCell className="font-medium">Additions</TableCell>
+                      <TableCell>{repository.additions || 0}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">ID/Group</TableCell>
+                      <TableCell>{repository.id || 'N/A'}</TableCell>
+                      <TableCell className="font-medium">Deletions</TableCell>
+                      <TableCell>{repository.deletions || 0}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Author</TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <User className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                          {repository.author || 'N/A'}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">Operations</TableCell>
+                      <TableCell>{repository.operations || 0}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Email</TableCell>
                       <TableCell>{repository.email || 'N/A'}</TableCell>
+                      <TableCell className="font-medium">Week of Prediction</TableCell>
+                      <TableCell>{repository.weekOfPrediction || 'Not set'}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">GitLabUser</TableCell>
                       <TableCell>{repository.gitlabUser || 'N/A'}</TableCell>
-                      <TableCell>{repository.date || repository.lastActivity || 'N/A'}</TableCell>
+                      <TableCell className="font-medium">Final Grade Prediction</TableCell>
                       <TableCell>{repository.finalGradePrediction || repository.predictedGrade || 'Not predicted'}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Date</TableCell>
+                      <TableCell>{repository.date || repository.lastActivity || 'N/A'}</TableCell>
+                      <TableCell className="font-medium">Progress</TableCell>
+                      <TableCell>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="font-medium">{repository.progress}%</span>
+                          </div>
+                          <Progress value={repository.progress} className="h-2" />
+                        </div>
+                      </TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
