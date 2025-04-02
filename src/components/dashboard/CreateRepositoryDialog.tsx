@@ -3,7 +3,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { GitBranch, Link, Key, User, Upload } from "lucide-react";
+import { GitBranch, Link, Key, User } from "lucide-react";
 import { toast } from "sonner";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { addRepository, uploadCSVToSupabase } from "@/services/repositoryData";
+import { addRepository } from "@/services/repositoryData";
 
 const formSchema = z.object({
   name: z.string().min(3, { message: "Repository name must be at least 3 characters" }),
@@ -37,7 +37,6 @@ export function CreateRepositoryDialog({
   onRepositoryCreated 
 }: CreateRepositoryDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -52,36 +51,12 @@ export function CreateRepositoryDialog({
     },
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      setSelectedFile(files[0]);
-    }
-  };
-
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
     
     try {
       const repoId = values.name.toLowerCase().replace(/\s+/g, '-');
-      let csvFileUrl = null;
       
-      // Upload the CSV file first if one is selected
-      if (selectedFile) {
-        const fileExt = selectedFile.name.split('.').pop()?.toLowerCase();
-        if (fileExt === 'csv') {
-          toast.loading("Uploading CSV file...");
-          csvFileUrl = await uploadCSVToSupabase(selectedFile, repoId);
-          if (csvFileUrl) {
-            toast.success("CSV file uploaded successfully");
-          } else {
-            toast.error("Failed to upload CSV file");
-          }
-        } else {
-          toast.error("Only CSV files are supported");
-        }
-      }
-
       const newRepo = {
         id: repoId,
         name: values.name,
@@ -97,10 +72,10 @@ export function CreateRepositoryDialog({
         apiKey: values.apiKey || undefined,
         userId: values.userId || undefined,
         students: values.students || undefined,
-        csvFileUrl: csvFileUrl || undefined,
-        storagePath: csvFileUrl ? `repositories/${repoId}` : undefined
+        storagePath: `repositories/${repoId}`
       };
       
+      toast.loading("Creating repository...");
       await addRepository(newRepo as any);
       
       toast.success("Repository created successfully", {
@@ -109,7 +84,6 @@ export function CreateRepositoryDialog({
       
       setIsSubmitting(false);
       form.reset();
-      setSelectedFile(null);
       onOpenChange(false);
       
       if (onRepositoryCreated) {
@@ -213,8 +187,7 @@ export function CreateRepositoryDialog({
                       <Key className="h-4 w-4 text-muted-foreground" />
                       <Input 
                         placeholder="Enter repository API key" 
-                        type="password"
-                        showPasswordToggle 
+                        type="password" 
                         {...field} 
                       />
                     </div>
@@ -258,22 +231,6 @@ export function CreateRepositoryDialog({
                 </FormItem>
               )}
             />
-
-            <FormItem>
-              <FormLabel>Import CSV File <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
-              <FormControl>
-                <div className="flex items-center space-x-2">
-                  <Upload className="h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    type="file" 
-                    accept=".csv" 
-                    onChange={handleFileChange}
-                    className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-                  />
-                </div>
-              </FormControl>
-              <p className="text-sm text-muted-foreground">Upload a CSV file with repository metrics</p>
-            </FormItem>
 
             <DialogFooter className="pt-4">
               <Button 
