@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -46,6 +46,24 @@ export default function AddRepositoryPage() {
       authorId: ""
     }
   });
+
+  // Watch for changes in the students field to update numberOfStudents
+  const studentsValue = form.watch("students");
+  
+  useEffect(() => {
+    // Calculate number of students based on non-empty lines in the students field
+    if (studentsValue) {
+      const studentLines = studentsValue
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0);
+      
+      const count = studentLines.length.toString();
+      form.setValue("numberOfStudents", count);
+    } else {
+      form.setValue("numberOfStudents", "0");
+    }
+  }, [studentsValue, form]);
 
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
@@ -128,11 +146,11 @@ export default function AddRepositoryPage() {
                 <FormField control={form.control} name="numberOfStudents" render={({
                 field
               }) => <FormItem>
-                      <FormLabel>Number of Students <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
+                      <FormLabel>Number of Students <span className="text-sm text-muted-foreground">(auto-calculated)</span></FormLabel>
                       <FormControl>
                         <div className="flex items-center space-x-2">
                           <User className="h-4 w-4 text-muted-foreground" />
-                          <Input placeholder="Enter number of students" type="number" {...field} />
+                          <Input placeholder="0" type="number" {...field} readOnly className="bg-gray-50" />
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -180,7 +198,7 @@ export default function AddRepositoryPage() {
                 <FormField control={form.control} name="students" render={({
                 field
               }) => <FormItem>
-                      <FormLabel>Student Email Addresses <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
+                      <FormLabel>Student Email Addresses <span className="text-sm text-muted-foreground">(one per line)</span></FormLabel>
                       <FormControl>
                         <Textarea placeholder="Enter student email addresses, one per line" className="resize-none h-24" {...field} />
                       </FormControl>
