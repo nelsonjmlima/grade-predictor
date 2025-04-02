@@ -104,12 +104,7 @@ export default function VerificationPage() {
                   </div>
                   <p className="text-sm text-gray-300">Verifying credentials...</p>
                 </div>
-              ) : (
-                <div className="flex items-center space-x-2 bg-blue-500/20 text-blue-200 p-4 rounded-md">
-                  <ShieldCheck className="h-5 w-5" />
-                  <span>User verification complete successful</span>
-                </div>
-              )}
+              ) : null}
             </div>
           </div>
         </CardContent>
