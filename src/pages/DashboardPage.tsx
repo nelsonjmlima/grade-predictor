@@ -45,111 +45,33 @@ export default function DashboardPage() {
     }));
     setRepositories(enhancedRepositories);
   }, [dialogOpen, csvImportDialogOpen, metricsImportDialogOpen]);
+  
   const handleCreateRepository = () => {
     setDialogOpen(true);
   };
+  
   const handleRepositoryClick = (repoId: string) => {
     navigate(`/repositories/${repoId}`);
   };
+  
   const handleAddRepository = () => {
     navigate("/repositories/add");
   };
 
-  // Enhanced data import handler that properly persists the data
+  // Modified data import handler that only uploads the CSV file without creating a repository
   const handleCSVDataImported = (data: Partial<Repository>) => {
-    if (!data.projectId) {
-      toast.error("Import failed", {
-        description: "Project ID is required in CSV data."
-      });
-      return;
-    }
-
-    // Check if the repository with this projectId already exists
-    const existingRepos = getRepositories();
-    const existingRepo = existingRepos.find(repo => repo.projectId === data.projectId);
-    if (existingRepo) {
-      // Update existing repository
-      const updatedRepo = {
-        ...existingRepo,
-        ...data
-      };
-      updateRepository(existingRepo.id || '', updatedRepo);
-      toast.success("Repository updated", {
-        description: `Repository ${data.projectId} has been updated with imported data.`
-      });
-    } else {
-      // Create new repository
-      const newRepo: Repository = {
-        id: `repo-${Math.random().toString(36).substr(2, 9)}`,
-        name: data.projectId,
-        description: `Contributed by ${data.author || 'Unknown'}`,
-        lastActivity: data.date || new Date().toISOString(),
-        commitCount: data.operations || 0,
-        mergeRequestCount: Math.floor((data.operations || 0) / 3) || 0,
-        branchCount: Math.floor((data.operations || 0) / 5) || 0,
-        progress: Math.min(Math.floor((data.additions || 0) / ((data.additions || 0) + (data.deletions || 0) + 1) * 100), 100) || 50,
-        ...data
-      };
-      addRepository(newRepo);
-      toast.success("Repository created", {
-        description: `New repository ${data.projectId} has been created from imported data.`
-      });
-    }
-
-    // Refresh repositories to show the changes
-    const updatedRepositories = getRepositories();
-    setRepositories(updatedRepositories);
+    // Only upload the CSV file, don't create or update any repository
+    toast.success("CSV file uploaded", {
+      description: "The CSV file has been stored in the backend."
+    });
   };
 
-  // Handle metrics data import
+  // Modified metrics import handler that only uploads the file without creating a repository
   const handleMetricsDataImported = (data: Partial<Repository>) => {
-    if (!data.projectId) {
-      toast.error("Import failed", {
-        description: "Project ID is required in metrics data."
-      });
-      return;
-    }
-
-    // Check if the repository with this projectId already exists
-    const existingRepos = getRepositories();
-    const existingRepo = existingRepos.find(repo => repo.projectId === data.projectId);
-    if (existingRepo) {
-      // Update existing repository with metrics data
-      const updatedRepo = {
-        ...existingRepo,
-        ...data,
-        // Update additional fields based on metrics
-        totalOperations: data.totalAdditions && data.totalDeletions ? data.totalAdditions + data.totalDeletions : existingRepo.totalOperations
-      };
-      updateRepository(existingRepo.id || '', updatedRepo);
-      toast.success("Repository metrics updated", {
-        description: `Repository ${data.projectId} metrics have been updated.`
-      });
-    } else {
-      // Create new repository from metrics data
-      const newRepo: Repository = {
-        id: `repo-${Math.random().toString(36).substr(2, 9)}`,
-        name: data.projectId,
-        description: `Contributed by ${data.author || 'Unknown'}`,
-        lastActivity: new Date().toISOString(),
-        commitCount: data.commitCount || 0,
-        mergeRequestCount: Math.floor((data.commitCount || 0) / 3) || 0,
-        branchCount: Math.floor((data.commitCount || 0) / 5) || 0,
-        progress: 50,
-        additions: Math.floor(data.totalAdditions || 0 / 10),
-        deletions: Math.floor(data.totalDeletions || 0 / 20),
-        operations: Math.floor((data.totalAdditions || 0) / 10) + Math.floor((data.totalDeletions || 0) / 20),
-        ...data
-      };
-      addRepository(newRepo);
-      toast.success("Repository created", {
-        description: `New repository ${data.projectId} has been created from metrics data.`
-      });
-    }
-
-    // Refresh repositories to show the changes
-    const updatedRepositories = getRepositories();
-    setRepositories(updatedRepositories);
+    // Only upload the metrics file, don't create or update any repository
+    toast.success("Metrics file uploaded", {
+      description: "The metrics file has been stored in the backend."
+    });
   };
 
   // Filter repositories based on search term

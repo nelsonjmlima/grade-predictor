@@ -46,58 +46,11 @@ export function MetricsImportDialog({
     setError(null);
     
     try {
-      const text = await file.text();
-      const lines = text.split('\n').filter(line => line.trim().length > 0);
-
-      // Ensure we have at least a header and one data row
-      if (lines.length < 2) {
-        throw new Error("CSV file does not contain enough data");
-      }
-
-      // Process headers
-      const headers = lines[0].split(',').map(header => header.trim());
-
-      // Check for required headers
-      const requiredHeaders = ["Author", "ProjectID", "totalcommits", "totaladds", "average_operations_commit", "average_commit_week"];
-      const missingHeaders = requiredHeaders.filter(required => 
-        !headers.some(header => header.toLowerCase() === required.toLowerCase())
-      );
-      
-      if (missingHeaders.length > 0) {
-        throw new Error(`Missing required headers: ${missingHeaders.join(", ")}`);
-      }
-
-      // Process data
-      const data = lines[1].split(',').map(value => value.trim());
-
-      // Create a result object mapping headers to values
-      const result: Record<string, any> = {};
-      headers.forEach((header, index) => {
-        if (data[index] !== undefined) {
-          // Convert numeric values
-          if (["totalcommits", "totaladds", "average_operations_commit", "average_commit_week"].includes(header) && !isNaN(Number(data[index]))) {
-            result[header] = Number(data[index]);
-          } else {
-            result[header] = data[index];
-          }
-        }
-      });
-
-      // Map CSV fields to repository fields
-      const repositoryData: Partial<Repository> = {
-        author: result.Author,
-        projectId: result.ProjectID,
-        commitCount: result.totalcommits,
-        totalAdditions: result.totaladds,
-        averageOperationsPerCommit: result.average_operations_commit,
-        averageCommitsPerWeek: result.average_commit_week,
-      };
-      
-      // Upload the CSV file to Supabase storage
+      // Upload the CSV file to Supabase storage without processing its content
       const timestamp = new Date().getTime();
       const fileName = `metrics_${timestamp}_${file.name.replace(/\s+/g, '_')}`;
       
-      // Check if the csvfiles bucket exists, if not it will be created in the SQL migration
+      // Upload to Supabase storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('csvfiles')
         .upload(fileName, file);
@@ -105,27 +58,28 @@ export function MetricsImportDialog({
       if (uploadError) {
         console.error("Error uploading CSV file:", uploadError);
         toast.error("Failed to store CSV file");
-      } else {
-        console.log("CSV file uploaded successfully:", uploadData);
-        toast.success("CSV file stored in backend");
-        
-        // Add file URL to repository data
-        const { data: publicUrlData } = supabase.storage
-          .from('csvfiles')
-          .getPublicUrl(fileName);
-          
-        if (publicUrlData) {
-          repositoryData.csvFileUrl = publicUrlData.publicUrl;
-        }
+        throw uploadError;
       }
       
-      onDataImported(repositoryData);
+      console.log("CSV file uploaded successfully:", uploadData);
+      toast.success("CSV file stored in backend");
+
+      // Get public URL to pass back
+      const { data: publicUrlData } = supabase.storage
+        .from('csvfiles')
+        .getPublicUrl(fileName);
+        
+      // Only send minimal data back - just the file URL
+      const fileData: Partial<Repository> = {
+        csvFileUrl: publicUrlData?.publicUrl
+      };
+      
+      onDataImported(fileData);
       onOpenChange(false);
       setFile(null);
-      toast.success("Metrics data imported successfully");
     } catch (err: any) {
-      setError(err.message || "Failed to process CSV file. Please check the format and try again.");
-      console.error("CSV processing error:", err);
+      setError(err.message || "Failed to upload CSV file");
+      console.error("CSV upload error:", err);
     } finally {
       setIsProcessing(false);
     }
@@ -134,10 +88,9 @@ export function MetricsImportDialog({
   return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Import Metrics CSV Data</DialogTitle>
+          <DialogTitle>Import Metrics File</DialogTitle>
           <DialogDescription>
-            Upload a CSV file to import repository metrics. 
-            The CSV should include headers matching the required format.
+            Upload a CSV file containing metrics to store in the backend.
           </DialogDescription>
         </DialogHeader>
 
@@ -147,9 +100,6 @@ export function MetricsImportDialog({
               Metrics CSV File
             </label>
             <Input id="metrics-csv-file" type="file" accept=".csv" onChange={handleFileChange} className="cursor-pointer" />
-            <p className="text-xs text-muted-foreground">
-              Expected format: Headers in first row, data in second row
-            </p>
           </div>
 
           {error && <div className="flex items-center gap-2 text-destructive text-sm">
@@ -160,17 +110,6 @@ export function MetricsImportDialog({
           {file && <div className="text-sm">
               <span className="font-medium">Selected file:</span> {file.name}
             </div>}
-
-          <div className="bg-muted rounded-md p-3 text-xs">
-            <p className="font-medium mb-1">Expected CSV Format:</p>
-            <pre className="overflow-x-auto whitespace-pre-wrap">
-Author,
-ProjectID,
-totalcommits,
-totaladds,
-average_operations_commit,
-average_commit_week</pre>
-          </div>
         </div>
 
         <DialogFooter className="gap-2">
@@ -179,7 +118,7 @@ average_commit_week</pre>
           </Button>
           <Button onClick={processCSV} disabled={!file || isProcessing} className="gap-2">
             <FileUp className="h-4 w-4" />
-            {isProcessing ? "Processing..." : "Import Metrics"}
+            {isProcessing ? "Uploading..." : "Upload File"}
           </Button>
         </DialogFooter>
       </DialogContent>
