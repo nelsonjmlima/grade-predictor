@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
@@ -12,7 +13,8 @@ import {
   GitMerge,
   Edit,
   Activity,
-  Save
+  Save,
+  User
 } from "lucide-react";
 import { toast } from "sonner";
 import { 
@@ -27,6 +29,7 @@ import { DeleteRepositoryDialog } from "@/components/dashboard/DeleteRepositoryD
 import { EditRepositoryDialog } from "@/components/dashboard/EditRepositoryDialog";
 import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
 import { saveStudentData } from "@/services/studentData";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function RepositoryDetailsPage() {
   const { id } = useParams();
@@ -217,61 +220,68 @@ export default function RepositoryDetailsPage() {
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base font-medium">Repository Details</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="text-sm font-medium">Project ID:</div>
-                        <div className="text-sm">{repository.projectId || 'N/A'}</div>
-                        
-                        <div className="text-sm font-medium">ID/Group:</div>
-                        <div className="text-sm">{repository.id || 'N/A'}</div>
-                        
-                        <div className="text-sm font-medium">Author:</div>
-                        <div className="text-sm">{repository.author || 'N/A'}</div>
-                        
-                        <div className="text-sm font-medium">Email:</div>
-                        <div className="text-sm">{repository.email || 'N/A'}</div>
-                        
-                        <div className="text-sm font-medium">GitLab User:</div>
-                        <div className="text-sm">{repository.gitlabUser || 'N/A'}</div>
-                        
-                        <div className="text-sm font-medium">Date:</div>
-                        <div className="text-sm">{repository.date || 'N/A'}</div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base font-medium">Activity Metrics</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="text-sm font-medium">Additions:</div>
-                        <div className="text-sm">{repository.additions || 0}</div>
-                        
-                        <div className="text-sm font-medium">Deletions:</div>
-                        <div className="text-sm">{repository.deletions || 0}</div>
-                        
-                        <div className="text-sm font-medium">Operations:</div>
-                        <div className="text-sm">{repository.operations || 0}</div>
-                        
-                        <div className="text-sm font-medium">Week of Prediction:</div>
-                        <div className="text-sm">{repository.weekOfPrediction || 'Not set'}</div>
-                        
-                        <div className="text-sm font-medium">Final Grade Prediction:</div>
-                        <div className="text-sm">{repository.finalGradePrediction || repository.predictedGrade || 'Not predicted'}</div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+              {/* Replaced cards with a detailed table */}
+              <div className="w-full rounded-md border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[250px]">Repository Details</TableHead>
+                      <TableHead>Value</TableHead>
+                      <TableHead className="w-[250px]">Activity Metrics</TableHead>
+                      <TableHead>Value</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="font-medium">Project ID</TableCell>
+                      <TableCell>{repository.projectId || 'N/A'}</TableCell>
+                      <TableCell className="font-medium">Additions</TableCell>
+                      <TableCell>{repository.additions || 0}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">ID/Group</TableCell>
+                      <TableCell>{repository.id || 'N/A'}</TableCell>
+                      <TableCell className="font-medium">Deletions</TableCell>
+                      <TableCell>{repository.deletions || 0}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Author</TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <User className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                          {repository.author || 'N/A'}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">Operations</TableCell>
+                      <TableCell>{repository.operations || 0}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Email</TableCell>
+                      <TableCell>{repository.email || 'N/A'}</TableCell>
+                      <TableCell className="font-medium">Week of Prediction</TableCell>
+                      <TableCell>{repository.weekOfPrediction || 'Not set'}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">GitLab User</TableCell>
+                      <TableCell>{repository.gitlabUser || 'N/A'}</TableCell>
+                      <TableCell className="font-medium">Final Grade Prediction</TableCell>
+                      <TableCell>{repository.finalGradePrediction || repository.predictedGrade || 'Not predicted'}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Date</TableCell>
+                      <TableCell>{repository.date || repository.lastActivity || 'N/A'}</TableCell>
+                      <TableCell className="font-medium">Progress</TableCell>
+                      <TableCell>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="font-medium">{repository.progress}%</span>
+                          </div>
+                          <Progress value={repository.progress} className="h-2" />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
