@@ -13,6 +13,7 @@ import { EditRepositoryDialog } from "@/components/dashboard/EditRepositoryDialo
 import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
 import { saveStudentData } from "@/services/studentData";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 export default function RepositoryDetailsPage() {
   const {
     id
@@ -24,6 +25,7 @@ export default function RepositoryDetailsPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
+  
   const loadRepository = () => {
     if (id) {
       const allRepositories = getRepositories();
@@ -36,22 +38,27 @@ export default function RepositoryDetailsPage() {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     loadRepository();
   }, [id]);
+
   const handleGoBack = () => {
     navigate("/repositories");
   };
+
   const handleRepositoryDeleted = () => {
     toast.success("Redirecting to repositories", {
       description: "Repository has been deleted successfully."
     });
     navigate("/repositories");
   };
+
   const handleRepositoryUpdated = (updatedRepo: Repository) => {
     setRepository(updatedRepo);
     setHasUnsavedChanges(false);
   };
+
   const saveChanges = () => {
     if (repository && repository.id) {
       const repoWithStudents = {
@@ -71,6 +78,7 @@ export default function RepositoryDetailsPage() {
       }
     }
   };
+
   const handleStudentAdded = async (newStudent: Student) => {
     setStudents(prev => [...prev, newStudent]);
     setHasUnsavedChanges(true);
@@ -99,6 +107,7 @@ export default function RepositoryDetailsPage() {
       });
     }
   };
+
   const handleStudentEdited = async (updatedStudent: Student) => {
     setStudents(prev => prev.map(student => student.id === updatedStudent.id ? updatedStudent : student));
     setHasUnsavedChanges(true);
@@ -127,6 +136,7 @@ export default function RepositoryDetailsPage() {
       });
     }
   };
+
   if (!loading && !repository) {
     return <div className="flex h-screen overflow-hidden">
         <SideNav />
@@ -144,6 +154,7 @@ export default function RepositoryDetailsPage() {
         </main>
       </div>;
   }
+
   return <div className="flex h-screen overflow-hidden">
       <SideNav />
       <main className="flex-1 overflow-y-auto p-6 bg-background">
@@ -305,37 +316,13 @@ export default function RepositoryDetailsPage() {
                 </Card>
               </div>
               
-              <Tabs defaultValue="students" className="w-full">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="students">Students</TabsTrigger>
-                  <TabsTrigger value="activity">Activity</TabsTrigger>
-                  <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="students">
-                  <RepositoryGradesView repositoryName={repository.name} students={students} repositoryId={id} onStudentAdded={handleStudentAdded} onStudentEdited={handleStudentEdited} />
-                </TabsContent>
-                
-                <TabsContent value="activity">
-                  <Card>
-                    <CardContent className="p-6">
-                      <p className="text-center py-8 text-muted-foreground">
-                        Activity data will be displayed here.
-                      </p>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-                
-                <TabsContent value="analytics">
-                  <Card>
-                    <CardContent className="p-6">
-                      <p className="text-center py-8 text-muted-foreground">
-                        Analytics data will be displayed here.
-                      </p>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              </Tabs>
+              <RepositoryGradesView 
+                repositoryName={repository.name} 
+                students={students} 
+                repositoryId={id} 
+                onStudentAdded={handleStudentAdded} 
+                onStudentEdited={handleStudentEdited} 
+              />
               
               <div className="flex justify-end mt-6">
                 <Button variant="default" onClick={saveChanges} className="gap-2" disabled={!hasUnsavedChanges}>
