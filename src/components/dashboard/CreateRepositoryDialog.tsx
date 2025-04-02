@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -55,7 +54,6 @@ export function CreateRepositoryDialog({
     setIsSubmitting(true);
     
     try {
-      // Create a new repository object
       const newRepo = {
         id: values.name.toLowerCase().replace(/\s+/g, '-'),
         name: values.name,
@@ -73,10 +71,8 @@ export function CreateRepositoryDialog({
         students: values.students || undefined
       };
       
-      // Add the repository to storage - the type conversion happens inside addRepository
       addRepository(newRepo as any);
       
-      // Show success notification
       toast.success("Repository created successfully", {
         description: `${values.name} has been created and is ready to use.`,
       });
@@ -136,7 +132,7 @@ export function CreateRepositoryDialog({
                       {...field} 
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage>Description must be at least 10 characters</FormMessage>
                 </FormItem>
               )}
             />

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -68,7 +67,6 @@ export default function AddRepositoryPage() {
         students: values.students || undefined
       };
 
-      // Add the repository to storage - the type conversion happens inside addRepository
       addRepository(newRepo as any);
 
       toast.success("Repository created successfully", {
@@ -119,7 +117,7 @@ export default function AddRepositoryPage() {
                       <FormControl>
                         <Textarea placeholder="Brief description of this repository's purpose" className="resize-none min-h-24" {...field} />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage>Description must be at least 10 characters</FormMessage>
                     </FormItem>} />
 
                 <FormField control={form.control} name="projectId" render={({
