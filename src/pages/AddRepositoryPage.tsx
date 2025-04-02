@@ -4,14 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { GitBranch, Link, Key, User, ArrowLeft } from "lucide-react";
+import { GitBranch, Link, Key, User, ArrowLeft, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { addRepository } from "@/services/repositoryData";
+import { addRepository, uploadCSVToSupabase } from "@/services/repositoryData";
 import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
@@ -34,6 +34,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function AddRepositoryPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const navigate = useNavigate();
 
   const form = useForm<FormValues>({
@@ -49,11 +50,37 @@ export default function AddRepositoryPage() {
     }
   });
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      setSelectedFile(files[0]);
+    }
+  };
+
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
     try {
+      const repoId = values.name.toLowerCase().replace(/\s+/g, '-');
+      let csvFileUrl = null;
+      
+      // Upload the CSV file first if one is selected
+      if (selectedFile) {
+        const fileExt = selectedFile.name.split('.').pop()?.toLowerCase();
+        if (fileExt === 'csv') {
+          toast.loading("Uploading CSV file...");
+          csvFileUrl = await uploadCSVToSupabase(selectedFile, repoId);
+          if (csvFileUrl) {
+            toast.success("CSV file uploaded successfully");
+          } else {
+            toast.error("Failed to upload CSV file");
+          }
+        } else {
+          toast.error("Only CSV files are supported");
+        }
+      }
+
       const newRepo = {
-        id: values.name.toLowerCase().replace(/\s+/g, '-'),
+        id: repoId,
         name: values.name,
         description: values.description,
         lastActivity: "Just now",
@@ -66,10 +93,12 @@ export default function AddRepositoryPage() {
         link: values.link || undefined,
         apiKey: values.apiKey || undefined,
         userId: values.userId || undefined,
-        students: values.students || undefined
+        students: values.students || undefined,
+        csvFileUrl: csvFileUrl || undefined,
+        storagePath: csvFileUrl ? `repositories/${repoId}` : undefined
       };
 
-      addRepository(newRepo as any);
+      await addRepository(newRepo as any);
 
       toast.success("Repository created successfully", {
         description: `${values.name} has been created and is ready to use.`
@@ -183,6 +212,22 @@ export default function AddRepositoryPage() {
                       </FormControl>
                       <FormMessage />
                     </FormItem>} />
+                
+                <FormItem>
+                  <FormLabel>Import CSV File <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
+                  <FormControl>
+                    <div className="flex items-center space-x-2">
+                      <Upload className="h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        type="file" 
+                        accept=".csv" 
+                        onChange={handleFileChange}
+                        className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                      />
+                    </div>
+                  </FormControl>
+                  <p className="text-sm text-muted-foreground">Upload a CSV file with repository metrics</p>
+                </FormItem>
               </CardContent>
               <CardFooter className="flex justify-end space-x-4 pt-6">
                 <Button variant="outline" type="button" onClick={() => navigate("/repositories")} disabled={isSubmitting}>
