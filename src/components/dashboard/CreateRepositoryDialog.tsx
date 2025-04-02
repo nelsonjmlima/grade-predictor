@@ -15,7 +15,6 @@ import { addRepository } from "@/services/repositoryData";
 
 const formSchema = z.object({
   name: z.string().min(3, { message: "Repository name must be at least 3 characters" }),
-  description: z.string().min(10, { message: "Description must be at least 10 characters" }),
   projectId: z.string().optional(),
   numberOfStudents: z.string().optional(),
   students: z.string().optional(),
@@ -43,7 +42,6 @@ export function CreateRepositoryDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      description: "",
       projectId: "",
       numberOfStudents: "",
       students: "",
@@ -60,7 +58,7 @@ export function CreateRepositoryDialog({
       const newRepo = {
         id: values.name.toLowerCase().replace(/\s+/g, '-'),
         name: values.name,
-        description: values.description,
+        description: "", // Using empty string as default
         lastActivity: "Just now",
         commitCount: 0,
         mergeRequestCount: 0,
@@ -120,24 +118,6 @@ export function CreateRepositoryDialog({
                     <Input placeholder="e.g., Software Engineering 2023" {...field} />
                   </FormControl>
                   <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Brief description of this repository's purpose" 
-                      className="resize-none" 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <p className="text-sm text-muted-foreground">Description must be at least 10 characters</p>
                 </FormItem>
               )}
             />

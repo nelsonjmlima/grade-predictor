@@ -18,9 +18,6 @@ const formSchema = z.object({
   name: z.string().min(3, {
     message: "Repository name must be at least 3 characters"
   }),
-  description: z.string().min(10, {
-    message: "Description must be at least 10 characters"
-  }),
   projectId: z.string().optional(),
   numberOfStudents: z.string().optional(),
   students: z.string().optional(),
@@ -41,7 +38,6 @@ export default function AddRepositoryPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      description: "",
       projectId: "",
       numberOfStudents: "",
       students: "",
@@ -57,7 +53,7 @@ export default function AddRepositoryPage() {
       const newRepo = {
         id: values.name.toLowerCase().replace(/\s+/g, '-'),
         name: values.name,
-        description: values.description,
+        description: "", // Using empty string as default
         lastActivity: "Just now",
         commitCount: 0,
         mergeRequestCount: 0,
@@ -116,14 +112,30 @@ export default function AddRepositoryPage() {
                       <FormMessage />
                     </FormItem>} />
 
-                <FormField control={form.control} name="description" render={({
+                <FormField control={form.control} name="projectId" render={({
                 field
               }) => <FormItem>
-                      <FormLabel>Description</FormLabel>
+                      <FormLabel>Project ID <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Brief description of this repository's purpose" className="resize-none min-h-16" {...field} />
+                        <div className="flex items-center space-x-2">
+                          <GitBranch className="h-4 w-4 text-muted-foreground" />
+                          <Input placeholder="Enter Project ID" {...field} />
+                        </div>
                       </FormControl>
-                      <p className="text-sm text-muted-foreground">Description must be at least 10 characters</p>
+                      <FormMessage />
+                    </FormItem>} />
+
+                <FormField control={form.control} name="numberOfStudents" render={({
+                field
+              }) => <FormItem>
+                      <FormLabel>Number of Students <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
+                      <FormControl>
+                        <div className="flex items-center space-x-2">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <Input placeholder="Enter number of students" type="number" {...field} />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
                     </FormItem>} />
 
                 <FormField control={form.control} name="link" render={({
@@ -147,32 +159,6 @@ export default function AddRepositoryPage() {
                         <div className="flex items-center space-x-2">
                           <Key className="h-4 w-4 text-muted-foreground" />
                           <Input placeholder="Enter repository API key" type="password" showPasswordToggle {...field} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>} />
-
-                <FormField control={form.control} name="projectId" render={({
-                field
-              }) => <FormItem>
-                      <FormLabel>Project ID <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
-                      <FormControl>
-                        <div className="flex items-center space-x-2">
-                          <GitBranch className="h-4 w-4 text-muted-foreground" />
-                          <Input placeholder="Enter Project ID" {...field} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>} />
-
-                <FormField control={form.control} name="numberOfStudents" render={({
-                field
-              }) => <FormItem>
-                      <FormLabel>Number of Students <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
-                      <FormControl>
-                        <div className="flex items-center space-x-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <Input placeholder="Enter number of students" type="number" {...field} />
                         </div>
                       </FormControl>
                       <FormMessage />
