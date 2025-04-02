@@ -38,6 +38,9 @@ export interface Repository {
   
   // CSV file URL from Supabase storage
   csvFileUrl?: string;
+  
+  // Week of prediction
+  weekOfPrediction?: string;
 }
 
 export interface Student {
