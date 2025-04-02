@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
@@ -13,8 +12,7 @@ import {
   GitMerge,
   Edit,
   Activity,
-  Save,
-  FileUp
+  Save
 } from "lucide-react";
 import { toast } from "sonner";
 import { 
@@ -218,14 +216,6 @@ export default function RepositoryDetailsPage() {
                   <p className="text-muted-foreground">{repository.description}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setCsvImportDialogOpen(true)} 
-                    className="gap-2"
-                  >
-                    <FileUp className="h-4 w-4" />
-                    Import CSV Data
-                  </Button>
                   <Button 
                     variant="outline" 
                     onClick={() => setEditDialogOpen(true)} 
