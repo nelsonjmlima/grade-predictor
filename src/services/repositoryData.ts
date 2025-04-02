@@ -132,6 +132,24 @@ export const addRepository = (repository: Repository): void => {
     repository.averageCommitsPerWeek = Math.floor(Math.random() * 20) + 1;
   }
   
+  // New fields for the updated header
+  if (!repository.gitlabUser) {
+    repository.gitlabUser = "gitlab_" + repository.author?.toLowerCase().replace(/\s+/g, "_") || "gitlab_user";
+  }
+  
+  if (!repository.weekOfPrediction) {
+    // Generate a random week in the current year
+    const year = new Date().getFullYear();
+    const week = Math.floor(Math.random() * 52) + 1;
+    repository.weekOfPrediction = `Week ${week}, ${year}`;
+  }
+  
+  if (!repository.finalGradePrediction) {
+    const grades = ["A", "B", "C", "D", "F"];
+    const randomIndex = Math.floor(Math.random() * grades.length);
+    repository.finalGradePrediction = grades[randomIndex];
+  }
+  
   // Parse student emails if provided as string
   if (repository.students && typeof repository.students === 'string') {
     const emailsText = repository.students as unknown as string;
