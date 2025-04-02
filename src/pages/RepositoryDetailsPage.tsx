@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
@@ -233,64 +232,6 @@ export default function RepositoryDetailsPage() {
                     <Edit className="h-4 w-4" />
                     Delete
                   </Button>
-                </div>
-              </div>
-              
-              {/* Repository header information */}
-              <div className="bg-muted rounded-lg p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <div className="text-sm font-medium text-muted-foreground">Project ID</div>
-                  <div className="font-semibold">{repository.projectId || 'N/A'}</div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="text-sm font-medium text-muted-foreground">ID/Group</div>
-                  <div className="font-semibold">{repository.id || 'N/A'}</div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="text-sm font-medium text-muted-foreground">Author</div>
-                  <div className="font-semibold">{repository.author || 'N/A'}</div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="text-sm font-medium text-muted-foreground">Email</div>
-                  <div className="font-semibold">{repository.email || 'N/A'}</div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="text-sm font-medium text-muted-foreground">GitLab User</div>
-                  <div className="font-semibold">{repository.userId || 'N/A'}</div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="text-sm font-medium text-muted-foreground">Date</div>
-                  <div className="font-semibold">{repository.date || repository.lastActivity || 'N/A'}</div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="text-sm font-medium text-muted-foreground">Additions</div>
-                  <div className="font-semibold text-green-600">{repository.additions || '0'}</div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="text-sm font-medium text-muted-foreground">Deletions</div>
-                  <div className="font-semibold text-red-600">{repository.deletions || '0'}</div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="text-sm font-medium text-muted-foreground">Operations</div>
-                  <div className="font-semibold">{repository.operations || '0'}</div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="text-sm font-medium text-muted-foreground">Week of Prediction</div>
-                  <div className="font-semibold">{repository.weekOfPrediction || 'Not Available'}</div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="text-sm font-medium text-muted-foreground">Final Grade Prediction</div>
-                  <div className="font-semibold">{repository.predictedGrade || 'Not Predicted'}</div>
                 </div>
               </div>
               
