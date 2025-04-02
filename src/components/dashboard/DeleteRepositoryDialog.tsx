@@ -1,9 +1,10 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
 import { toast } from "sonner";
-import { deleteRepository } from "@/services";
+import { deleteRepository } from "@/services/repositoryData";
 
 interface DeleteRepositoryDialogProps {
   open: boolean;
