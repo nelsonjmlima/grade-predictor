@@ -193,8 +193,23 @@ export const updateRepository = (id: string, updatedRepo: Partial<Repository>): 
     return null;
   }
   
-  // Merge the repositories
-  repositories[index] = { ...repositories[index], ...updatedRepo };
+  // Handle ID change separately if needed
+  if (updatedRepo.id && updatedRepo.id !== repositories[index].id) {
+    // If we're changing the ID, we need to update references in other places
+    const oldId = repositories[index].id;
+    
+    // Update the ID
+    repositories[index].id = updatedRepo.id;
+    
+    // Remove the ID from the updatedRepo to avoid duplicate assignment
+    const { id: _, ...restOfUpdates } = updatedRepo;
+    
+    // Merge the rest of the repositories
+    repositories[index] = { ...repositories[index], ...restOfUpdates };
+  } else {
+    // Normal merge without ID change
+    repositories[index] = { ...repositories[index], ...updatedRepo };
+  }
   
   // Save to localStorage
   localStorage.setItem('repositories', JSON.stringify(repositories));

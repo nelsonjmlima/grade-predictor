@@ -15,8 +15,8 @@ const formSchema = z.object({
   name: z.string().min(3, { message: "Repository name must be at least 3 characters" }),
   description: z.string().min(10, { message: "Description must be at least 10 characters" }),
   projectId: z.string().optional(),
-  id: z.string().optional(),
-  studentsCount: z.coerce.number().int().nonnegative().optional(),
+  id: z.string().min(1, { message: "ID is required" }),
+  studentsCount: z.coerce.number().int().nonnegative(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -59,12 +59,34 @@ export function EditRepositoryDialog({
     setIsSaving(true);
     
     try {
+      // Create dummy students array if needed based on the new count
+      let updatedStudents = repository.students || [];
+      const currentCount = updatedStudents.length;
+      const targetCount = values.studentsCount;
+      
+      // If the studentsCount has increased, add dummy students
+      if (targetCount > currentCount) {
+        for (let i = currentCount; i < targetCount; i++) {
+          updatedStudents.push({
+            id: `student-${Math.random().toString(36).substr(2, 9)}`,
+            name: `Student ${i + 1}`,
+            email: `student${i + 1}@example.com`,
+            commitCount: 0,
+            lastActivity: 'Never'
+          });
+        }
+      } 
+      // If the studentsCount has decreased, remove excess students
+      else if (targetCount < currentCount) {
+        updatedStudents = updatedStudents.slice(0, targetCount);
+      }
+      
       const updatedRepo = updateRepository(repository.id, {
         name: values.name,
         description: values.description,
         projectId: values.projectId,
-        // We don't update the ID as it's a readonly field
-        // We don't update the students count as it's managed elsewhere
+        id: values.id, // Now we update the ID field
+        students: updatedStudents, // Update the students array based on new count
       });
       
       if (updatedRepo) {
@@ -152,7 +174,7 @@ export function EditRepositoryDialog({
                 <FormItem>
                   <FormLabel>ID/Group</FormLabel>
                   <FormControl>
-                    <Input {...field} readOnly disabled />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -166,7 +188,7 @@ export function EditRepositoryDialog({
                 <FormItem>
                   <FormLabel>Number of Students</FormLabel>
                   <FormControl>
-                    <Input type="number" min="0" {...field} readOnly disabled />
+                    <Input type="number" min="0" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -192,3 +214,4 @@ export function EditRepositoryDialog({
     </Dialog>
   );
 }
+
