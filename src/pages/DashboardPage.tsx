@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
@@ -13,6 +12,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CSVImportDialog } from "@/components/dashboard/CSVImportDialog";
 import { toast } from "sonner";
+
 export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [repositories, setRepositories] = useState<Repository[]>([]);
@@ -22,11 +22,9 @@ export default function DashboardPage() {
   const [csvImportDialogOpen, setCsvImportDialogOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Fetch repositories on mount and when dialogOpen changes (indicating a potential new repo)
   useEffect(() => {
     const fetchedRepositories = getRepositories();
 
-    // Ensure repositories have the required fields for the updated table
     const enhancedRepositories = fetchedRepositories.map(repo => ({
       ...repo,
       projectId: repo.projectId || repo.id || `project-${Math.random().toString(36).substr(2, 9)}`,
@@ -57,18 +55,14 @@ export default function DashboardPage() {
     navigate("/repositories/add");
   };
 
-  // Modified data import handler that only uploads the CSV file without creating a repository
   const handleCSVDataImported = (data: Partial<Repository>) => {
-    // Only upload the CSV file, don't create or update any repository
     toast.success("CSV file uploaded", {
       description: "The CSV file has been stored in the backend."
     });
   };
 
-  // Filter repositories based on search term
   const filteredRepositories = filterRepositories(repositories, searchTerm);
 
-  // Sort repositories based on sort selection
   const sortedRepositories = sortRepositories(filteredRepositories, sortBy);
   return <div className="flex h-screen overflow-hidden bg-background">
       <SideNav />
@@ -141,7 +135,6 @@ export default function DashboardPage() {
       </main>
 
       <CreateRepositoryDialog open={dialogOpen} onOpenChange={setDialogOpen} onRepositoryCreated={() => {
-      // Refresh repositories after creation
       const updatedRepositories = getRepositories();
       setRepositories(updatedRepositories);
     }} />
