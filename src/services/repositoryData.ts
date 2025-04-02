@@ -29,12 +29,9 @@ export interface Repository {
   deletions?: number;
   operations?: number;
   totalCommits?: number;
-  totalAdditions?: number;
-  totalDeletions?: number;
+  totalAdds?: number;
   averageOperationsPerCommit?: number;
   averageCommitsPerWeek?: number;
-  finalGradePrediction?: string;
-  predictionWeek?: string;
   link?: string;
   apiKey?: string;
   userId?: string;
@@ -99,37 +96,6 @@ export const addRepository = (repository: Repository): void => {
   
   if (!repository.operations) {
     repository.operations = repository.additions + repository.deletions;
-  }
-  
-  // Add new fields with random values
-  if (!repository.totalCommits) {
-    repository.totalCommits = repository.commitCount || Math.floor(Math.random() * 100) + 1;
-  }
-  
-  if (!repository.totalAdditions) {
-    repository.totalAdditions = repository.additions * (repository.totalCommits || 1);
-  }
-  
-  if (!repository.totalDeletions) {
-    repository.totalDeletions = repository.deletions * (repository.totalCommits || 1);
-  }
-  
-  if (!repository.averageOperationsPerCommit) {
-    repository.averageOperationsPerCommit = repository.totalCommits ? 
-      Math.round((repository.totalAdditions + repository.totalDeletions) / repository.totalCommits) : 0;
-  }
-  
-  if (!repository.averageCommitsPerWeek) {
-    repository.averageCommitsPerWeek = Math.round(Math.random() * 12 + 1);
-  }
-  
-  if (!repository.finalGradePrediction) {
-    const grades = ["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "F"];
-    repository.finalGradePrediction = grades[Math.floor(Math.random() * grades.length)];
-  }
-  
-  if (!repository.predictionWeek) {
-    repository.predictionWeek = `Week ${Math.floor(Math.random() * 16) + 1}`;
   }
   
   // Parse student emails if provided as string
@@ -250,15 +216,6 @@ export const sortRepositories = (repositories: Repository[], sortBy: string): Re
         const aOperations = a.operations || (a.additions && a.deletions ? a.additions + a.deletions : a.commitCount || 0);
         const bOperations = b.operations || (b.additions && b.deletions ? b.additions + b.deletions : b.commitCount || 0);
         return bOperations - aOperations;
-      });
-    case 'commits':
-      return repositories.sort((a, b) => (b.totalCommits || 0) - (a.totalCommits || 0));
-    case 'grade':
-      return repositories.sort((a, b) => {
-        if (!a.finalGradePrediction && !b.finalGradePrediction) return 0;
-        if (!a.finalGradePrediction) return 1;
-        if (!b.finalGradePrediction) return -1;
-        return a.finalGradePrediction.localeCompare(b.finalGradePrediction);
       });
     default:
       return repositories;
