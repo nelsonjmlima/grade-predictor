@@ -62,29 +62,24 @@ export default function RepositoryComparisonPage() {
 
   // Load repositories
   useEffect(() => {
-    async function loadRepositories() {
-      try {
-        setLoading(true);
-        const repos = await getRepositories();
-        setRepositories(repos);
-        
-        // Default to selecting first two repositories if available
-        if (repos.length > 0) {
-          const repoIds = repos.slice(0, Math.min(2, repos.length)).map(repo => repo.id || "");
-          setSelectedRepos(repoIds.filter(id => id !== ""));
-        }
-      } catch (error) {
-        console.error("Error loading repositories:", error);
-        toast.error("Failed to load repositories");
-      } finally {
-        setLoading(false);
-        
-        // Start animation sequence after loading
-        setTimeout(animateSequentially, 300);
+    try {
+      const repos = getRepositories();
+      setRepositories(repos);
+      
+      // Default to selecting first two repositories if available
+      if (repos.length > 0) {
+        const repoIds = repos.slice(0, Math.min(2, repos.length)).map(repo => repo.id || "");
+        setSelectedRepos(repoIds.filter(id => id !== ""));
       }
+    } catch (error) {
+      console.error("Error loading repositories:", error);
+      toast.error("Failed to load repositories");
+    } finally {
+      setLoading(false);
+      
+      // Start animation sequence after loading
+      setTimeout(animateSequentially, 300);
     }
-    
-    loadRepositories();
   }, []);
 
   const toggleRepository = (repoId: string) => {

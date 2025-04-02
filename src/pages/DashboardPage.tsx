@@ -20,40 +20,27 @@ export default function DashboardPage() {
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
   const [sortBy, setSortBy] = useState("recent");
   const [csvImportDialogOpen, setCsvImportDialogOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    async function fetchRepositories() {
-      try {
-        setLoading(true);
-        const fetchedRepositories = await getRepositories();
+    const fetchedRepositories = getRepositories();
 
-        const enhancedRepositories = fetchedRepositories.map(repo => ({
-          ...repo,
-          projectId: repo.projectId || repo.id || `project-${Math.random().toString(36).substr(2, 9)}`,
-          author: repo.author || "Anonymous",
-          email: repo.email || "no-email@example.com",
-          date: repo.date || repo.lastActivity,
-          additions: repo.additions || Math.floor(Math.random() * 500),
-          deletions: repo.deletions || Math.floor(Math.random() * 200),
-          operations: repo.operations || (repo.additions && repo.deletions ? repo.additions + repo.deletions : repo.commitCount),
-          totalAdditions: repo.totalAdditions || Math.floor(Math.random() * 2000) + (repo.additions || 0),
-          totalDeletions: repo.totalDeletions || Math.floor(Math.random() * 1000) + (repo.deletions || 0),
-          totalOperations: repo.totalOperations || (repo.totalAdditions && repo.totalDeletions ? repo.totalAdditions + repo.totalDeletions : repo.additions && repo.deletions ? (repo.additions + repo.deletions) * 5 : 0),
-          averageOperationsPerCommit: repo.averageOperationsPerCommit || (repo.commitCount ? Math.round(((repo.additions || 0) + (repo.deletions || 0)) / repo.commitCount * 10) / 10 : Math.floor(Math.random() * 20) + 5),
-          averageCommitsPerWeek: repo.averageCommitsPerWeek || Math.floor(Math.random() * 20) + 1
-        }));
-        setRepositories(enhancedRepositories);
-      } catch (error) {
-        console.error("Error fetching repositories:", error);
-        toast.error("Failed to fetch repositories");
-      } finally {
-        setLoading(false);
-      }
-    }
-    
-    fetchRepositories();
+    const enhancedRepositories = fetchedRepositories.map(repo => ({
+      ...repo,
+      projectId: repo.projectId || repo.id || `project-${Math.random().toString(36).substr(2, 9)}`,
+      author: repo.author || "Anonymous",
+      email: repo.email || "no-email@example.com",
+      date: repo.date || repo.lastActivity,
+      additions: repo.additions || Math.floor(Math.random() * 500),
+      deletions: repo.deletions || Math.floor(Math.random() * 200),
+      operations: repo.operations || (repo.additions && repo.deletions ? repo.additions + repo.deletions : repo.commitCount),
+      totalAdditions: repo.totalAdditions || Math.floor(Math.random() * 2000) + (repo.additions || 0),
+      totalDeletions: repo.totalDeletions || Math.floor(Math.random() * 1000) + (repo.deletions || 0),
+      totalOperations: repo.totalOperations || (repo.totalAdditions && repo.totalDeletions ? repo.totalAdditions + repo.totalDeletions : repo.additions && repo.deletions ? (repo.additions + repo.deletions) * 5 : 0),
+      averageOperationsPerCommit: repo.averageOperationsPerCommit || (repo.commitCount ? Math.round(((repo.additions || 0) + (repo.deletions || 0)) / repo.commitCount * 10) / 10 : Math.floor(Math.random() * 20) + 5),
+      averageCommitsPerWeek: repo.averageCommitsPerWeek || Math.floor(Math.random() * 20) + 1
+    }));
+    setRepositories(enhancedRepositories);
   }, [dialogOpen, csvImportDialogOpen]);
   
   const handleCreateRepository = () => {
@@ -72,15 +59,6 @@ export default function DashboardPage() {
     toast.success("CSV file uploaded", {
       description: "The CSV file has been stored in the backend."
     });
-  };
-
-  const handleRepositoryCreated = async () => {
-    try {
-      const updatedRepositories = await getRepositories();
-      setRepositories(updatedRepositories);
-    } catch (error) {
-      console.error("Error fetching updated repositories:", error);
-    }
   };
 
   const filteredRepositories = filterRepositories(repositories, searchTerm);
@@ -156,7 +134,10 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      <CreateRepositoryDialog open={dialogOpen} onOpenChange={setDialogOpen} onRepositoryCreated={handleRepositoryCreated} />
+      <CreateRepositoryDialog open={dialogOpen} onOpenChange={setDialogOpen} onRepositoryCreated={() => {
+      const updatedRepositories = getRepositories();
+      setRepositories(updatedRepositories);
+    }} />
 
       <CSVImportDialog open={csvImportDialogOpen} onOpenChange={setCsvImportDialogOpen} onDataImported={handleCSVDataImported} />
     </div>;

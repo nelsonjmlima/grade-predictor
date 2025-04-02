@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -148,7 +149,7 @@ export const addRepository = async (repository: Repository): Promise<Repository>
       storage_path: repository.storagePath || `repositories/${repository.id}`
     };
 
-    const { data, error } = await supabase
+    const { data: insertedRepo, error } = await supabase
       .from('repositories')
       .insert(supabaseRepo)
       .select('*')
@@ -167,8 +168,8 @@ export const addRepository = async (repository: Repository): Promise<Repository>
       return repository;
     }
 
-    if (data) {
-      const convertedRepo = convertSupabaseRepo(data);
+    if (insertedRepo) {
+      const convertedRepo = convertSupabaseRepo(insertedRepo);
       
       // Also update localStorage for offline capability
       const repositories = localStorage.getItem('repositories') ? 
@@ -179,7 +180,7 @@ export const addRepository = async (repository: Repository): Promise<Repository>
       
       // If CSV file URL was provided, upload it to storage
       if (repository.csvFileUrl) {
-        await updateRepository(convertedRepo.id || '', { csvFileUrl: repository.csvFileUrl });
+        updateRepository(convertedRepo.id || '', { csvFileUrl: repository.csvFileUrl });
       }
       
       return convertedRepo;
@@ -222,7 +223,7 @@ export const updateRepository = async (id: string, updatedRepo: Partial<Reposito
     if (updatedRepo.storagePath) supabaseUpdates.storage_path = updatedRepo.storagePath;
     if (updatedRepo.csvFileUrl) supabaseUpdates.csv_file_url = updatedRepo.csvFileUrl;
     
-    const { data, error } = await supabase
+    const { data: updatedSupabaseRepo, error } = await supabase
       .from('repositories')
       .update(supabaseUpdates)
       .eq('id', id)
@@ -249,8 +250,8 @@ export const updateRepository = async (id: string, updatedRepo: Partial<Reposito
       return repositories[index];
     }
     
-    if (data) {
-      const convertedRepo = convertSupabaseRepo(data);
+    if (updatedSupabaseRepo) {
+      const convertedRepo = convertSupabaseRepo(updatedSupabaseRepo);
       
       // Also update localStorage
       const repositories = localStorage.getItem('repositories') ? 
@@ -443,6 +444,7 @@ export const clearAllRepositories = async (): Promise<void> => {
   localStorage.setItem('repositories', JSON.stringify([]));
 };
 
+// Fix for the missing import in MetricsImportDialog.tsx
 export const uploadCSVToSupabase = async (file: File, repositoryId: string): Promise<string | null> => {
   try {
     const timestamp = new Date().getTime();
@@ -450,14 +452,14 @@ export const uploadCSVToSupabase = async (file: File, repositoryId: string): Pro
     const filePath = `repositories/${repositoryId}/${fileName}`;
     
     // Upload to Supabase storage
-    const { data, error } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
       .from('repositories')
       .upload(filePath, file);
       
-    if (error) {
-      console.error("Error uploading CSV file:", error);
+    if (uploadError) {
+      console.error("Error uploading CSV file:", uploadError);
       toast.error("Failed to store CSV file");
-      throw error;
+      throw uploadError;
     }
     
     // Get public URL
