@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { addRepository } from "@/services/repositoryData";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   name: z.string().min(3, {
@@ -117,7 +118,7 @@ export default function AddRepositoryPage() {
                       <FormControl>
                         <Textarea placeholder="Brief description of this repository's purpose" className="resize-none min-h-24" {...field} />
                       </FormControl>
-                      <FormMessage>Description must be at least 10 characters</FormMessage>
+                      <p className="text-sm text-muted-foreground">Description must be at least 10 characters</p>
                     </FormItem>} />
 
                 <FormField control={form.control} name="projectId" render={({

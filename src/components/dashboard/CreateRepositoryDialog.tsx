@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -132,7 +133,7 @@ export function CreateRepositoryDialog({
                       {...field} 
                     />
                   </FormControl>
-                  <FormMessage>Description must be at least 10 characters</FormMessage>
+                  <p className="text-sm text-muted-foreground">Description must be at least 10 characters</p>
                 </FormItem>
               )}
             />
