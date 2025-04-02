@@ -15,15 +15,8 @@ const formSchema = z.object({
   name: z.string().min(3, { message: "Repository name must be at least 3 characters" }),
   description: z.string().min(10, { message: "Description must be at least 10 characters" }),
   projectId: z.string().optional(),
-  author: z.string().optional(),
-  email: z.string().email({ message: "Please enter a valid email" }).optional().or(z.string().length(0)),
-  gitlabUser: z.string().optional(),
-  commitCount: z.coerce.number().int().nonnegative().optional(),
-  operations: z.coerce.number().int().nonnegative().optional(),
-  additions: z.coerce.number().int().nonnegative().optional(),
-  deletions: z.coerce.number().int().nonnegative().optional(),
-  weekOfPrediction: z.string().optional(),
-  finalGradePrediction: z.string().optional(),
+  id: z.string().optional(),
+  studentsCount: z.coerce.number().int().nonnegative().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -42,6 +35,7 @@ export function EditRepositoryDialog({
   onRepositoryUpdated
 }: EditRepositoryDialogProps) {
   const [isSaving, setIsSaving] = useState(false);
+  const studentsCount = repository.students?.length || 0;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -49,15 +43,8 @@ export function EditRepositoryDialog({
       name: repository.name,
       description: repository.description,
       projectId: repository.projectId || '',
-      author: repository.author || '',
-      email: repository.email || '',
-      gitlabUser: repository.gitlabUser || '',
-      commitCount: repository.commitCount || 0,
-      operations: repository.operations || 0,
-      additions: repository.additions || 0,
-      deletions: repository.deletions || 0,
-      weekOfPrediction: repository.weekOfPrediction || '',
-      finalGradePrediction: repository.finalGradePrediction || '',
+      id: repository.id || '',
+      studentsCount: studentsCount,
     },
   });
 
@@ -76,15 +63,8 @@ export function EditRepositoryDialog({
         name: values.name,
         description: values.description,
         projectId: values.projectId,
-        author: values.author,
-        email: values.email,
-        gitlabUser: values.gitlabUser,
-        commitCount: values.commitCount,
-        operations: values.operations,
-        additions: values.additions,
-        deletions: values.deletions,
-        weekOfPrediction: values.weekOfPrediction,
-        finalGradePrediction: values.finalGradePrediction,
+        // We don't update the ID as it's a readonly field
+        // We don't update the students count as it's managed elsewhere
       });
       
       if (updatedRepo) {
@@ -110,7 +90,7 @@ export function EditRepositoryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Edit Repository</DialogTitle>
           <DialogDescription>
@@ -120,35 +100,19 @@ export function EditRepositoryDialog({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Repository Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="projectId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Project ID</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Repository Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
@@ -167,139 +131,47 @@ export function EditRepositoryDialog({
               )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="author"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Author</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <FormField
+              control={form.control}
+              name="projectId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Project ID</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ID/Group</FormLabel>
+                  <FormControl>
+                    <Input {...field} readOnly disabled />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="gitlabUser"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>GitLab Username</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="commitCount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Commit Count</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="0" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="additions"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Additions</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="0" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="deletions"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Deletions</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="0" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="operations"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Operations</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="0" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="weekOfPrediction"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Week of Prediction</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="finalGradePrediction"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Final Grade Prediction</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="studentsCount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Number of Students</FormLabel>
+                  <FormControl>
+                    <Input type="number" min="0" {...field} readOnly disabled />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <DialogFooter className="pt-4">
               <Button 
