@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Repository } from "@/services/repositoryData";
-import { FileUp, AlertCircle } from "lucide-react";
+import { FileUp, AlertCircle, Table } from "lucide-react";
+import { Table as UITable, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface MetricsImportDialogProps {
   open: boolean;
@@ -21,17 +22,42 @@ export function MetricsImportDialog({
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [csvData, setCsvData] = useState<{headers: string[], data: string[]}>({headers: [], data: []});
+  const [csvParsed, setCsvParsed] = useState(false);
   
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
       if (selectedFile.type !== "text/csv" && !selectedFile.name.endsWith('.csv')) {
         setError("Please select a valid CSV file");
         setFile(null);
+        setCsvParsed(false);
         return;
       }
       setFile(selectedFile);
       setError(null);
+      
+      // Preview the CSV file
+      try {
+        const text = await selectedFile.text();
+        const lines = text.split('\n').filter(line => line.trim().length > 0);
+        
+        if (lines.length < 2) {
+          throw new Error("CSV file does not contain enough data");
+        }
+        
+        // Process headers
+        const headers = lines[0].split(',').map(header => header.trim());
+        
+        // Process data
+        const data = lines[1].split(',').map(value => value.trim());
+        
+        setCsvData({headers, data});
+        setCsvParsed(true);
+      } catch (err: any) {
+        setError(err.message || "Failed to parse CSV file");
+        setCsvParsed(false);
+      }
     }
   };
   
@@ -95,6 +121,7 @@ export function MetricsImportDialog({
       onDataImported(repositoryData);
       onOpenChange(false);
       setFile(null);
+      setCsvParsed(false);
       toast.success("Metrics data imported successfully");
     } catch (err: any) {
       setError(err.message || "Failed to process CSV file. Please check the format and try again.");
@@ -105,7 +132,7 @@ export function MetricsImportDialog({
   };
 
   return <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Import Metrics CSV Data</DialogTitle>
           <DialogDescription>
@@ -133,6 +160,29 @@ export function MetricsImportDialog({
           {file && <div className="text-sm">
               <span className="font-medium">Selected file:</span> {file.name}
             </div>}
+
+          {csvParsed && csvData.headers.length > 0 && (
+            <div className="rounded-md border overflow-hidden">
+              <div className="max-h-[200px] overflow-auto">
+                <UITable>
+                  <TableHeader>
+                    <TableRow>
+                      {csvData.headers.map((header, index) => (
+                        <TableHead key={index}>{header}</TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      {csvData.data.map((value, index) => (
+                        <TableCell key={index}>{value}</TableCell>
+                      ))}
+                    </TableRow>
+                  </TableBody>
+                </UITable>
+              </div>
+            </div>
+          )}
 
           <div className="bg-muted rounded-md p-3 text-xs">
             <p className="font-medium mb-1">Expected CSV Format:</p>
