@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -116,22 +117,9 @@ export default function AddRepositoryPage() {
               }) => <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Brief description of this repository's purpose" className="resize-none min-h-24" {...field} />
+                        <Textarea placeholder="Brief description of this repository's purpose" className="resize-none min-h-16" {...field} />
                       </FormControl>
                       <p className="text-sm text-muted-foreground">Description must be at least 10 characters</p>
-                    </FormItem>} />
-
-                <FormField control={form.control} name="projectId" render={({
-                field
-              }) => <FormItem>
-                      <FormLabel>Project ID <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
-                      <FormControl>
-                        <div className="flex items-center space-x-2">
-                          <GitBranch className="h-4 w-4 text-muted-foreground" />
-                          <Input placeholder="Enter Project ID" {...field} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
                     </FormItem>} />
 
                 <FormField control={form.control} name="link" render={({
@@ -155,6 +143,19 @@ export default function AddRepositoryPage() {
                         <div className="flex items-center space-x-2">
                           <Key className="h-4 w-4 text-muted-foreground" />
                           <Input placeholder="Enter repository API key" type="password" showPasswordToggle {...field} />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>} />
+
+                <FormField control={form.control} name="projectId" render={({
+                field
+              }) => <FormItem>
+                      <FormLabel>Project ID <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
+                      <FormControl>
+                        <div className="flex items-center space-x-2">
+                          <GitBranch className="h-4 w-4 text-muted-foreground" />
+                          <Input placeholder="Enter Project ID" {...field} />
                         </div>
                       </FormControl>
                       <FormMessage />
