@@ -6,11 +6,13 @@ import { RepositoriesTable } from "@/components/dashboard/RepositoriesTable";
 import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Grid, List } from "lucide-react";
+import { Search, Plus, Grid, List, FileUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getRepositories, Repository, filterRepositories, sortRepositories } from "@/services/repositoryData";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CSVImportDialog } from "@/components/dashboard/CSVImportDialog";
+import { toast } from "sonner";
 
 export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -18,6 +20,7 @@ export default function DashboardPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
   const [sortBy, setSortBy] = useState("recent");
+  const [csvImportDialogOpen, setCsvImportDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   // Fetch repositories on mount and when dialogOpen changes (indicating a potential new repo)
@@ -46,7 +49,7 @@ export default function DashboardPage() {
     }));
     
     setRepositories(enhancedRepositories);
-  }, [dialogOpen]);
+  }, [dialogOpen, csvImportDialogOpen]);
 
   const handleCreateRepository = () => {
     setDialogOpen(true);
@@ -58,6 +61,16 @@ export default function DashboardPage() {
 
   const handleAddRepository = () => {
     navigate("/repositories/add");
+  };
+
+  const handleCSVDataImported = (data: Partial<Repository>) => {
+    toast.success("CSV data imported", {
+      description: "Repository data has been updated with imported values."
+    });
+    
+    // Refresh repositories to show the changes
+    const updatedRepositories = getRepositories();
+    setRepositories(updatedRepositories);
   };
 
   // Filter repositories based on search term
@@ -122,6 +135,15 @@ export default function DashboardPage() {
                   <List className="h-4 w-4" />
                 </ToggleGroupItem>
               </ToggleGroup>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-9 px-4" 
+                onClick={() => setCsvImportDialogOpen(true)}
+              >
+                <FileUp className="h-4 w-4 mr-2" />
+                Import CSV
+              </Button>
               <Button size="sm" className="h-9 px-4" onClick={handleAddRepository}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Repository
@@ -167,6 +189,12 @@ export default function DashboardPage() {
           const updatedRepositories = getRepositories();
           setRepositories(updatedRepositories);
         }}
+      />
+
+      <CSVImportDialog
+        open={csvImportDialogOpen}
+        onOpenChange={setCsvImportDialogOpen}
+        onDataImported={handleCSVDataImported}
       />
     </div>
   );

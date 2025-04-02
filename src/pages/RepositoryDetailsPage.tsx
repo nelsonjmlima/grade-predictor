@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
@@ -13,7 +14,6 @@ import {
   Edit,
   Activity,
   Save,
-  FileUp,
   BarChart
 } from "lucide-react";
 import { toast } from "sonner";
@@ -28,7 +28,6 @@ import {
 import { DeleteRepositoryDialog } from "@/components/dashboard/DeleteRepositoryDialog";
 import { EditRepositoryDialog } from "@/components/dashboard/EditRepositoryDialog";
 import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
-import { CSVImportDialog } from "@/components/dashboard/CSVImportDialog";
 import { MetricsImportDialog } from "@/components/dashboard/MetricsImportDialog";
 import { saveStudentData } from "@/services/studentData";
 
@@ -39,7 +38,6 @@ export default function RepositoryDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [csvImportDialogOpen, setCsvImportDialogOpen] = useState(false);
   const [metricsImportDialogOpen, setMetricsImportDialogOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
@@ -97,22 +95,6 @@ export default function RepositoryDetailsPage() {
           description: "An error occurred while saving your changes."
         });
       }
-    }
-  };
-
-  const handleCSVDataImported = (data: Partial<Repository>) => {
-    if (repository && repository.id) {
-      const updatedRepo = {
-        ...repository,
-        ...data
-      };
-      
-      setRepository(updatedRepo);
-      setHasUnsavedChanges(true);
-      
-      toast.success("CSV data imported", {
-        description: "Repository data has been updated with imported values. Don't forget to save your changes."
-      });
     }
   };
 
@@ -243,14 +225,6 @@ export default function RepositoryDetailsPage() {
                   >
                     <BarChart className="h-4 w-4" />
                     Import Metrics
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setCsvImportDialogOpen(true)} 
-                    className="gap-2"
-                  >
-                    <FileUp className="h-4 w-4" />
-                    Import CSV
                   </Button>
                   <Button 
                     variant="outline" 
@@ -393,12 +367,6 @@ export default function RepositoryDetailsPage() {
                 onOpenChange={setEditDialogOpen}
                 repository={repository}
                 onRepositoryUpdated={handleRepositoryUpdated}
-              />
-
-              <CSVImportDialog
-                open={csvImportDialogOpen}
-                onOpenChange={setCsvImportDialogOpen}
-                onDataImported={handleCSVDataImported}
               />
 
               <MetricsImportDialog
