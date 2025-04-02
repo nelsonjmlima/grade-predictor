@@ -5,7 +5,7 @@ import { SideNav } from "@/components/dashboard/SideNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { GitBranch, GitCommit, ArrowLeft, GitMerge, Edit, Save } from "lucide-react";
+import { GitBranch, GitCommit, ArrowLeft, GitMerge, Edit, Save, User } from "lucide-react";
 import { toast } from "sonner";
 import { getRepositories, updateRepository, Repository, Student, getRepositoryStudents, saveRepositoryStudent } from "@/services/repositoryData";
 import { DeleteRepositoryDialog } from "@/components/dashboard/DeleteRepositoryDialog";
