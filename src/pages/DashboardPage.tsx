@@ -163,9 +163,9 @@ export default function DashboardPage() {
       <main className="flex-1 overflow-y-auto">
         <div className="p-4">
           <div className="flex flex-col mb-4">
-            <h1 className="text-xl font-semibold tracking-tight">Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Manage your repositories</p>
-            <p className="text-base font-medium text-primary mt-1">
+            <h1 className="font-semibold tracking-tight text-2xl">Dashboard</h1>
+            <p className="text-sm text-muted-foreground font-normal">Manage your repositories</p>
+            <p className="text-base text-primary mt-1 font-semibold">
               Bem-vindo Sr. Professor
             </p>
           </div>
