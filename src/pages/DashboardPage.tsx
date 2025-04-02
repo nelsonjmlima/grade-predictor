@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Plus, Grid, List, FileUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { getRepositories, Repository, filterRepositories, sortRepositories } from "@/services/repositoryData";
+import { getRepositories, Repository, filterRepositories, sortRepositories, updateRepository, addRepository } from "@/services/repositoryData";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CSVImportDialog } from "@/components/dashboard/CSVImportDialog";
@@ -220,15 +220,8 @@ export default function DashboardPage() {
         onOpenChange={setDialogOpen} 
         onRepositoryCreated={async () => {
           // Refresh repositories after creation
-          setIsLoading(true);
-          try {
-            const updatedRepositories = await getRepositories();
-            setRepositories(updatedRepositories);
-          } catch (error) {
-            console.error("Error refreshing repositories:", error);
-          } finally {
-            setIsLoading(false);
-          }
+          const updatedRepositories = await getRepositories();
+          setRepositories(updatedRepositories);
         }} 
       />
 

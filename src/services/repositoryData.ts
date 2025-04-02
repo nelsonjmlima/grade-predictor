@@ -1,7 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Database } from "@/integrations/supabase/types";
 
 export interface Repository {
   name: string;
@@ -221,7 +220,7 @@ export const addRepository = async (repository: Repository): Promise<Repository 
     // Return the newly created repository
     const enhancedRepo = {
       ...repository,
-      id: insertedRepo?.id,
+      id: insertedRepo.id,
     };
     
     return enhancedRepo;
@@ -309,10 +308,6 @@ export const updateRepository = async (id: string, updatedRepo: Partial<Reposito
     updateLocalRepository(id, updatedRepo);
     
     // Map the updated Supabase data back to our Repository interface
-    if (!updatedSupabaseRepo) {
-      return updateLocalRepository(id, updatedRepo);
-    }
-    
     const updatedRepository: Repository = {
       id: updatedSupabaseRepo.id,
       name: updatedSupabaseRepo.name,

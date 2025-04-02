@@ -52,7 +52,7 @@ export function EditRepositoryDialog({
     setIsSaving(true);
     
     try {
-      const updatedRepo = await updateRepository(repository.id, {
+      const updatedRepo = updateRepository(repository.id, {
         name: values.name,
         description: values.description,
       });
