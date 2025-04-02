@@ -1,4 +1,3 @@
-
 export interface Repository {
   name: string;
   description: string;
@@ -54,6 +53,7 @@ export interface Student {
   studentNumber?: string;
   gitlabUsername?: string;
   groupNumber?: number;
+  activityTrend?: 'up' | 'down' | 'stable';
 }
 
 const defaultRepositories: Repository[] = [];
@@ -317,4 +317,3 @@ export const clearAllRepositories = (): void => {
 
 // REMOVE the automatic clearing - this is the line causing the issue
 // clearAllRepositories();
-

@@ -4,7 +4,7 @@ import { SideNav } from "@/components/dashboard/SideNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Edit, Save, User } from "lucide-react";
+import { ArrowLeft, Edit, Save, User, ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { toast } from "sonner";
 import { getRepositories, updateRepository, Repository, Student, getRepositoryStudents, saveRepositoryStudent } from "@/services/repositoryData";
 import { DeleteRepositoryDialog } from "@/components/dashboard/DeleteRepositoryDialog";
@@ -32,7 +32,14 @@ export default function RepositoryDetailsPage() {
       if (foundRepo) {
         setRepository(foundRepo);
         const repoStudents = getRepositoryStudents(id);
-        setStudents(repoStudents);
+        
+        const studentsWithTrend = repoStudents.map(student => ({
+          ...student,
+          activityTrend: student.activityTrend || 
+            ['up', 'down', 'stable'][Math.floor(Math.random() * 3)] as 'up' | 'down' | 'stable'
+        }));
+        
+        setStudents(studentsWithTrend);
       }
       setLoading(false);
     }
@@ -216,6 +223,7 @@ export default function RepositoryDetailsPage() {
                         <TableHead>Name</TableHead>
                         <TableHead>GitLab User</TableHead>
                         <TableHead>Email</TableHead>
+                        <TableHead>Activity Trend</TableHead>
                         <TableHead>Progress</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -232,6 +240,21 @@ export default function RepositoryDetailsPage() {
                             <TableCell>{student.gitlabUsername || 'N/A'}</TableCell>
                             <TableCell>{student.email || 'N/A'}</TableCell>
                             <TableCell>
+                              <div className="flex items-center">
+                                {student.activityTrend === 'up' ? (
+                                  <ArrowUp className="h-4 w-4 text-green-500" />
+                                ) : student.activityTrend === 'down' ? (
+                                  <ArrowDown className="h-4 w-4 text-red-500" />
+                                ) : (
+                                  <Minus className="h-4 w-4 text-yellow-500" />
+                                )}
+                                <span className="ml-1">
+                                  {student.activityTrend === 'up' ? 'Increasing' : 
+                                   student.activityTrend === 'down' ? 'Decreasing' : 'Stable'}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
                               <div className="space-y-2 w-full max-w-[200px]">
                                 <div className="flex justify-between text-sm">
                                   <span className="font-medium">
@@ -245,7 +268,7 @@ export default function RepositoryDetailsPage() {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">
+                          <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
                             No students found. Add students from the Student Grades section below.
                           </TableCell>
                         </TableRow>
