@@ -51,7 +51,7 @@ export default function VerificationPage() {
         setTimeout(() => {
           setVerificationSteps(prev => ({ ...prev, permissions: true }));
           setVerificationComplete(true);
-          toast.success("User verification complete successful!");
+          toast.success("User verification complete successful");
         }, 1000);
         
       } catch (error) {
