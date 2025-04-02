@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { GitBranch, GitCommit, ArrowLeft, GitMerge, Edit, Save, User } from "lucide-react";
+import { ArrowLeft, Edit, Save, User } from "lucide-react";
 import { toast } from "sonner";
 import { getRepositories, updateRepository, Repository, Student, getRepositoryStudents, saveRepositoryStudent } from "@/services/repositoryData";
 import { DeleteRepositoryDialog } from "@/components/dashboard/DeleteRepositoryDialog";
@@ -277,44 +276,6 @@ export default function RepositoryDetailsPage() {
                   </Table>
                 </CardContent>
               </Card>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base font-medium flex items-center gap-2">
-                      <GitCommit className="h-4 w-4" />
-                      Commits
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold">{repository.commitCount}</p>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base font-medium flex items-center gap-2">
-                      <GitMerge className="h-4 w-4" />
-                      Merge Requests
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold">{repository.mergeRequestCount}</p>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base font-medium flex items-center gap-2">
-                      <GitBranch className="h-4 w-4" />
-                      Branches
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold">{repository.branchCount}</p>
-                  </CardContent>
-                </Card>
-              </div>
               
               <RepositoryGradesView 
                 repositoryName={repository.name} 
