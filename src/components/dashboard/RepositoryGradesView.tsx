@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, User, FileText, Award, Download, Pencil, Users, GitBranch } from "lucide-react";
+import { BarChart, User, FileText, Award, Download, Pencil, Users, GitBranch, FileCode, FileEdit } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { StudentFormDialog } from "@/components/dashboard/StudentFormDialog";
@@ -19,6 +19,11 @@ export interface Student {
   studentNumber?: string;
   gitlabUsername?: string;
   groupNumber?: number;
+  additions?: number;
+  deletions?: number;
+  averageOperationsPerCommit?: number;
+  averageCommitsPerWeek?: number;
+  projectId?: string;
 }
 
 interface RepositoryGradesViewProps {
@@ -86,11 +91,12 @@ export function RepositoryGradesView({
           <TableHeader>
             <TableRow>
               <TableHead className="w-[250px]">Student</TableHead>
-              <TableHead>ID / Group</TableHead>
-              <TableHead>GitLab User</TableHead>
-              <TableHead>Commits</TableHead>
-              <TableHead>Last Activity</TableHead>
-              <TableHead>Grade</TableHead>
+              <TableHead>Project ID</TableHead>
+              <TableHead>Total Commits</TableHead>
+              <TableHead>Total Adds</TableHead>
+              <TableHead>Total Dels</TableHead>
+              <TableHead>Avg Ops/Commit</TableHead>
+              <TableHead>Avg Commit/Week</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -108,31 +114,32 @@ export function RepositoryGradesView({
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center space-x-1">
-                    <span className="font-medium">{student.studentNumber || 'N/A'}</span>
-                    {student.groupNumber !== undefined && (
-                      <span className="text-xs text-muted-foreground flex items-center">
-                        <Users className="h-3 w-3 ml-1 mr-1" />
-                        Group {student.groupNumber}
-                      </span>
-                    )}
+                    <span className="font-medium">{student.projectId || student.studentNumber || 'N/A'}</span>
                   </div>
                 </TableCell>
                 <TableCell>
-                  {student.gitlabUsername ? (
-                    <div className="flex items-center space-x-1">
-                      <GitBranch className="h-3 w-3 text-muted-foreground" />
-                      <span>{student.gitlabUsername}</span>
-                    </div>
-                  ) : 'N/A'}
+                  <div className="flex items-center space-x-1">
+                    <GitBranch className="h-3.5 w-3.5 mr-1 text-blue-500" />
+                    <span>{student.commitCount || 0}</span>
+                  </div>
                 </TableCell>
-                <TableCell>{student.commitCount}</TableCell>
-                <TableCell>{student.lastActivity}</TableCell>
                 <TableCell>
-                  {student.grade ? (
-                    <span className="font-semibold">{student.grade}</span>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">Not graded</span>
-                  )}
+                  <div className="flex items-center space-x-1">
+                    <FileCode className="h-3.5 w-3.5 mr-1 text-green-500" />
+                    <span>{student.additions || 0}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center space-x-1">
+                    <FileEdit className="h-3.5 w-3.5 mr-1 text-red-500" />
+                    <span>{student.deletions || 0}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <span>{student.averageOperationsPerCommit?.toFixed(1) || '0.0'}</span>
+                </TableCell>
+                <TableCell>
+                  <span>{student.averageCommitsPerWeek?.toFixed(1) || '0.0'}</span>
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end space-x-2">
