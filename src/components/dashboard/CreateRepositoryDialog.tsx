@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { addRepository } from "@/services/repositoryData";
-import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
   name: z.string().min(3, { message: "Repository name must be at least 3 characters" }),
@@ -56,10 +55,6 @@ export function CreateRepositoryDialog({
     setIsSubmitting(true);
     
     try {
-      // Check if we have an authenticated user
-      const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id;
-      
       const newRepo = {
         id: values.name.toLowerCase().replace(/\s+/g, '-'),
         name: values.name,
@@ -73,24 +68,15 @@ export function CreateRepositoryDialog({
         projectId: values.projectId || undefined,
         link: values.link || undefined,
         apiKey: values.apiKey || undefined,
-        userId: values.userId || userId || undefined,
-        students: values.students || undefined,
-        author: "Professor",
-        email: session?.user?.email || "professor@example.com",
-        gitlabUser: "gitlab_professor",
-        weekOfPrediction: `Week ${Math.floor(Math.random() * 52) + 1}, ${new Date().getFullYear()}`,
-        finalGradePrediction: ["A", "B", "C", "D", "F"][Math.floor(Math.random() * 5)]
+        userId: values.userId || undefined,
+        students: values.students || undefined
       };
       
-      const createdRepo = await addRepository(newRepo as any);
+      addRepository(newRepo as any);
       
-      if (createdRepo) {
-        toast.success("Repository created successfully", {
-          description: `${values.name} has been created and is ready to use.`,
-        });
-      } else {
-        throw new Error("Failed to create repository");
-      }
+      toast.success("Repository created successfully", {
+        description: `${values.name} has been created and is ready to use.`,
+      });
       
       setIsSubmitting(false);
       form.reset();
@@ -198,6 +184,7 @@ export function CreateRepositoryDialog({
                       <Input 
                         placeholder="Enter repository API key" 
                         type="password"
+                        showPasswordToggle 
                         {...field} 
                       />
                     </div>

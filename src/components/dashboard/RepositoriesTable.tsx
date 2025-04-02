@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Repository } from "@/services/repositoryData";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { GitCommit, Users, Calendar, FileCode, FileEdit, TrendingUp, Award, Hash, Mail, GitBranch, User } from "lucide-react";
+import { GitCommit, Users, Calendar, FileCode, FileEdit, TrendingUp, Award, Hash, Mail, GitBranch } from "lucide-react";
 
 interface RepositoriesTableProps {
   repositories: Repository[];

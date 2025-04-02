@@ -9,69 +9,7 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      repositories: {
-        Row: {
-          additions: number | null
-          author: string | null
-          commit_count: number | null
-          created_at: string | null
-          deletions: number | null
-          description: string | null
-          email: string | null
-          final_grade_prediction: string | null
-          gitlab_user: string | null
-          id: string
-          last_activity: string | null
-          name: string
-          operations: number | null
-          project_id: string | null
-          storage_path: string | null
-          updated_at: string | null
-          user_id: string | null
-          week_of_prediction: string | null
-        }
-        Insert: {
-          additions?: number | null
-          author?: string | null
-          commit_count?: number | null
-          created_at?: string | null
-          deletions?: number | null
-          description?: string | null
-          email?: string | null
-          final_grade_prediction?: string | null
-          gitlab_user?: string | null
-          id?: string
-          last_activity?: string | null
-          name: string
-          operations?: number | null
-          project_id?: string | null
-          storage_path?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          week_of_prediction?: string | null
-        }
-        Update: {
-          additions?: number | null
-          author?: string | null
-          commit_count?: number | null
-          created_at?: string | null
-          deletions?: number | null
-          description?: string | null
-          email?: string | null
-          final_grade_prediction?: string | null
-          gitlab_user?: string | null
-          id?: string
-          last_activity?: string | null
-          name?: string
-          operations?: number | null
-          project_id?: string | null
-          storage_path?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          week_of_prediction?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
