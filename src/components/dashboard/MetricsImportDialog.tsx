@@ -86,8 +86,8 @@ export function MetricsImportDialog({
       const repositoryData: Partial<Repository> = {
         author: result.Author,
         projectId: result.ProjectID,
-        totalCommits: result.totalcommits,
-        totalAdds: result.totaladds,
+        commitCount: result.totalcommits, // Changed from totalCommits to commitCount
+        totalAdditions: result.totaladds,
         averageOperationsPerCommit: result.average_operations_commit,
         averageCommitsPerWeek: result.average_commit_week,
       };
