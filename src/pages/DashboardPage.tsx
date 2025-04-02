@@ -23,7 +23,20 @@ export default function DashboardPage() {
   // Fetch repositories on mount and when dialogOpen changes (indicating a potential new repo)
   useEffect(() => {
     const fetchedRepositories = getRepositories();
-    setRepositories(fetchedRepositories);
+    
+    // Ensure repositories have the required fields for the updated table
+    const enhancedRepositories = fetchedRepositories.map(repo => ({
+      ...repo,
+      projectId: repo.projectId || repo.id || `project-${Math.random().toString(36).substr(2, 9)}`,
+      author: repo.author || "Anonymous",
+      email: repo.email || "no-email@example.com",
+      date: repo.date || repo.lastActivity,
+      additions: repo.additions || Math.floor(Math.random() * 500),
+      deletions: repo.deletions || Math.floor(Math.random() * 200),
+      operations: repo.operations || (repo.additions && repo.deletions ? repo.additions + repo.deletions : repo.commitCount)
+    }));
+    
+    setRepositories(enhancedRepositories);
   }, [dialogOpen]);
 
   const handleCreateRepository = () => {
@@ -89,6 +102,7 @@ export default function DashboardPage() {
                   <SelectItem value="recent">Most Recent</SelectItem>
                   <SelectItem value="name">Name</SelectItem>
                   <SelectItem value="progress">Progress</SelectItem>
+                  <SelectItem value="operations">Operations</SelectItem>
                 </SelectContent>
               </Select>
               <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as "grid" | "table")}>

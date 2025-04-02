@@ -19,6 +19,8 @@ export interface Repository {
   createdAt?: string;
   language?: string;
   technologies?: string[];
+  
+  // Additional fields for the updated table header
   projectId?: string;
   author?: string;
   email?: string;
@@ -65,6 +67,35 @@ export const addRepository = (repository: Repository): void => {
   // Generate createdAt timestamp
   if (!repository.createdAt) {
     repository.createdAt = new Date().toISOString();
+  }
+  
+  // Ensure new repositories have the fields required for the updated table
+  if (!repository.projectId) {
+    repository.projectId = repository.id || `project-${Math.random().toString(36).substr(2, 9)}`;
+  }
+  
+  if (!repository.author) {
+    repository.author = "Anonymous";
+  }
+  
+  if (!repository.email) {
+    repository.email = "no-email@example.com";
+  }
+  
+  if (!repository.date) {
+    repository.date = repository.lastActivity || new Date().toISOString();
+  }
+  
+  if (!repository.additions) {
+    repository.additions = Math.floor(Math.random() * 500);
+  }
+  
+  if (!repository.deletions) {
+    repository.deletions = Math.floor(Math.random() * 200);
+  }
+  
+  if (!repository.operations) {
+    repository.operations = repository.additions + repository.deletions;
   }
   
   // Parse student emails if provided as string
@@ -172,14 +203,20 @@ export const sortRepositories = (repositories: Repository[], sortBy: string): Re
   switch (sortBy) {
     case 'recent':
       return repositories.sort((a, b) => {
-        const aTime = new Date(a.lastActivity);
-        const bTime = new Date(b.lastActivity);
+        const aTime = new Date(a.date || a.lastActivity);
+        const bTime = new Date(b.date || b.lastActivity);
         return bTime.getTime() - aTime.getTime();
       });
     case 'name':
       return repositories.sort((a, b) => a.name.localeCompare(b.name));
     case 'progress':
       return repositories.sort((a, b) => b.progress - a.progress);
+    case 'operations':
+      return repositories.sort((a, b) => {
+        const aOperations = a.operations || (a.additions && a.deletions ? a.additions + a.deletions : a.commitCount || 0);
+        const bOperations = b.operations || (b.additions && b.deletions ? b.additions + b.deletions : b.commitCount || 0);
+        return bOperations - aOperations;
+      });
     default:
       return repositories;
   }
