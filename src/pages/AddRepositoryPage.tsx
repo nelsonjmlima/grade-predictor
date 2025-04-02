@@ -22,12 +22,13 @@ const formSchema = z.object({
     message: "Description must be at least 10 characters"
   }),
   projectId: z.string().optional(),
+  numberOfStudents: z.string().optional(),
   students: z.string().optional(),
   link: z.string().url({
     message: "Please enter a valid URL"
   }).optional().or(z.literal("")),
   apiKey: z.string().optional(),
-  userId: z.string().optional()
+  authorId: z.string().optional()
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -42,10 +43,11 @@ export default function AddRepositoryPage() {
       name: "",
       description: "",
       projectId: "",
+      numberOfStudents: "",
       students: "",
       link: "",
       apiKey: "",
-      userId: ""
+      authorId: ""
     }
   });
 
@@ -63,9 +65,11 @@ export default function AddRepositoryPage() {
         progress: 0,
         createdAt: new Date().toISOString(),
         projectId: values.projectId || undefined,
+        numberOfStudents: values.numberOfStudents || undefined,
         link: values.link || undefined,
         apiKey: values.apiKey || undefined,
-        userId: values.userId || undefined,
+        userId: values.authorId || undefined, // Keep userId in the repository object for compatibility
+        authorId: values.authorId || undefined,
         students: values.students || undefined
       };
 
@@ -161,14 +165,27 @@ export default function AddRepositoryPage() {
                       <FormMessage />
                     </FormItem>} />
 
-                <FormField control={form.control} name="userId" render={({
+                <FormField control={form.control} name="numberOfStudents" render={({
                 field
               }) => <FormItem>
-                      <FormLabel>User ID <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
+                      <FormLabel>Number of Students <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
                       <FormControl>
                         <div className="flex items-center space-x-2">
                           <User className="h-4 w-4 text-muted-foreground" />
-                          <Input placeholder="Enter user ID" {...field} />
+                          <Input placeholder="Enter number of students" type="number" {...field} />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>} />
+
+                <FormField control={form.control} name="authorId" render={({
+                field
+              }) => <FormItem>
+                      <FormLabel>Author ID <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
+                      <FormControl>
+                        <div className="flex items-center space-x-2">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <Input placeholder="Enter author ID" {...field} />
                         </div>
                       </FormControl>
                       <FormMessage />
