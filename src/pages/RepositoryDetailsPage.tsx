@@ -184,7 +184,7 @@ export default function RepositoryDetailsPage() {
                   </TableHeader>
                   <TableBody>
                     <TableRow>
-                      <TableCell className="font-medium">Project ID</TableCell>
+                      <TableCell className="font-medium">ProjectID</TableCell>
                       <TableCell>{repository.projectId || 'N/A'}</TableCell>
                       <TableCell className="font-medium">Additions</TableCell>
                       <TableCell>{repository.additions || 0}</TableCell>
