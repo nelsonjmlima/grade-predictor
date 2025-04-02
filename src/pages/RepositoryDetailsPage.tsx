@@ -213,31 +213,43 @@ export default function RepositoryDetailsPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Author</TableHead>
+                        <TableHead>Name</TableHead>
                         <TableHead>GitLab User</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Progress</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      <TableRow>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <User className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-                            {repository.author || 'N/A'}
-                          </div>
-                        </TableCell>
-                        <TableCell>{repository.gitlabUser || 'N/A'}</TableCell>
-                        <TableCell>{repository.email || 'N/A'}</TableCell>
-                        <TableCell>
-                          <div className="space-y-2 w-full max-w-[200px]">
-                            <div className="flex justify-between text-sm">
-                              <span className="font-medium">{repository.progress}%</span>
-                            </div>
-                            <Progress value={repository.progress} className="h-2" />
-                          </div>
-                        </TableCell>
-                      </TableRow>
+                      {students.length > 0 ? (
+                        students.map((student) => (
+                          <TableRow key={student.id}>
+                            <TableCell>
+                              <div className="flex items-center">
+                                <User className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                                {student.name || 'N/A'}
+                              </div>
+                            </TableCell>
+                            <TableCell>{student.gitlabUsername || 'N/A'}</TableCell>
+                            <TableCell>{student.email || 'N/A'}</TableCell>
+                            <TableCell>
+                              <div className="space-y-2 w-full max-w-[200px]">
+                                <div className="flex justify-between text-sm">
+                                  <span className="font-medium">
+                                    {student.commitCount > 0 ? Math.min(100, Math.floor((student.commitCount / 20) * 100)) : 0}%
+                                  </span>
+                                </div>
+                                <Progress value={student.commitCount > 0 ? Math.min(100, Math.floor((student.commitCount / 20) * 100)) : 0} className="h-2" />
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">
+                            No students found. Add students from the Student Grades section below.
+                          </TableCell>
+                        </TableRow>
+                      )}
                     </TableBody>
                   </Table>
                 </CardContent>
