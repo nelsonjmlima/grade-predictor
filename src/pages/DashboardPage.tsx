@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
@@ -79,12 +80,21 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="h-9 px-4" onClick={() => setCsvImportDialogOpen(true)}>
-                <FileUp className="h-4 w-4 mr-2" />
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="h-14 px-6 text-base" 
+                onClick={() => setCsvImportDialogOpen(true)}
+              >
+                <FileUp className="h-5 w-5 mr-2" />
                 Import CSV
               </Button>
-              <Button size="sm" className="h-9 px-4" onClick={handleAddRepository}>
-                <Plus className="h-4 w-4 mr-2" />
+              <Button 
+                size="lg" 
+                className="h-14 px-6 text-base" 
+                onClick={handleAddRepository}
+              >
+                <Plus className="h-5 w-5 mr-2" />
                 Add Repository
               </Button>
             </div>
