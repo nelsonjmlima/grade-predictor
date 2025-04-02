@@ -300,5 +300,6 @@ export const clearAllRepositories = (): void => {
   localStorage.setItem('repositories', JSON.stringify([]));
 };
 
-// Initialize empty repositories storage
-clearAllRepositories();
+// REMOVE the automatic clearing - this is the line causing the issue
+// clearAllRepositories();
+
