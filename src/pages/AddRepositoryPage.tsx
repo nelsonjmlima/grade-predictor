@@ -52,10 +52,8 @@ export default function AddRepositoryPage() {
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
     try {
-      const repoId = values.name.toLowerCase().replace(/\s+/g, '-');
-      
       const newRepo = {
-        id: repoId,
+        id: values.name.toLowerCase().replace(/\s+/g, '-'),
         name: values.name,
         description: values.description,
         lastActivity: "Just now",
@@ -68,12 +66,10 @@ export default function AddRepositoryPage() {
         link: values.link || undefined,
         apiKey: values.apiKey || undefined,
         userId: values.userId || undefined,
-        students: values.students || undefined,
-        storagePath: `repositories/${repoId}`
+        students: values.students || undefined
       };
 
-      toast.loading("Creating repository...");
-      await addRepository(newRepo as any);
+      addRepository(newRepo as any);
 
       toast.success("Repository created successfully", {
         description: `${values.name} has been created and is ready to use.`
@@ -146,7 +142,7 @@ export default function AddRepositoryPage() {
                       <FormControl>
                         <div className="flex items-center space-x-2">
                           <Key className="h-4 w-4 text-muted-foreground" />
-                          <Input placeholder="Enter repository API key" type="password" {...field} />
+                          <Input placeholder="Enter repository API key" type="password" showPasswordToggle {...field} />
                         </div>
                       </FormControl>
                       <FormMessage />

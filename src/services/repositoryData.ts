@@ -22,6 +22,7 @@ export interface Repository {
   language?: string;
   technologies?: string[];
   
+  // Repository metrics fields
   projectId?: string;
   author?: string;
   email?: string;
@@ -41,6 +42,7 @@ export interface Repository {
   weekOfPrediction?: string;
   finalGradePrediction?: string;
   
+  // CSV file URL from Supabase storage
   csvFileUrl?: string;
   storagePath?: string;
 }
@@ -59,6 +61,7 @@ export interface Student {
 
 const defaultRepositories: Repository[] = [];
 
+// Helper function to convert Supabase repository to our app Repository format
 const convertSupabaseRepo = (repo: any): Repository => {
   return {
     id: repo.id,
@@ -84,6 +87,7 @@ const convertSupabaseRepo = (repo: any): Repository => {
   };
 };
 
+// Function to fetch repositories from Supabase
 export const getRepositories = async (): Promise<Repository[]> => {
   try {
     const { data, error } = await supabase
@@ -94,6 +98,7 @@ export const getRepositories = async (): Promise<Repository[]> => {
     if (error) {
       console.error('Error fetching repositories:', error);
       toast.error('Failed to fetch repositories');
+      // Fallback to localStorage if Supabase fails
       const storedRepositories = localStorage.getItem('repositories');
       if (storedRepositories) {
         return JSON.parse(storedRepositories);
@@ -102,9 +107,11 @@ export const getRepositories = async (): Promise<Repository[]> => {
       }
     }
 
+    // Convert Supabase data to Repository format
     return data.map(repo => convertSupabaseRepo(repo));
   } catch (error) {
     console.error('Error in getRepositories:', error);
+    // Fallback to localStorage if Supabase fails
     const storedRepositories = localStorage.getItem('repositories');
     if (storedRepositories) {
       return JSON.parse(storedRepositories);
@@ -114,12 +121,15 @@ export const getRepositories = async (): Promise<Repository[]> => {
   }
 };
 
+// Function to add a repository to Supabase
 export const addRepository = async (repository: Repository): Promise<Repository> => {
   try {
+    // Generate ID if not provided
     if (!repository.id) {
       repository.id = `repo-${Math.random().toString(36).substr(2, 9)}`;
     }
     
+    // Format for Supabase
     const supabaseRepo = {
       id: repository.id,
       name: repository.name,
@@ -138,8 +148,6 @@ export const addRepository = async (repository: Repository): Promise<Repository>
       storage_path: repository.storagePath || `repositories/${repository.id}`
     };
 
-    console.log('Adding repository to Supabase:', supabaseRepo);
-
     const { data, error } = await supabase
       .from('repositories')
       .insert(supabaseRepo)
@@ -150,6 +158,7 @@ export const addRepository = async (repository: Repository): Promise<Repository>
       console.error('Error adding repository to Supabase:', error);
       toast.error('Failed to add repository to database');
       
+      // Fallback to localStorage if Supabase fails
       const repositories = localStorage.getItem('repositories') ? 
         JSON.parse(localStorage.getItem('repositories') || '[]') : 
         [];
@@ -159,16 +168,20 @@ export const addRepository = async (repository: Repository): Promise<Repository>
     }
 
     if (data) {
-      console.log('Repository added to Supabase:', data);
       const convertedRepo = convertSupabaseRepo(data);
       
+      // Also update localStorage for offline capability
       const repositories = localStorage.getItem('repositories') ? 
         JSON.parse(localStorage.getItem('repositories') || '[]') : 
         [];
       repositories.unshift(convertedRepo);
       localStorage.setItem('repositories', JSON.stringify(repositories));
       
-      toast.success('Repository successfully created');
+      // If CSV file URL was provided, upload it to storage
+      if (repository.csvFileUrl) {
+        await updateRepository(convertedRepo.id || '', { csvFileUrl: repository.csvFileUrl });
+      }
+      
       return convertedRepo;
     }
     
@@ -177,6 +190,7 @@ export const addRepository = async (repository: Repository): Promise<Repository>
     console.error('Error in addRepository:', error);
     toast.error('Failed to add repository');
     
+    // Fallback to localStorage
     const repositories = localStorage.getItem('repositories') ? 
       JSON.parse(localStorage.getItem('repositories') || '[]') : 
       [];
@@ -189,6 +203,7 @@ export const addRepository = async (repository: Repository): Promise<Repository>
 
 export const updateRepository = async (id: string, updatedRepo: Partial<Repository>): Promise<Repository | null> => {
   try {
+    // Format for Supabase
     const supabaseUpdates: Record<string, any> = {};
     
     if (updatedRepo.name) supabaseUpdates.name = updatedRepo.name;
@@ -218,6 +233,7 @@ export const updateRepository = async (id: string, updatedRepo: Partial<Reposito
       console.error('Error updating repository in Supabase:', error);
       toast.error('Failed to update repository in database');
       
+      // Fallback to localStorage
       const repositories = localStorage.getItem('repositories') ? 
         JSON.parse(localStorage.getItem('repositories') || '[]') : 
         [];
@@ -236,6 +252,7 @@ export const updateRepository = async (id: string, updatedRepo: Partial<Reposito
     if (data) {
       const convertedRepo = convertSupabaseRepo(data);
       
+      // Also update localStorage
       const repositories = localStorage.getItem('repositories') ? 
         JSON.parse(localStorage.getItem('repositories') || '[]') : 
         [];
@@ -254,6 +271,7 @@ export const updateRepository = async (id: string, updatedRepo: Partial<Reposito
     console.error('Error in updateRepository:', error);
     toast.error('Failed to update repository');
     
+    // Fallback to localStorage
     const repositories = localStorage.getItem('repositories') ? 
       JSON.parse(localStorage.getItem('repositories') || '[]') : 
       [];
@@ -281,6 +299,7 @@ export const deleteRepository = async (id: string): Promise<boolean> => {
       console.error('Error deleting repository from Supabase:', error);
       toast.error('Failed to delete repository from database');
       
+      // Fallback to localStorage
       const repositories = localStorage.getItem('repositories') ? 
         JSON.parse(localStorage.getItem('repositories') || '[]') : 
         [];
@@ -294,6 +313,7 @@ export const deleteRepository = async (id: string): Promise<boolean> => {
       return true;
     }
     
+    // Also update localStorage
     const repositories = localStorage.getItem('repositories') ? 
       JSON.parse(localStorage.getItem('repositories') || '[]') : 
       [];
@@ -305,6 +325,7 @@ export const deleteRepository = async (id: string): Promise<boolean> => {
     console.error('Error in deleteRepository:', error);
     toast.error('Failed to delete repository');
     
+    // Fallback to localStorage
     const repositories = localStorage.getItem('repositories') ? 
       JSON.parse(localStorage.getItem('repositories') || '[]') : 
       [];
@@ -407,7 +428,7 @@ export const clearAllRepositories = async (): Promise<void> => {
     const { error } = await supabase
       .from('repositories')
       .delete()
-      .neq('id', 'placeholder');
+      .neq('id', 'placeholder'); // Delete all entries
     
     if (error) {
       console.error('Error clearing repositories in Supabase:', error);
@@ -417,10 +438,36 @@ export const clearAllRepositories = async (): Promise<void> => {
     console.error('Error in clearAllRepositories:', error);
   }
   
+  // Clear localStorage as well
   localStorage.removeItem('repositories');
   localStorage.setItem('repositories', JSON.stringify([]));
 };
 
 export const uploadCSVToSupabase = async (file: File, repositoryId: string): Promise<string | null> => {
-  return `repositories/${repositoryId}/dummy-path`;
+  try {
+    const timestamp = new Date().getTime();
+    const fileName = `metrics_${timestamp}_${file.name.replace(/\s+/g, '_')}`;
+    const filePath = `repositories/${repositoryId}/${fileName}`;
+    
+    // Upload to Supabase storage
+    const { data, error } = await supabase.storage
+      .from('repositories')
+      .upload(filePath, file);
+      
+    if (error) {
+      console.error("Error uploading CSV file:", error);
+      toast.error("Failed to store CSV file");
+      throw error;
+    }
+    
+    // Get public URL
+    const { data: publicUrlData } = supabase.storage
+      .from('repositories')
+      .getPublicUrl(filePath);
+      
+    return publicUrlData?.publicUrl || null;
+  } catch (error) {
+    console.error("CSV upload error:", error);
+    return null;
+  }
 };

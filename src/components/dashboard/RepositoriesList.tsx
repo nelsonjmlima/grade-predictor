@@ -33,7 +33,6 @@ interface RepositoriesListProps {
   programmingStudents: Student[];
   sampleStudents: Student[];
   onRepositorySelect: (repoId: string) => void;
-  isLoading?: boolean;
 }
 
 export function RepositoriesList({
@@ -43,8 +42,7 @@ export function RepositoriesList({
   selectedRepository,
   programmingStudents,
   sampleStudents,
-  onRepositorySelect,
-  isLoading = false
+  onRepositorySelect
 }: RepositoriesListProps) {
   const navigate = useNavigate();
 
@@ -64,15 +62,6 @@ export function RepositoriesList({
           repositoryName={selectedRepository === 'programming-fundamentals' ? "Programming Fundamentals 2023" : "Advanced Programming Course"} 
           students={selectedRepository === 'programming-fundamentals' ? programmingStudents : sampleStudents} 
         />
-      </div>
-    );
-  }
-
-  // Display loading state
-  if (isLoading) {
-    return (
-      <div className="p-8 text-center">
-        <p className="text-muted-foreground">Loading repositories...</p>
       </div>
     );
   }
