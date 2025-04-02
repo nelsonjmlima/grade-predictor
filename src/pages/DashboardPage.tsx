@@ -33,7 +33,16 @@ export default function DashboardPage() {
       date: repo.date || repo.lastActivity,
       additions: repo.additions || Math.floor(Math.random() * 500),
       deletions: repo.deletions || Math.floor(Math.random() * 200),
-      operations: repo.operations || (repo.additions && repo.deletions ? repo.additions + repo.deletions : repo.commitCount)
+      operations: repo.operations || (repo.additions && repo.deletions ? repo.additions + repo.deletions : repo.commitCount),
+      totalAdditions: repo.totalAdditions || Math.floor(Math.random() * 2000) + (repo.additions || 0),
+      totalDeletions: repo.totalDeletions || Math.floor(Math.random() * 1000) + (repo.deletions || 0),
+      totalOperations: repo.totalOperations || 
+        (repo.totalAdditions && repo.totalDeletions ? 
+          repo.totalAdditions + repo.totalDeletions : 
+          (repo.additions && repo.deletions ? (repo.additions + repo.deletions) * 5 : 0)),
+      averageOperationsPerCommit: repo.averageOperationsPerCommit || 
+        (repo.commitCount ? Math.round(((repo.additions || 0) + (repo.deletions || 0)) / repo.commitCount * 10) / 10 : Math.floor(Math.random() * 20) + 5),
+      averageCommitsPerWeek: repo.averageCommitsPerWeek || Math.floor(Math.random() * 20) + 1
     }));
     
     setRepositories(enhancedRepositories);

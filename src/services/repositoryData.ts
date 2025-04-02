@@ -20,7 +20,7 @@ export interface Repository {
   language?: string;
   technologies?: string[];
   
-  // Additional fields for the updated table header
+  // Repository metrics fields
   projectId?: string;
   author?: string;
   email?: string;
@@ -28,8 +28,9 @@ export interface Repository {
   additions?: number;
   deletions?: number;
   operations?: number;
-  totalCommits?: number;
-  totalAdds?: number;
+  totalAdditions?: number;
+  totalDeletions?: number;
+  totalOperations?: number;
   averageOperationsPerCommit?: number;
   averageCommitsPerWeek?: number;
   link?: string;
@@ -96,6 +97,28 @@ export const addRepository = (repository: Repository): void => {
   
   if (!repository.operations) {
     repository.operations = repository.additions + repository.deletions;
+  }
+  
+  // Add the new fields with random data for demonstration
+  if (!repository.totalAdditions) {
+    repository.totalAdditions = Math.floor(Math.random() * 2000) + repository.additions;
+  }
+  
+  if (!repository.totalDeletions) {
+    repository.totalDeletions = Math.floor(Math.random() * 1000) + repository.deletions;
+  }
+  
+  if (!repository.totalOperations) {
+    repository.totalOperations = repository.totalAdditions + repository.totalDeletions;
+  }
+  
+  if (!repository.averageOperationsPerCommit) {
+    const commitCount = repository.commitCount || Math.floor(Math.random() * 50) + 1;
+    repository.averageOperationsPerCommit = Math.round(repository.totalOperations / commitCount * 10) / 10;
+  }
+  
+  if (!repository.averageCommitsPerWeek) {
+    repository.averageCommitsPerWeek = Math.floor(Math.random() * 20) + 1;
   }
   
   // Parse student emails if provided as string
@@ -213,10 +236,14 @@ export const sortRepositories = (repositories: Repository[], sortBy: string): Re
       return repositories.sort((a, b) => b.progress - a.progress);
     case 'operations':
       return repositories.sort((a, b) => {
-        const aOperations = a.operations || (a.additions && a.deletions ? a.additions + a.deletions : a.commitCount || 0);
-        const bOperations = b.operations || (b.additions && b.deletions ? b.additions + b.deletions : b.commitCount || 0);
+        const aOperations = a.totalOperations || a.operations || (a.additions && a.deletions ? a.additions + a.deletions : a.commitCount || 0);
+        const bOperations = b.totalOperations || b.operations || (b.additions && b.deletions ? b.additions + b.deletions : b.commitCount || 0);
         return bOperations - aOperations;
       });
+    case 'avgops':
+      return repositories.sort((a, b) => (b.averageOperationsPerCommit || 0) - (a.averageOperationsPerCommit || 0));
+    case 'avgcommits':
+      return repositories.sort((a, b) => (b.averageCommitsPerWeek || 0) - (a.averageCommitsPerWeek || 0));
     default:
       return repositories;
   }
