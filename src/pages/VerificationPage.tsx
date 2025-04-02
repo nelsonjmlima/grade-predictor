@@ -51,7 +51,7 @@ export default function VerificationPage() {
         setTimeout(() => {
           setVerificationSteps(prev => ({ ...prev, permissions: true }));
           setVerificationComplete(true);
-          toast.success("User verification completed successfully!");
+          toast.success("User verification complete successful!");
         }, 1000);
         
       } catch (error) {
@@ -88,7 +88,7 @@ export default function VerificationPage() {
           </CardTitle>
           <CardDescription className="text-gray-300 text-lg">
             {verificationComplete 
-              ? `Welcome ${user?.email || 'User'}! Your account has been verified` 
+              ? `Welcome ${user?.email || 'User'}!` 
               : "Please wait while we verify your account information"}
           </CardDescription>
         </CardHeader>
@@ -107,7 +107,7 @@ export default function VerificationPage() {
               ) : (
                 <div className="flex items-center space-x-2 bg-blue-500/20 text-blue-200 p-4 rounded-md">
                   <ShieldCheck className="h-5 w-5" />
-                  <span>Your account has been successfully verified and is ready to use</span>
+                  <span>User verification complete successful</span>
                 </div>
               )}
             </div>
