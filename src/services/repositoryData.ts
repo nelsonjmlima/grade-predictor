@@ -35,6 +35,9 @@ export interface Repository {
   link?: string;
   apiKey?: string;
   userId?: string;
+  
+  // CSV file URL from Supabase storage
+  csvFileUrl?: string;
 }
 
 export interface Student {

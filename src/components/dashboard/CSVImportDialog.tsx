@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Repository } from "@/services/repositoryData";
 import { FileUp, AlertCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CSVImportDialogProps {
   open: boolean;
@@ -21,6 +22,7 @@ export function CSVImportDialog({
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [previewData, setPreviewData] = useState<string[][]>([]);
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -28,10 +30,28 @@ export function CSVImportDialog({
       if (selectedFile.type !== "text/csv" && !selectedFile.name.endsWith('.csv')) {
         setError("Please select a valid CSV file");
         setFile(null);
+        setPreviewData([]);
         return;
       }
       setFile(selectedFile);
       setError(null);
+      
+      // Generate preview of CSV
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target && typeof event.target.result === 'string') {
+          const csvContent = event.target.result;
+          const lines = csvContent.split('\n').filter(line => line.trim().length > 0);
+          
+          if (lines.length > 0) {
+            const previewRows = lines.slice(0, Math.min(5, lines.length)).map(line => 
+              line.split(',').map(cell => cell.trim())
+            );
+            setPreviewData(previewRows);
+          }
+        }
+      };
+      reader.readAsText(selectedFile);
     }
   };
   
@@ -108,9 +128,36 @@ export function CSVImportDialog({
         averageCommitsPerWeek: result.Operations && result.Operations > 0 ? Math.round(result.Operations / 12) : undefined
       };
       
+      // Upload the CSV file to Supabase storage
+      const timestamp = new Date().getTime();
+      const fileName = `data_${timestamp}_${file.name.replace(/\s+/g, '_')}`;
+      
+      // Upload to Supabase storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('csvfiles')
+        .upload(fileName, file);
+        
+      if (uploadError) {
+        console.error("Error uploading CSV file:", uploadError);
+        toast.error("Failed to store CSV file");
+      } else {
+        console.log("CSV file uploaded successfully:", uploadData);
+        toast.success("CSV file stored in backend");
+        
+        // Add file URL to repository data
+        const { data: publicUrlData } = supabase.storage
+          .from('csvfiles')
+          .getPublicUrl(fileName);
+          
+        if (publicUrlData) {
+          repositoryData.csvFileUrl = publicUrlData.publicUrl;
+        }
+      }
+      
       onDataImported(repositoryData);
       onOpenChange(false);
       setFile(null);
+      setPreviewData([]);
       toast.success("CSV data imported successfully");
     } catch (err: any) {
       setError(err.message || "Failed to process CSV file. Please check the format and try again.");
@@ -149,6 +196,27 @@ export function CSVImportDialog({
           {file && <div className="text-sm">
               <span className="font-medium">Selected file:</span> {file.name}
             </div>}
+
+          {previewData.length > 0 && (
+            <div className="overflow-x-auto">
+              <p className="text-sm font-medium mb-1">CSV Preview:</p>
+              <div className="border rounded-md overflow-hidden">
+                <table className="min-w-full divide-y divide-border">
+                  <tbody className="bg-background divide-y divide-border">
+                    {previewData.map((row, rowIndex) => (
+                      <tr key={rowIndex}>
+                        {row.map((cell, cellIndex) => (
+                          <td key={cellIndex} className="px-3 py-2 text-xs whitespace-nowrap">
+                            {cell}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           <div className="bg-muted rounded-md p-3 text-xs">
             <p className="font-medium mb-1">Expected CSV Format:</p>
