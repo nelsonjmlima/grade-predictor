@@ -64,7 +64,7 @@ export function RepositoriesTable({ repositories }: RepositoriesTableProps) {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center">
-                      <User className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                      <Users className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
                       {repo.author || 'Unknown'}
                     </div>
                   </TableCell>
@@ -130,3 +130,4 @@ export function RepositoriesTable({ repositories }: RepositoriesTableProps) {
     </div>
   );
 }
+
