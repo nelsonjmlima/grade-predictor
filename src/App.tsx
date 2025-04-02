@@ -11,7 +11,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import LoginPage from "./pages/LoginPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import DashboardPage from "./pages/DashboardPage";
-import RepositoriesPage from "./pages/RepositoriesPage";
 import RepositoryDetailsPage from "./pages/RepositoryDetailsPage";
 import StudentMetricsPage from "./pages/StudentMetricsPage";
 import AddRepositoryPage from "./pages/AddRepositoryPage";
@@ -64,7 +63,7 @@ const App = () => {
               
               {/* Protected Routes */}
               <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-              <Route path="/repositories" element={<ProtectedRoute><RepositoriesPage /></ProtectedRoute>} />
+              <Route path="/repositories" element={<Navigate to="/dashboard" replace />} />
               <Route path="/repositories/add" element={<ProtectedRoute><AddRepositoryPage /></ProtectedRoute>} />
               <Route path="/repositories/compare" element={<ProtectedRoute><RepositoryComparisonPage /></ProtectedRoute>} />
               <Route path="/repositories/ranking" element={<ProtectedRoute><RepositoryRankingPage /></ProtectedRoute>} />
