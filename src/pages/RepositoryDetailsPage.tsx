@@ -26,7 +26,6 @@ import {
 import { DeleteRepositoryDialog } from "@/components/dashboard/DeleteRepositoryDialog";
 import { EditRepositoryDialog } from "@/components/dashboard/EditRepositoryDialog";
 import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
-import { CSVImportDialog } from "@/components/dashboard/CSVImportDialog";
 import { saveStudentData } from "@/services/studentData";
 
 export default function RepositoryDetailsPage() {
@@ -36,7 +35,6 @@ export default function RepositoryDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [csvImportDialogOpen, setCsvImportDialogOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
 
@@ -93,22 +91,6 @@ export default function RepositoryDetailsPage() {
           description: "An error occurred while saving your changes."
         });
       }
-    }
-  };
-
-  const handleCSVDataImported = (data: Partial<Repository>) => {
-    if (repository && repository.id) {
-      const updatedRepo = {
-        ...repository,
-        ...data
-      };
-      
-      setRepository(updatedRepo);
-      setHasUnsavedChanges(true);
-      
-      toast.success("CSV data imported", {
-        description: "Repository data has been updated with selected values from CSV. Don't forget to save your changes."
-      });
     }
   };
 
@@ -235,6 +217,63 @@ export default function RepositoryDetailsPage() {
                 </div>
               </div>
               
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base font-medium">Repository Details</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="text-sm font-medium">Project ID:</div>
+                        <div className="text-sm">{repository.projectId || 'N/A'}</div>
+                        
+                        <div className="text-sm font-medium">ID/Group:</div>
+                        <div className="text-sm">{repository.id || 'N/A'}</div>
+                        
+                        <div className="text-sm font-medium">Author:</div>
+                        <div className="text-sm">{repository.author || 'N/A'}</div>
+                        
+                        <div className="text-sm font-medium">Email:</div>
+                        <div className="text-sm">{repository.email || 'N/A'}</div>
+                        
+                        <div className="text-sm font-medium">GitLab User:</div>
+                        <div className="text-sm">{repository.gitlabUser || 'N/A'}</div>
+                        
+                        <div className="text-sm font-medium">Date:</div>
+                        <div className="text-sm">{repository.date || 'N/A'}</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base font-medium">Activity Metrics</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="text-sm font-medium">Additions:</div>
+                        <div className="text-sm">{repository.additions || 0}</div>
+                        
+                        <div className="text-sm font-medium">Deletions:</div>
+                        <div className="text-sm">{repository.deletions || 0}</div>
+                        
+                        <div className="text-sm font-medium">Operations:</div>
+                        <div className="text-sm">{repository.operations || 0}</div>
+                        
+                        <div className="text-sm font-medium">Week of Prediction:</div>
+                        <div className="text-sm">{repository.weekOfPrediction || 'Not set'}</div>
+                        
+                        <div className="text-sm font-medium">Final Grade Prediction:</div>
+                        <div className="text-sm">{repository.finalGradePrediction || repository.predictedGrade || 'Not predicted'}</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card>
                   <CardHeader className="pb-2">
@@ -357,12 +396,6 @@ export default function RepositoryDetailsPage() {
                 onOpenChange={setEditDialogOpen}
                 repository={repository}
                 onRepositoryUpdated={handleRepositoryUpdated}
-              />
-
-              <CSVImportDialog
-                open={csvImportDialogOpen}
-                onOpenChange={setCsvImportDialogOpen}
-                onDataImported={handleCSVDataImported}
               />
             </>
           )}

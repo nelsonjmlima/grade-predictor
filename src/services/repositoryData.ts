@@ -1,3 +1,4 @@
+
 export interface Repository {
   name: string;
   description: string;
@@ -35,6 +36,9 @@ export interface Repository {
   link?: string;
   apiKey?: string;
   userId?: string;
+  gitlabUser?: string;
+  weekOfPrediction?: string;
+  finalGradePrediction?: string;
   
   // CSV file URL from Supabase storage
   csvFileUrl?: string;
