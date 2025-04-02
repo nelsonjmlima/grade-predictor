@@ -7,7 +7,7 @@ import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryD
 import { Button } from "@/components/ui/button";
 import { Plus, FileUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { getRepositories, Repository, filterRepositories, sortRepositories, updateRepository, addRepository } from "@/services/repositoryData";
+import { getRepositories, Repository, filterRepositories, sortRepositories, updateRepository, addRepository } from "@/services";
 import { MetricsImportDialog } from "@/components/dashboard/MetricsImportDialog";
 import { toast } from "sonner";
 

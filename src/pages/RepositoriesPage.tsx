@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
@@ -11,7 +10,7 @@ import {
   programmingStudents,
   filterRepositories,
   sortRepositories
-} from "@/services/repositoryData";
+} from "@/services";
 
 export default function RepositoriesPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -22,13 +21,10 @@ export default function RepositoriesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [repositories, setRepositories] = useState([]);
   
-  // Refresh repositories when dialog opens/closes, when component mounts, 
-  // or when navigating back to this page
   useEffect(() => {
     const fetchRepositories = () => {
       const fetchedRepositories = getRepositories();
       
-      // Enhance repositories with the new fields required for the updated table
       const enhancedRepositories = fetchedRepositories.map(repo => ({
         ...repo,
         projectId: repo.projectId || repo.id || `project-${Math.random().toString(36).substr(2, 9)}`,
@@ -54,7 +50,6 @@ export default function RepositoriesPage() {
 
     fetchRepositories();
 
-    // Add event listener for focus to refresh data when user comes back to the page
     window.addEventListener('focus', fetchRepositories);
     
     return () => {
@@ -79,10 +74,8 @@ export default function RepositoriesPage() {
   };
 
   const handleRepositoryCreated = () => {
-    // Refresh repositories after creation
     const fetchedRepositories = getRepositories();
     
-    // Enhance repositories with the fields needed for the updated table
     const enhancedRepositories = fetchedRepositories.map(repo => ({
       ...repo,
       projectId: repo.projectId || repo.id || `project-${Math.random().toString(36).substr(2, 9)}`,
