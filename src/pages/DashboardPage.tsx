@@ -164,7 +164,7 @@ export default function DashboardPage() {
         <div className="p-4">
           <div className="flex flex-col mb-4">
             <h1 className="font-semibold tracking-tight text-2xl">Dashboard</h1>
-            <p className="text-sm text-muted-foreground font-normal">Manage your repositories</p>
+            <p className="text-muted-foreground font-normal text-base">Manage your repositories</p>
             <p className="text-base text-primary mt-1 font-semibold">
               Bem-vindo Sr. Professor
             </p>
