@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Repository } from "@/services/repositoryData";
-import { FileUp, AlertCircle, Database } from "lucide-react";
+import { FileUp, AlertCircle, Database, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -38,6 +38,7 @@ export function MetricsImportDialog({
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCreatingBucket, setIsCreatingBucket] = useState(false);
   const [storedFiles, setStoredFiles] = useState<CSVFile[]>([]);
   const [loadingFiles, setLoadingFiles] = useState(false);
   const [activeTab, setActiveTab] = useState("upload");
@@ -56,11 +57,61 @@ export function MetricsImportDialog({
     }
   }, [open, activeTab]);
   
+  // Function to create the bucket if it doesn't exist
+  const createBucketIfNeeded = async () => {
+    setIsCreatingBucket(true);
+    setError(null);
+    
+    try {
+      // Check if bucket exists
+      const { data: buckets, error: listError } = await supabase
+        .storage
+        .listBuckets();
+      
+      if (listError) {
+        console.error("Error checking buckets:", listError);
+        throw listError;
+      }
+      
+      const bucketExists = buckets?.some(bucket => bucket.name === 'csvfiles');
+      
+      if (!bucketExists) {
+        // Create the bucket
+        const { error: createError } = await supabase
+          .storage
+          .createBucket('csvfiles', {
+            public: true
+          });
+          
+        if (createError) {
+          console.error("Error creating bucket:", createError);
+          throw createError;
+        }
+        
+        toast.success("Storage bucket created successfully");
+      }
+      
+      return true;
+    } catch (err: any) {
+      setError(`Failed to create storage bucket: ${err.message || err}`);
+      console.error("Bucket creation error:", err);
+      return false;
+    } finally {
+      setIsCreatingBucket(false);
+    }
+  };
+  
   const fetchStoredFiles = async () => {
     setLoadingFiles(true);
     setError(null);
     
     try {
+      // Check if bucket exists and create it if needed
+      const bucketReady = await createBucketIfNeeded();
+      if (!bucketReady) {
+        throw new Error("Storage bucket is not available");
+      }
+      
       const { data, error } = await supabase
         .storage
         .from('csvfiles')
@@ -110,7 +161,13 @@ export function MetricsImportDialog({
     setError(null);
     
     try {
-      // Upload the CSV file to Supabase storage without processing its content
+      // Check if bucket exists and create it if needed
+      const bucketReady = await createBucketIfNeeded();
+      if (!bucketReady) {
+        throw new Error("Storage bucket is not available");
+      }
+      
+      // Upload the CSV file to Supabase storage
       const timestamp = new Date().getTime();
       const fileName = `metrics_${timestamp}_${file.name.replace(/\s+/g, '_')}`;
       
@@ -160,7 +217,7 @@ export function MetricsImportDialog({
     try {
       const response = await fetch(fileUrl);
       if (!response.ok) {
-        throw new Error("Failed to fetch the CSV file");
+        throw new Error(`Failed to fetch the CSV file (Status: ${response.status})`);
       }
       
       const csvText = await response.text();
@@ -324,10 +381,20 @@ export function MetricsImportDialog({
               </div>}
             
             <DialogFooter className="px-0 pt-2">
-              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isProcessing}>
+              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isProcessing || isCreatingBucket}>
                 Cancel
               </Button>
-              <Button onClick={processCSV} disabled={!file || isProcessing} className="gap-2">
+              {error && error.includes("bucket") && (
+                <Button 
+                  onClick={() => createBucketIfNeeded()} 
+                  disabled={isCreatingBucket} 
+                  className="gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isCreatingBucket ? 'animate-spin' : ''}`} />
+                  {isCreatingBucket ? "Creating..." : "Create Storage Bucket"}
+                </Button>
+              )}
+              <Button onClick={processCSV} disabled={!file || isProcessing || isCreatingBucket} className="gap-2">
                 <FileUp className="h-4 w-4" />
                 {isProcessing ? "Uploading..." : "Upload File"}
               </Button>
@@ -338,6 +405,21 @@ export function MetricsImportDialog({
             {loadingFiles ? (
               <div className="text-center py-4">
                 <p className="text-sm text-muted-foreground">Loading stored files...</p>
+              </div>
+            ) : error && error.includes("bucket") ? (
+              <div className="text-center py-4 space-y-4">
+                <div className="flex items-center gap-2 text-destructive text-sm justify-center">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>{error}</span>
+                </div>
+                <Button 
+                  onClick={() => createBucketIfNeeded()} 
+                  disabled={isCreatingBucket}
+                  className="gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isCreatingBucket ? 'animate-spin' : ''}`} />
+                  {isCreatingBucket ? "Creating..." : "Create Storage Bucket"}
+                </Button>
               </div>
             ) : storedFiles.length === 0 ? (
               <div className="text-center py-4">
@@ -440,7 +522,7 @@ export function MetricsImportDialog({
               </div>
             )}
             
-            {error && <div className="flex items-center gap-2 text-destructive text-sm">
+            {error && !error.includes("bucket") && <div className="flex items-center gap-2 text-destructive text-sm">
                 <AlertCircle className="h-4 w-4" />
                 <span>{error}</span>
               </div>}

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Repository } from "@/services/repositoryData";
-import { FileUp, AlertCircle, Table } from "lucide-react";
+import { FileUp, AlertCircle, Table, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Table as UITable, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -34,6 +34,7 @@ export function CSVImportDialog({
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCreatingBucket, setIsCreatingBucket] = useState(false);
   const [csvData, setCsvData] = useState<CSVRecord[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
   const [showSelection, setShowSelection] = useState(false);
@@ -55,6 +56,50 @@ export function CSVImportDialog({
       setFile(selectedFile);
       setError(null);
       parseCSV(selectedFile);
+    }
+  };
+  
+  // Function to create the bucket if it doesn't exist
+  const createBucketIfNeeded = async () => {
+    setIsCreatingBucket(true);
+    setError(null);
+    
+    try {
+      // Check if bucket exists
+      const { data: buckets, error: listError } = await supabase
+        .storage
+        .listBuckets();
+      
+      if (listError) {
+        console.error("Error checking buckets:", listError);
+        throw listError;
+      }
+      
+      const bucketExists = buckets?.some(bucket => bucket.name === 'csvfiles');
+      
+      if (!bucketExists) {
+        // Create the bucket
+        const { error: createError } = await supabase
+          .storage
+          .createBucket('csvfiles', {
+            public: true
+          });
+          
+        if (createError) {
+          console.error("Error creating bucket:", createError);
+          throw createError;
+        }
+        
+        toast.success("Storage bucket created successfully");
+      }
+      
+      return true;
+    } catch (err: any) {
+      setError(`Failed to create storage bucket: ${err.message || err}`);
+      console.error("Bucket creation error:", err);
+      return false;
+    } finally {
+      setIsCreatingBucket(false);
     }
   };
   
@@ -128,6 +173,12 @@ export function CSVImportDialog({
     setError(null);
     
     try {
+      // Check if bucket exists and create it if needed
+      const bucketReady = await createBucketIfNeeded();
+      if (!bucketReady) {
+        throw new Error("Storage bucket is not available");
+      }
+      
       // Upload the CSV file to Supabase storage
       const timestamp = new Date().getTime();
       const fileName = `data_${timestamp}_${file.name.replace(/\s+/g, '_')}`;
@@ -277,16 +328,26 @@ export function CSVImportDialog({
         </div>
 
         <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={handleCancel} disabled={isProcessing}>
+          <Button variant="outline" onClick={handleCancel} disabled={isProcessing || isCreatingBucket}>
             Cancel
           </Button>
+          {error && error.includes("bucket") && (
+            <Button 
+              onClick={() => createBucketIfNeeded()} 
+              disabled={isCreatingBucket} 
+              className="gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${isCreatingBucket ? 'animate-spin' : ''}`} />
+              {isCreatingBucket ? "Creating..." : "Create Storage Bucket"}
+            </Button>
+          )}
           {!showSelection ? (
-            <Button onClick={() => {}} disabled={!file || isProcessing} className="gap-2">
+            <Button onClick={() => {}} disabled={!file || isProcessing || isCreatingBucket} className="gap-2">
               <FileUp className="h-4 w-4" />
               {isProcessing ? "Processing..." : "Process File"}
             </Button>
           ) : (
-            <Button onClick={handleSubmit} disabled={!form.watch("selectedRecord") || isProcessing} className="gap-2">
+            <Button onClick={handleSubmit} disabled={!form.watch("selectedRecord") || isProcessing || isCreatingBucket} className="gap-2">
               <Table className="h-4 w-4" />
               {isProcessing ? "Importing..." : "Import Selected Data"}
             </Button>
