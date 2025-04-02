@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,13 +6,11 @@ import { toast } from "sonner";
 import { Repository } from "@/services/repositoryData";
 import { FileUp, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-
 interface CSVImportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onDataImported: (data: Partial<Repository>) => void;
 }
-
 export function CSVImportDialog({
   open,
   onOpenChange,
@@ -22,7 +19,6 @@ export function CSVImportDialog({
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
@@ -35,16 +31,13 @@ export function CSVImportDialog({
       setError(null);
     }
   };
-  
   const processCSV = async () => {
     if (!file) {
       setError("Please select a CSV file first");
       return;
     }
-    
     setIsProcessing(true);
     setError(null);
-    
     try {
       const text = await file.text();
       const lines = text.split('\n').filter(line => line.trim().length > 0);
@@ -59,10 +52,7 @@ export function CSVImportDialog({
 
       // Check for required headers
       const requiredHeaders = ["ProjectID", "Author", "Email", "Date", "Additions", "Deletions", "Operations"];
-      const missingHeaders = requiredHeaders.filter(required => 
-        !headers.some(header => header.toLowerCase() === required.toLowerCase())
-      );
-      
+      const missingHeaders = requiredHeaders.filter(required => !headers.some(header => header.toLowerCase() === required.toLowerCase()));
       if (missingHeaders.length > 0) {
         throw new Error(`Missing required headers: ${missingHeaders.join(", ")}`);
       }
@@ -100,41 +90,38 @@ export function CSVImportDialog({
         mergeRequestCount: Math.floor((result.Operations || 0) / 3) || 0,
         branchCount: Math.floor((result.Operations || 0) / 5) || 0,
         progress: Math.min(Math.floor((result.Additions || 0) / ((result.Additions || 0) + (result.Deletions || 0) + 1) * 100), 100) || 50,
-        
         // Add total fields if not present
-        totalAdditions: result.Additions ? result.Additions * 5 : undefined, 
+        totalAdditions: result.Additions ? result.Additions * 5 : undefined,
         totalDeletions: result.Deletions ? result.Deletions * 3 : undefined,
         totalOperations: result.Operations ? result.Operations * 4 : undefined,
         averageOperationsPerCommit: result.Operations && result.Operations > 0 ? Math.round(result.Operations / 3) : undefined,
         averageCommitsPerWeek: result.Operations && result.Operations > 0 ? Math.round(result.Operations / 12) : undefined
       };
-      
+
       // Upload the CSV file to Supabase storage
       const timestamp = new Date().getTime();
       const fileName = `data_${timestamp}_${file.name.replace(/\s+/g, '_')}`;
-      
+
       // Upload to Supabase storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('csvfiles')
-        .upload(fileName, file);
-        
+      const {
+        data: uploadData,
+        error: uploadError
+      } = await supabase.storage.from('csvfiles').upload(fileName, file);
       if (uploadError) {
         console.error("Error uploading CSV file:", uploadError);
         toast.error("Failed to store CSV file");
       } else {
         console.log("CSV file uploaded successfully:", uploadData);
         toast.success("CSV file stored in backend");
-        
+
         // Add file URL to repository data
-        const { data: publicUrlData } = supabase.storage
-          .from('csvfiles')
-          .getPublicUrl(fileName);
-          
+        const {
+          data: publicUrlData
+        } = supabase.storage.from('csvfiles').getPublicUrl(fileName);
         if (publicUrlData) {
           repositoryData.csvFileUrl = publicUrlData.publicUrl;
         }
       }
-      
       onDataImported(repositoryData);
       onOpenChange(false);
       setFile(null);
@@ -146,7 +133,6 @@ export function CSVImportDialog({
       setIsProcessing(false);
     }
   };
-
   return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
@@ -179,14 +165,8 @@ export function CSVImportDialog({
 
           <div className="bg-muted rounded-md p-3 text-xs">
             <p className="font-medium mb-1">Expected CSV Format:</p>
-            <pre className="overflow-x-auto whitespace-pre-wrap">
-ProjectID,
-Author,
-Email,
-Date (YYYY-MM-DDThh:mm:ss.sss+00:00),
-Additions,
-Deletions,
-Operations</pre>
+            <pre className="overflow-x-auto whitespace-pre-wrap">ProjectID, Author, Email, Date, 
+Additions, Deletions, Operations</pre>
             <p className="text-xs mt-2 text-muted-foreground">
               Example date format: 2024-12-20T20:00:15.000+00:00
             </p>
