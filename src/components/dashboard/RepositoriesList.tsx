@@ -3,6 +3,8 @@ import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
 import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 interface Repository {
   name: string;
@@ -33,6 +35,9 @@ interface RepositoriesListProps {
   programmingStudents: Student[];
   sampleStudents: Student[];
   onRepositorySelect: (repoId: string) => void;
+  selectButtonText?: string; // Added prop for customizing select button text
+  onSelectButtonClick?: (repo: Repository) => void; // Added custom handler for select button
+  showSelectButton?: boolean; // Flag to show select button
 }
 
 export function RepositoriesList({
@@ -42,11 +47,19 @@ export function RepositoriesList({
   selectedRepository,
   programmingStudents,
   sampleStudents,
-  onRepositorySelect
+  onRepositorySelect,
+  selectButtonText = "Select",
+  onSelectButtonClick,
+  showSelectButton = false
 }: RepositoriesListProps) {
   const navigate = useNavigate();
 
   const handleRepositoryClick = (repo: Repository) => {
+    if (onSelectButtonClick && showSelectButton) {
+      // If we're showing select buttons, don't navigate on card click
+      return;
+    }
+    
     if (repo.id) {
       navigate(`/repositories/${repo.id}`);
     } else {
@@ -70,7 +83,12 @@ export function RepositoriesList({
   if (repositories.length === 0) {
     return (
       <div className="p-8 text-center">
-        <p className="text-muted-foreground">No repositories found. Create your first repository to get started.</p>
+        <Alert>
+          <AlertTitle>No repositories found</AlertTitle>
+          <AlertDescription>
+            No repositories found. Create your first repository to get started.
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
@@ -85,10 +103,22 @@ export function RepositoriesList({
         {repositories.map((repo) => (
           <div 
             key={repo.id || repo.name} 
-            className="cursor-pointer transform transition-transform hover:scale-[1.01]"
-            onClick={() => handleRepositoryClick(repo)}
+            className={`relative ${showSelectButton ? "" : "cursor-pointer transform transition-transform hover:scale-[1.01]"}`}
+            onClick={showSelectButton ? undefined : () => handleRepositoryClick(repo)}
           >
             <RepositoryCard {...repo} />
+            
+            {/* Show select button if requested */}
+            {showSelectButton && (
+              <div className="absolute bottom-3 right-3">
+                <Button 
+                  size="sm"
+                  onClick={() => onSelectButtonClick ? onSelectButtonClick(repo) : onRepositorySelect(repo.id || '')}
+                >
+                  {selectButtonText}
+                </Button>
+              </div>
+            )}
           </div>
         ))}
       </div>

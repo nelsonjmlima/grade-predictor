@@ -17,8 +17,9 @@ interface RepositoryControlsProps {
   onSortChange: (value: string) => void;
   viewMode: 'grid' | 'list';
   onViewModeChange: (mode: 'grid' | 'list') => void;
-  onToggleGradesView: () => void;
-  showGradesTemplate: boolean;
+  onToggleGradesView?: () => void;
+  showGradesTemplate?: boolean;
+  hideViewToggle?: boolean;
 }
 
 export function RepositoryControls({
@@ -29,7 +30,8 @@ export function RepositoryControls({
   viewMode,
   onViewModeChange,
   onToggleGradesView,
-  showGradesTemplate
+  showGradesTemplate,
+  hideViewToggle = false
 }: RepositoryControlsProps) {
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -56,24 +58,26 @@ export function RepositoryControls({
           </SelectContent>
         </Select>
         
-        <div className="flex border rounded-md overflow-hidden">
-          <Button 
-            variant={viewMode === 'grid' ? 'default' : 'ghost'} 
-            size="icon" 
-            className="h-10 w-10 rounded-none"
-            onClick={() => onViewModeChange('grid')}
-          >
-            <Grid className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant={viewMode === 'list' ? 'default' : 'ghost'} 
-            size="icon" 
-            className="h-10 w-10 rounded-none"
-            onClick={() => onViewModeChange('list')}
-          >
-            <List className="h-4 w-4" />
-          </Button>
-        </div>
+        {!hideViewToggle && (
+          <div className="flex border rounded-md overflow-hidden">
+            <Button 
+              variant={viewMode === 'grid' ? 'default' : 'ghost'} 
+              size="icon" 
+              className="h-10 w-10 rounded-none"
+              onClick={() => onViewModeChange('grid')}
+            >
+              <Grid className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant={viewMode === 'list' ? 'default' : 'ghost'} 
+              size="icon" 
+              className="h-10 w-10 rounded-none"
+              onClick={() => onViewModeChange('list')}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

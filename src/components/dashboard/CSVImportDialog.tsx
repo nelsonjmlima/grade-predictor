@@ -5,14 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Repository, getRepositories } from "@/services/repositoryData";
-import { FileUp, AlertCircle, Table, RefreshCw } from "lucide-react";
+import { FileUp, AlertCircle, Table, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Table as UITable, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RepositoriesList } from "@/components/dashboard/RepositoriesList";
+import { RepositoryControls } from "@/components/dashboard/RepositoryControls";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface CSVImportDialogProps {
   open: boolean;
@@ -48,6 +52,9 @@ export function CSVImportDialog({
   const [authors, setAuthors] = useState<string[]>([]);
   const [selectedAuthor, setSelectedAuthor] = useState<string | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<CSVRecord | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [sortBy, setSortBy] = useState('name');
   
   const form = useForm({
     defaultValues: {
@@ -67,6 +74,7 @@ export function CSVImportDialog({
   const loadRepositories = () => {
     const repos = getRepositories();
     setRepositories(repos);
+    console.log("Loaded repositories:", repos.length);
   };
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -294,8 +302,9 @@ export function CSVImportDialog({
     }
   };
 
-  const handleRepositorySelect = (repoId: string) => {
-    setSelectedRepositoryId(repoId);
+  const handleRepositorySelect = (repo: Repository) => {
+    setSelectedRepositoryId(repo.id || '');
+    console.log("Selected repository:", repo.name, repo.id);
     setCurrentStep("projectId");
   };
 
@@ -391,6 +400,24 @@ export function CSVImportDialog({
     onOpenChange(false);
   };
 
+  // Filter repositories based on search term
+  const filteredRepositories = repositories.filter(repo => 
+    repo.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    repo.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    repo.projectId?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Sort repositories based on sort criteria
+  const sortedRepositories = [...filteredRepositories].sort((a, b) => {
+    if (sortBy === 'name') return a.name.localeCompare(b.name);
+    if (sortBy === 'recent') {
+      const aDate = new Date(a.lastActivity);
+      const bDate = new Date(b.lastActivity);
+      return bDate.getTime() - aDate.getTime();
+    }
+    return 0;
+  });
+
   const renderStepContent = () => {
     switch (currentStep) {
       case "upload":
@@ -433,48 +460,51 @@ export function CSVImportDialog({
       case "repository":
         return (
           <div className="space-y-4">
-            <h4 className="text-sm font-medium mb-2">Step 2: Select Repository</h4>
+            <div className="flex items-center justify-between border-b pb-2 mb-4">
+              <h4 className="text-base font-medium">Step 2: Select Repository</h4>
+              <div className="text-sm text-muted-foreground">
+                {repositories.length} repositories available
+              </div>
+            </div>
             
-            {repositories.length === 0 ? (
-              <div className="text-center p-4 bg-muted rounded-md">
-                <p className="text-sm text-muted-foreground">No repositories found.</p>
-              </div>
-            ) : (
-              <div className="border rounded-md max-h-[250px] overflow-y-auto">
-                <UITable>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Repository Name</TableHead>
-                      <TableHead>Project ID</TableHead>
-                      <TableHead className="w-[100px]">Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {repositories.map((repo) => (
-                      <TableRow key={repo.id} className={selectedRepositoryId === repo.id ? "bg-muted" : ""}>
-                        <TableCell>{repo.name}</TableCell>
-                        <TableCell>{repo.projectId || "—"}</TableCell>
-                        <TableCell>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => handleRepositorySelect(repo.id || '')}
-                            disabled={isProcessing || !repo.id}
-                          >
-                            Select
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </UITable>
-              </div>
-            )}
+            <RepositoryControls 
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              sortBy={sortBy}
+              onSortChange={setSortBy}
+              viewMode={viewMode} 
+              onViewModeChange={setViewMode}
+              hideViewToggle={true}
+            />
 
-            <DialogFooter className="pt-2">
+            <div className="border rounded-md overflow-hidden">
+              <ScrollArea className="h-[300px]">
+                {repositories.length === 0 ? (
+                  <div className="text-center p-4">
+                    <p>No repositories found.</p>
+                  </div>
+                ) : (
+                  <RepositoriesList
+                    repositories={sortedRepositories}
+                    viewMode={viewMode}
+                    showGradesTemplate={false}
+                    selectedRepository=""
+                    programmingStudents={[]}
+                    sampleStudents={[]}
+                    onRepositorySelect={() => {}}
+                    showSelectButton={true}
+                    selectButtonText="Select"
+                    onSelectButtonClick={handleRepositorySelect}
+                  />
+                )}
+              </ScrollArea>
+            </div>
+            
+            <DialogFooter className="pt-2 space-x-2">
               <Button variant="outline" onClick={() => {
                 setCurrentStep("upload");
-              }} disabled={isProcessing}>
+              }} className="gap-2" disabled={isProcessing}>
+                <ChevronLeft className="h-4 w-4" />
                 Back
               </Button>
               <Button variant="outline" onClick={handleCancel} disabled={isProcessing}>
@@ -487,35 +517,41 @@ export function CSVImportDialog({
       case "projectId":
         return (
           <div className="space-y-4">
-            <h4 className="text-sm font-medium mb-2">Step 3: Select Project ID</h4>
+            <div className="flex items-center justify-between border-b pb-2 mb-4">
+              <h4 className="text-base font-medium">Step 3: Select Project ID</h4>
+            </div>
             
             {projectIds.length === 0 ? (
-              <div className="text-center p-4 bg-muted rounded-md">
-                <p className="text-sm text-muted-foreground">No project IDs found in the CSV file.</p>
-              </div>
+              <Alert>
+                <AlertTitle>No Project IDs Found</AlertTitle>
+                <AlertDescription>
+                  No project IDs were found in the CSV file. Please check the file format.
+                </AlertDescription>
+              </Alert>
             ) : (
-              <Select 
-                value={selectedProjectId || ""} 
-                onValueChange={handleProjectIdSelect}
-                disabled={isProcessing}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Project ID" />
-                </SelectTrigger>
-                <SelectContent>
-                  {projectIds.map((projectId, index) => (
-                    <SelectItem key={index} value={projectId}>
-                      {projectId}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {projectIds.map((projectId, index) => (
+                  <Card 
+                    key={index} 
+                    className={`cursor-pointer transition-colors ${selectedProjectId === projectId ? 'border-primary' : 'hover:border-primary/50'}`}
+                    onClick={() => handleProjectIdSelect(projectId)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="font-medium">{projectId}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {csvData.filter(record => record.projectId === projectId).length} records
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             )}
 
-            <DialogFooter className="pt-2">
+            <DialogFooter className="pt-2 space-x-2">
               <Button variant="outline" onClick={() => {
                 setCurrentStep("repository");
-              }} disabled={isProcessing}>
+              }} className="gap-2" disabled={isProcessing}>
+                <ChevronLeft className="h-4 w-4" />
                 Back
               </Button>
               <Button variant="outline" onClick={handleCancel} disabled={isProcessing}>
@@ -528,53 +564,66 @@ export function CSVImportDialog({
       case "author":
         return (
           <div className="space-y-4">
-            <h4 className="text-sm font-medium mb-2">Step 4: Select Author</h4>
+            <div className="flex items-center justify-between border-b pb-2 mb-4">
+              <h4 className="text-base font-medium">Step 4: Select Author</h4>
+            </div>
             
             {authors.length === 0 ? (
-              <div className="text-center p-4 bg-muted rounded-md">
-                <p className="text-sm text-muted-foreground">No authors found for the selected project ID.</p>
-              </div>
+              <Alert>
+                <AlertTitle>No Authors Found</AlertTitle>
+                <AlertDescription>
+                  No authors were found for the selected project ID in the CSV file.
+                </AlertDescription>
+              </Alert>
             ) : (
-              <Select 
-                value={selectedAuthor || ""} 
-                onValueChange={handleAuthorSelect}
-                disabled={isProcessing}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Author" />
-                </SelectTrigger>
-                <SelectContent>
-                  {authors.map((author, index) => (
-                    <SelectItem key={index} value={author}>
-                      {author}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {authors.map((author, index) => (
+                  <Card 
+                    key={index} 
+                    className={`cursor-pointer transition-colors ${selectedAuthor === author ? 'border-primary' : 'hover:border-primary/50'}`}
+                    onClick={() => handleAuthorSelect(author)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="font-medium">{author}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {csvData.filter(record => 
+                          record.projectId === selectedProjectId && 
+                          record.author === author
+                        ).length} records
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             )}
 
             {selectedRecord && (
-              <div className="mt-4 p-4 border rounded-md bg-muted/30">
-                <h4 className="text-sm font-medium mb-2">Selected Record Summary:</h4>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div><span className="font-medium">Project ID:</span> {selectedRecord.projectId}</div>
-                  <div><span className="font-medium">Author:</span> {selectedRecord.author}</div>
-                  <div><span className="font-medium">Email:</span> {selectedRecord.email}</div>
-                  <div><span className="font-medium">Date:</span> {selectedRecord.date}</div>
-                  {selectedRecord.additions && (
-                    <div><span className="font-medium">Additions:</span> {selectedRecord.additions}</div>
-                  )}
-                  {selectedRecord.deletions && (
-                    <div><span className="font-medium">Deletions:</span> {selectedRecord.deletions}</div>
-                  )}
-                </div>
-              </div>
+              <Card className="mt-4 bg-muted/30">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Selected Record Summary</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div><span className="font-medium">Project ID:</span> {selectedRecord.projectId}</div>
+                    <div><span className="font-medium">Author:</span> {selectedRecord.author}</div>
+                    <div><span className="font-medium">Email:</span> {selectedRecord.email}</div>
+                    <div><span className="font-medium">Date:</span> {selectedRecord.date}</div>
+                    {selectedRecord.additions && (
+                      <div><span className="font-medium">Additions:</span> {selectedRecord.additions}</div>
+                    )}
+                    {selectedRecord.deletions && (
+                      <div><span className="font-medium">Deletions:</span> {selectedRecord.deletions}</div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             )}
 
-            <DialogFooter className="pt-2">
+            <DialogFooter className="pt-2 space-x-2">
               <Button variant="outline" onClick={() => {
                 setCurrentStep("projectId");
-              }} disabled={isProcessing}>
+              }} className="gap-2" disabled={isProcessing}>
+                <ChevronLeft className="h-4 w-4" />
                 Back
               </Button>
               <Button variant="outline" onClick={handleCancel} disabled={isProcessing}>
@@ -596,7 +645,7 @@ export function CSVImportDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
           <DialogTitle>Import CSV File</DialogTitle>
           <DialogDescription>
@@ -606,10 +655,11 @@ export function CSVImportDialog({
 
         <div className="space-y-4 py-4">
           {error && (
-            <div className="flex items-center gap-2 text-destructive text-sm">
+            <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <span>{error}</span>
-            </div>
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
 
           {renderStepContent()}
