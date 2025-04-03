@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Repository, getRepositories } from "@/services/repositoryData";
-import { FileUp, AlertCircle, Table, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
+import { FileUp, AlertCircle, Table, RefreshCw, ChevronLeft, ChevronRight, Check, ArrowDownUp, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,8 @@ import { RepositoryControls } from "@/components/dashboard/RepositoryControls";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 
 interface CSVImportDialogProps {
   open: boolean;
@@ -50,8 +52,9 @@ export function CSVImportDialog({
   const [projectIds, setProjectIds] = useState<string[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [authors, setAuthors] = useState<string[]>([]);
-  const [selectedAuthor, setSelectedAuthor] = useState<string | null>(null);
-  const [selectedRecord, setSelectedRecord] = useState<CSVRecord | null>(null);
+  // Replace single author selection with multiple authors
+  const [selectedAuthors, setSelectedAuthors] = useState<string[]>([]);
+  const [selectedRecords, setSelectedRecords] = useState<CSVRecord[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('name');
@@ -320,22 +323,48 @@ export function CSVImportDialog({
     
     setAuthors(authorsForProject);
     setCurrentStep("author");
+    // Reset selected authors when changing project IDs
+    setSelectedAuthors([]);
+    setSelectedRecords([]);
   };
   
-  const handleAuthorSelect = (author: string) => {
-    setSelectedAuthor(author);
-    
-    // Find the record for the selected project ID and author
-    const record = csvData.find(
-      record => record.projectId === selectedProjectId && record.author === author
-    );
-    
-    setSelectedRecord(record || null);
+  // Handle toggling author selection
+  const handleAuthorToggle = (author: string) => {
+    setSelectedAuthors(prev => {
+      if (prev.includes(author)) {
+        // If author is already selected, remove it
+        const updated = prev.filter(a => a !== author);
+        
+        // Also remove the record from selectedRecords
+        setSelectedRecords(records => 
+          records.filter(record => record.author !== author)
+        );
+        
+        return updated;
+      } else {
+        // If author is not selected, add it
+        const record = csvData.find(
+          record => record.projectId === selectedProjectId && record.author === author
+        );
+        
+        if (record) {
+          setSelectedRecords(prev => [...prev, record]);
+        }
+        
+        return [...prev, author];
+      }
+    });
+  };
+  
+  // Clear a specific author from selection
+  const handleRemoveAuthor = (author: string) => {
+    setSelectedAuthors(prev => prev.filter(a => a !== author));
+    setSelectedRecords(prev => prev.filter(r => r.author !== author));
   };
   
   const handleImportData = () => {
-    if (!selectedRecord || !selectedRepositoryId) {
-      setError("Please complete all selection steps");
+    if (selectedRecords.length === 0 || !selectedRepositoryId) {
+      setError("Please select at least one author to import");
       return;
     }
     
@@ -347,30 +376,34 @@ export function CSVImportDialog({
         throw new Error("Selected repository not found");
       }
 
-      // Create data object with file URL and selected record data
-      const data: Partial<Repository> = {
-        id: selectedRepo.id, // Use the ID of the selected repository
-        csvFileUrl: selectedFileUrl,
-        projectId: selectedRecord.projectId,
-        author: selectedRecord.author,
-        email: selectedRecord.email,
-        // Add other fields as needed
-        additions: selectedRecord.additions ? parseInt(selectedRecord.additions) : undefined,
-        deletions: selectedRecord.deletions ? parseInt(selectedRecord.deletions) : undefined,
-        operations: selectedRecord.operations ? parseInt(selectedRecord.operations) : undefined,
-        totalAdditions: selectedRecord.totaladditions ? parseInt(selectedRecord.totaladditions) : undefined,
-        totalDeletions: selectedRecord.totaldeletions ? parseInt(selectedRecord.totaldeletions) : undefined,
-        totalOperations: selectedRecord.totaloperations ? parseInt(selectedRecord.totaloperations) : undefined,
-        averageOperationsPerCommit: selectedRecord.averageoperationspercommit ? parseFloat(selectedRecord.averageoperationspercommit) : undefined,
-        averageCommitsPerWeek: selectedRecord.averagecommitsperweek ? parseFloat(selectedRecord.averagecommitsperweek) : undefined,
-        date: selectedRecord.date
-      };
+      // Process each selected record
+      selectedRecords.forEach(selectedRecord => {
+        // Create data object with file URL and selected record data
+        const data: Partial<Repository> = {
+          id: selectedRepo.id, // Use the ID of the selected repository
+          csvFileUrl: selectedFileUrl,
+          projectId: selectedRecord.projectId,
+          author: selectedRecord.author,
+          email: selectedRecord.email,
+          // Add other fields as needed
+          additions: selectedRecord.additions ? parseInt(selectedRecord.additions) : undefined,
+          deletions: selectedRecord.deletions ? parseInt(selectedRecord.deletions) : undefined,
+          operations: selectedRecord.operations ? parseInt(selectedRecord.operations) : undefined,
+          totalAdditions: selectedRecord.totaladditions ? parseInt(selectedRecord.totaladditions) : undefined,
+          totalDeletions: selectedRecord.totaldeletions ? parseInt(selectedRecord.totaldeletions) : undefined,
+          totalOperations: selectedRecord.totaloperations ? parseInt(selectedRecord.totaloperations) : undefined,
+          averageOperationsPerCommit: selectedRecord.averageoperationspercommit ? parseFloat(selectedRecord.averageoperationspercommit) : undefined,
+          averageCommitsPerWeek: selectedRecord.averagecommitsperweek ? parseFloat(selectedRecord.averagecommitsperweek) : undefined,
+          date: selectedRecord.date
+        };
+        
+        onDataImported(data);
+      });
       
-      onDataImported(data);
       onOpenChange(false);
       
       toast.success("Data imported successfully", {
-        description: `Imported data for ${selectedRecord.author} from project ${selectedRecord.projectId} into repository "${selectedRepo.name}"`
+        description: `Imported ${selectedRecords.length} author records into repository "${selectedRepo.name}"`
       });
       
       resetState();
@@ -390,8 +423,8 @@ export function CSVImportDialog({
     setProjectIds([]);
     setSelectedProjectId(null);
     setAuthors([]);
-    setSelectedAuthor(null);
-    setSelectedRecord(null);
+    setSelectedAuthors([]);
+    setSelectedRecords([]);
     form.reset();
   };
   
@@ -565,8 +598,31 @@ export function CSVImportDialog({
         return (
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b pb-2 mb-4">
-              <h4 className="text-base font-medium">Step 4: Select Author</h4>
+              <h4 className="text-base font-medium">Step 4: Select Authors</h4>
+              <div className="text-sm text-muted-foreground">
+                {selectedAuthors.length} authors selected
+              </div>
             </div>
+            
+            {/* Selected authors display */}
+            {selectedAuthors.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {selectedAuthors.map((author, index) => (
+                  <Badge key={index} variant="secondary" className="flex items-center gap-1 px-3 py-1.5">
+                    {author}
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveAuthor(author);
+                      }}
+                      className="ml-1 text-muted-foreground hover:text-foreground"
+                    >
+                      <XCircle className="h-4 w-4" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
             
             {authors.length === 0 ? (
               <Alert>
@@ -576,44 +632,66 @@ export function CSVImportDialog({
                 </AlertDescription>
               </Alert>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {authors.map((author, index) => (
-                  <Card 
-                    key={index} 
-                    className={`cursor-pointer transition-colors ${selectedAuthor === author ? 'border-primary' : 'hover:border-primary/50'}`}
-                    onClick={() => handleAuthorSelect(author)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="font-medium">{author}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {csvData.filter(record => 
-                          record.projectId === selectedProjectId && 
-                          record.author === author
-                        ).length} records
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+              <div>
+                <div className="text-sm mb-2 text-muted-foreground">
+                  Select multiple authors to import (currently selected: {selectedAuthors.length})
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {authors.map((author, index) => (
+                    <Card 
+                      key={index} 
+                      className={`cursor-pointer transition-colors ${selectedAuthors.includes(author) ? 'border-primary bg-primary/5' : 'hover:border-primary/50'}`}
+                      onClick={() => handleAuthorToggle(author)}
+                    >
+                      <CardContent className="p-4 flex items-center justify-between">
+                        <div>
+                          <div className="font-medium">{author}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {csvData.filter(record => 
+                              record.projectId === selectedProjectId && 
+                              record.author === author
+                            ).length} records
+                          </div>
+                        </div>
+                        <Checkbox 
+                          checked={selectedAuthors.includes(author)}
+                          className="data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                          onCheckedChange={() => handleAuthorToggle(author)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
             )}
 
-            {selectedRecord && (
+            {selectedRecords.length > 0 && (
               <Card className="mt-4 bg-muted/30">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Selected Record Summary</CardTitle>
+                  <CardTitle className="text-base">Selected Records Summary</CardTitle>
+                  <CardDescription>
+                    {selectedRecords.length} authors selected for import
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div><span className="font-medium">Project ID:</span> {selectedRecord.projectId}</div>
-                    <div><span className="font-medium">Author:</span> {selectedRecord.author}</div>
-                    <div><span className="font-medium">Email:</span> {selectedRecord.email}</div>
-                    <div><span className="font-medium">Date:</span> {selectedRecord.date}</div>
-                    {selectedRecord.additions && (
-                      <div><span className="font-medium">Additions:</span> {selectedRecord.additions}</div>
-                    )}
-                    {selectedRecord.deletions && (
-                      <div><span className="font-medium">Deletions:</span> {selectedRecord.deletions}</div>
-                    )}
+                  <div className="space-y-3">
+                    {selectedRecords.map((record, index) => (
+                      <div key={index} className="p-2 border rounded-md bg-background">
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div><span className="font-medium">Author:</span> {record.author}</div>
+                          <div><span className="font-medium">Email:</span> {record.email}</div>
+                          <div><span className="font-medium">Project ID:</span> {record.projectId}</div>
+                          <div><span className="font-medium">Date:</span> {record.date}</div>
+                          {record.additions && (
+                            <div><span className="font-medium">Additions:</span> {record.additions}</div>
+                          )}
+                          {record.deletions && (
+                            <div><span className="font-medium">Deletions:</span> {record.deletions}</div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
@@ -631,11 +709,11 @@ export function CSVImportDialog({
               </Button>
               <Button 
                 onClick={handleImportData} 
-                disabled={!selectedRecord || isProcessing} 
+                disabled={selectedRecords.length === 0 || isProcessing} 
                 className="gap-2"
               >
                 <Table className="h-4 w-4" />
-                {isProcessing ? "Importing..." : "Import Selected Data"}
+                {isProcessing ? "Importing..." : `Import ${selectedRecords.length} Author${selectedRecords.length !== 1 ? 's' : ''}`}
               </Button>
             </DialogFooter>
           </div>

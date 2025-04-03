@@ -20,6 +20,7 @@ interface RepositoryControlsProps {
   onToggleGradesView?: () => void;
   showGradesTemplate?: boolean;
   hideViewToggle?: boolean;
+  selectCountText?: string;
 }
 
 export function RepositoryControls({
@@ -31,7 +32,8 @@ export function RepositoryControls({
   onViewModeChange,
   onToggleGradesView,
   showGradesTemplate,
-  hideViewToggle = false
+  hideViewToggle = false,
+  selectCountText
 }: RepositoryControlsProps) {
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -46,6 +48,12 @@ export function RepositoryControls({
       </div>
       
       <div className="flex items-center gap-3 w-full md:w-auto">
+        {selectCountText && (
+          <div className="text-sm text-muted-foreground">
+            {selectCountText}
+          </div>
+        )}
+        
         <Select value={sortBy} onValueChange={onSortChange}>
           <SelectTrigger className="w-full md:w-[180px]">
             <Calendar className="h-4 w-4 mr-2" />

@@ -9,6 +9,7 @@ import { Plus, FileUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getRepositories, Repository, filterRepositories, sortRepositories, updateRepository, addRepository } from "@/services/repositoryData";
 import { MetricsImportDialog } from "@/components/dashboard/MetricsImportDialog";
+import { CSVImportDialog } from "@/components/dashboard/CSVImportDialog";
 import { toast } from "sonner";
 
 export default function DashboardPage() {
@@ -17,6 +18,7 @@ export default function DashboardPage() {
   // Always use grid mode now that we've removed the toggle
   const [viewMode] = useState<"grid">("grid");
   const [metricsImportDialogOpen, setMetricsImportDialogOpen] = useState(false);
+  const [csvImportDialogOpen, setCsvImportDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   // Fetch repositories on mount and when dialogOpen changes (indicating a potential new repo)
@@ -40,7 +42,7 @@ export default function DashboardPage() {
       averageCommitsPerWeek: repo.averageCommitsPerWeek || Math.floor(Math.random() * 20) + 1
     }));
     setRepositories(enhancedRepositories);
-  }, [dialogOpen, metricsImportDialogOpen]);
+  }, [dialogOpen, metricsImportDialogOpen, csvImportDialogOpen]);
   
   const handleCreateRepository = () => {
     setDialogOpen(true);
@@ -125,7 +127,7 @@ export default function DashboardPage() {
                 variant="outline" 
                 size="lg" 
                 className="h-14 px-6 text-base" 
-                onClick={() => setMetricsImportDialogOpen(true)}
+                onClick={() => setCsvImportDialogOpen(true)}
               >
                 <FileUp className="h-5 w-5 mr-2" />
                 Import CSV
@@ -154,11 +156,13 @@ export default function DashboardPage() {
       </main>
 
       <CreateRepositoryDialog open={dialogOpen} onOpenChange={setDialogOpen} onRepositoryCreated={() => {
-      // Refresh repositories after creation
-      const updatedRepositories = getRepositories();
-      setRepositories(updatedRepositories);
-    }} />
+        // Refresh repositories after creation
+        const updatedRepositories = getRepositories();
+        setRepositories(updatedRepositories);
+      }} />
 
       <MetricsImportDialog open={metricsImportDialogOpen} onOpenChange={setMetricsImportDialogOpen} onDataImported={handleMetricsDataImported} />
+      
+      <CSVImportDialog open={csvImportDialogOpen} onOpenChange={setCsvImportDialogOpen} onDataImported={handleMetricsDataImported} />
     </div>;
 }
