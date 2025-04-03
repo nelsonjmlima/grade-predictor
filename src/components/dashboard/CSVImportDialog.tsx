@@ -1,10 +1,10 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Repository } from "@/services/repositoryData";
+import { Repository, getRepositories } from "@/services/repositoryData";
 import { FileUp, AlertCircle, Table, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Table as UITable, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
@@ -12,6 +12,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface CSVImportDialogProps {
   open: boolean;
@@ -36,13 +37,37 @@ export function CSVImportDialog({
   const [error, setError] = useState<string | null>(null);
   const [csvData, setCsvData] = useState<CSVRecord[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
-  const [showSelection, setShowSelection] = useState(false);
+  const [currentStep, setCurrentStep] = useState<"upload" | "repository" | "projectId" | "author">("upload");
+  const [storedFiles, setStoredFiles] = useState<{ name: string, url: string }[]>([]);
+  const [loadingFiles, setLoadingFiles] = useState(false);
+  const [selectedFileUrl, setSelectedFileUrl] = useState<string | null>(null);
+  const [repositories, setRepositories] = useState<Repository[]>([]);
+  const [selectedRepositoryId, setSelectedRepositoryId] = useState<string | null>(null);
+  const [projectIds, setProjectIds] = useState<string[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [authors, setAuthors] = useState<string[]>([]);
+  const [selectedAuthor, setSelectedAuthor] = useState<string | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<CSVRecord | null>(null);
   
   const form = useForm({
     defaultValues: {
       selectedRecord: ""
     }
   });
+  
+  useEffect(() => {
+    if (open) {
+      loadRepositories();
+      if (currentStep === "repository") {
+        fetchStoredFiles();
+      }
+    }
+  }, [open, currentStep]);
+
+  const loadRepositories = () => {
+    const repos = getRepositories();
+    setRepositories(repos);
+  };
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -83,6 +108,42 @@ export function CSVImportDialog({
     }
   };
   
+  const fetchStoredFiles = async () => {
+    setLoadingFiles(true);
+    setError(null);
+    
+    try {
+      // Check if bucket exists and is accessible
+      const bucketReady = await checkBucketExists();
+      if (!bucketReady) {
+        throw new Error("Storage bucket is not available. Please check your Supabase configuration.");
+      }
+      
+      const { data, error } = await supabase
+        .storage
+        .from('csvfiles')
+        .list();
+        
+      if (error) {
+        throw error;
+      }
+      
+      if (data) {
+        const files = data.map(file => ({
+          name: file.name,
+          url: supabase.storage.from('csvfiles').getPublicUrl(file.name).data.publicUrl
+        }));
+        
+        setStoredFiles(files);
+      }
+    } catch (err: any) {
+      console.error("Error fetching stored files:", err);
+      setError("Failed to load stored files: " + err.message);
+    } finally {
+      setLoadingFiles(false);
+    }
+  };
+  
   const parseCSV = (file: File) => {
     const reader = new FileReader();
     
@@ -90,45 +151,7 @@ export function CSVImportDialog({
       try {
         if (e.target && typeof e.target.result === 'string') {
           const result = e.target.result;
-          const lines = result.split('\n');
-          
-          // Extract headers (first line)
-          const headers = lines[0].split(',').map(h => h.trim());
-          setHeaders(headers);
-          
-          // Process data rows
-          const parsedData: CSVRecord[] = [];
-          
-          for (let i = 1; i < lines.length; i++) {
-            if (lines[i].trim() === '') continue;
-            
-            const values = lines[i].split(',').map(v => v.trim());
-            const record: CSVRecord = {};
-            
-            headers.forEach((header, index) => {
-              if (values[index]) {
-                record[header.toLowerCase()] = values[index];
-              }
-            });
-            
-            // Only include records that have projectId, author, or email
-            if (record.projectid || record.author || record.email) {
-              parsedData.push({
-                projectId: record.projectid,
-                author: record.author,
-                email: record.email,
-                ...record
-              });
-            }
-          }
-          
-          setCsvData(parsedData);
-          
-          if (parsedData.length > 0) {
-            setShowSelection(true);
-          } else {
-            setError("No valid records found in CSV file");
-          }
+          parseCSVData(result);
         }
       } catch (err: any) {
         setError("Error parsing CSV file: " + err.message);
@@ -142,8 +165,59 @@ export function CSVImportDialog({
     
     reader.readAsText(file);
   };
-  
-  const handleSubmit = form.handleSubmit(async (values) => {
+
+  const parseCSVData = (csvText: string) => {
+    const lines = csvText.split('\n');
+    
+    // Extract headers (first line)
+    const headers = lines[0].split(',').map(h => h.trim());
+    setHeaders(headers);
+    
+    // Process data rows
+    const parsedData: CSVRecord[] = [];
+    
+    for (let i = 1; i < lines.length; i++) {
+      if (lines[i].trim() === '') continue;
+      
+      const values = lines[i].split(',').map(v => v.trim());
+      const record: CSVRecord = {};
+      
+      headers.forEach((header, index) => {
+        if (values[index]) {
+          record[header.toLowerCase()] = values[index];
+        }
+      });
+      
+      // Only include records that have projectId, author, or email
+      if (record.projectid || record.author || record.email) {
+        parsedData.push({
+          projectId: record.projectid,
+          author: record.author,
+          email: record.email,
+          ...record
+        });
+      }
+    }
+    
+    setCsvData(parsedData);
+    
+    if (parsedData.length > 0) {
+      setCurrentStep("repository");
+    } else {
+      setError("No valid records found in CSV file");
+    }
+
+    // Extract unique project IDs
+    const uniqueProjectIds = Array.from(new Set(
+      parsedData
+        .filter(record => record.projectId)
+        .map(record => record.projectId as string)
+    ));
+    
+    setProjectIds(uniqueProjectIds);
+  };
+
+  const handleFileUpload = async () => {
     if (!file) {
       setError("Please select a CSV file first");
       return;
@@ -177,23 +251,97 @@ export function CSVImportDialog({
       }
       
       console.log("CSV file uploaded successfully:", uploadData);
-      toast.success("CSV file stored in backend");
-
+      
       // Get public URL to pass back
       const { data: publicUrlData } = supabase.storage
         .from('csvfiles')
         .getPublicUrl(fileName);
       
-      // Find the selected record
-      const selectedRecord = csvData.find((_, index) => index.toString() === values.selectedRecord);
+      setSelectedFileUrl(publicUrlData?.publicUrl || null);
       
-      if (!selectedRecord) {
-        throw new Error("Selected record not found");
+      // Load the CSV data from the file we just uploaded
+      const response = await fetch(publicUrlData?.publicUrl || '');
+      const csvText = await response.text();
+      parseCSVData(csvText);
+      
+      toast.success("CSV file stored in backend");
+    } catch (err: any) {
+      setError(err.message || "Failed to upload CSV file");
+      console.error("CSV upload error:", err);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleStoredFileSelect = async (fileUrl: string) => {
+    setSelectedFileUrl(fileUrl);
+    setIsProcessing(true);
+    setError(null);
+    
+    try {
+      const response = await fetch(fileUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch the CSV file (Status: ${response.status})`);
       }
       
+      const csvText = await response.text();
+      parseCSVData(csvText);
+    } catch (err: any) {
+      setError("Error fetching CSV file: " + err.message);
+      console.error("CSV fetch error:", err);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleRepositorySelect = (repoId: string) => {
+    setSelectedRepositoryId(repoId);
+    setCurrentStep("projectId");
+  };
+
+  const handleProjectIdSelect = (projectId: string) => {
+    setSelectedProjectId(projectId);
+    
+    // Get all authors for the selected project ID
+    const authorsForProject = Array.from(new Set(
+      csvData
+        .filter(record => record.projectId === projectId && record.author)
+        .map(record => record.author as string)
+    ));
+    
+    setAuthors(authorsForProject);
+    setCurrentStep("author");
+  };
+  
+  const handleAuthorSelect = (author: string) => {
+    setSelectedAuthor(author);
+    
+    // Find the record for the selected project ID and author
+    const record = csvData.find(
+      record => record.projectId === selectedProjectId && record.author === author
+    );
+    
+    setSelectedRecord(record || null);
+  };
+  
+  const handleImportData = () => {
+    if (!selectedRecord || !selectedRepositoryId) {
+      setError("Please complete all selection steps");
+      return;
+    }
+    
+    try {
+      // Find the selected repository to get its ID
+      const selectedRepo = repositories.find(repo => repo.id === selectedRepositoryId);
+      
+      if (!selectedRepo) {
+        throw new Error("Selected repository not found");
+      }
+
       // Create data object with file URL and selected record data
-      const fileData: Partial<Repository> = {
-        csvFileUrl: publicUrlData?.publicUrl,
+      const data: Partial<Repository> = {
+        id: selectedRepo.id, // Use the ID of the selected repository
+        csvFileUrl: selectedFileUrl,
         projectId: selectedRecord.projectId,
         author: selectedRecord.author,
         email: selectedRecord.email,
@@ -209,131 +357,264 @@ export function CSVImportDialog({
         date: selectedRecord.date
       };
       
-      onDataImported(fileData);
+      onDataImported(data);
       onOpenChange(false);
-      setFile(null);
-      setCsvData([]);
-      setHeaders([]);
-      setShowSelection(false);
-      form.reset();
+      
+      toast.success("Data imported successfully", {
+        description: `Imported data for ${selectedRecord.author} from project ${selectedRecord.projectId} into repository "${selectedRepo.name}"`
+      });
+      
+      resetState();
     } catch (err: any) {
-      setError(err.message || "Failed to upload CSV file");
-      console.error("CSV upload error:", err);
-    } finally {
-      setIsProcessing(false);
+      setError(err.message || "Failed to import data");
+      console.error("Data import error:", err);
     }
-  });
-  
-  const handleCancel = () => {
+  };
+
+  const resetState = () => {
     setFile(null);
     setCsvData([]);
     setHeaders([]);
-    setShowSelection(false);
+    setCurrentStep("upload");
+    setSelectedFileUrl(null);
+    setSelectedRepositoryId(null);
+    setProjectIds([]);
+    setSelectedProjectId(null);
+    setAuthors([]);
+    setSelectedAuthor(null);
+    setSelectedRecord(null);
     form.reset();
+  };
+  
+  const handleCancel = () => {
+    resetState();
     onOpenChange(false);
   };
 
-  return <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Import CSV File</DialogTitle>
-          <DialogDescription>
-            Upload a CSV file and select data to import.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4 py-4">
-          {!showSelection ? (
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case "upload":
+        return (
+          <div className="space-y-4">
             <div className="grid w-full items-center gap-1.5">
               <label htmlFor="csv-file" className="text-sm font-medium">
                 CSV File
               </label>
               <Input id="csv-file" type="file" accept=".csv" onChange={handleFileChange} className="cursor-pointer" />
             </div>
-          ) : (
-            <Form {...form}>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="max-h-[300px] overflow-auto border rounded-md">
-                  <UITable>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[80px]">Select</TableHead>
-                        {headers.includes('ProjectID') && <TableHead>Project ID</TableHead>}
-                        {headers.includes('Author') && <TableHead>Author</TableHead>}
-                        {headers.includes('Email') && <TableHead>Email</TableHead>}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {csvData.map((record, index) => (
-                        <TableRow key={index}>
-                          <TableCell>
-                            <FormField
-                              control={form.control}
-                              name="selectedRecord"
-                              render={({ field }) => (
-                                <FormItem className="flex items-center space-x-3 space-y-0">
-                                  <FormControl>
-                                    <RadioGroup 
-                                      onValueChange={field.onChange} 
-                                      defaultValue={field.value}
-                                      className="flex flex-col space-y-1"
-                                    >
-                                      <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value={index.toString()} id={`record-${index}`} />
-                                      </div>
-                                    </RadioGroup>
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                          </TableCell>
-                          {headers.includes('ProjectID') && <TableCell>{record.projectId}</TableCell>}
-                          {headers.includes('Author') && <TableCell>{record.author}</TableCell>}
-                          {headers.includes('Email') && <TableCell>{record.email}</TableCell>}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </UITable>
-                </div>
-              </form>
-            </Form>
-          )}
 
-          {error && <div className="flex items-center gap-2 text-destructive text-sm">
+            {file && (
+              <div className="text-sm">
+                <span className="font-medium">Selected file:</span> {file.name}
+              </div>
+            )}
+
+            <DialogFooter className="pt-2">
+              <Button variant="outline" onClick={handleCancel} disabled={isProcessing}>
+                Cancel
+              </Button>
+              {error && error.includes("Storage bucket") && (
+                <Button 
+                  onClick={checkBucketExists} 
+                  className="gap-2"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Recheck Storage Bucket
+                </Button>
+              )}
+              <Button onClick={handleFileUpload} disabled={!file || isProcessing} className="gap-2">
+                <FileUp className="h-4 w-4" />
+                {isProcessing ? "Processing..." : "Process File"}
+              </Button>
+            </DialogFooter>
+          </div>
+        );
+      
+      case "repository":
+        return (
+          <div className="space-y-4">
+            <h4 className="text-sm font-medium mb-2">Step 2: Select Repository</h4>
+            
+            {repositories.length === 0 ? (
+              <div className="text-center p-4 bg-muted rounded-md">
+                <p className="text-sm text-muted-foreground">No repositories found.</p>
+              </div>
+            ) : (
+              <div className="border rounded-md max-h-[250px] overflow-y-auto">
+                <UITable>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Repository Name</TableHead>
+                      <TableHead>Project ID</TableHead>
+                      <TableHead className="w-[100px]">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {repositories.map((repo) => (
+                      <TableRow key={repo.id} className={selectedRepositoryId === repo.id ? "bg-muted" : ""}>
+                        <TableCell>{repo.name}</TableCell>
+                        <TableCell>{repo.projectId || "—"}</TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleRepositorySelect(repo.id || '')}
+                            disabled={isProcessing || !repo.id}
+                          >
+                            Select
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </UITable>
+              </div>
+            )}
+
+            <DialogFooter className="pt-2">
+              <Button variant="outline" onClick={() => {
+                setCurrentStep("upload");
+              }} disabled={isProcessing}>
+                Back
+              </Button>
+              <Button variant="outline" onClick={handleCancel} disabled={isProcessing}>
+                Cancel
+              </Button>
+            </DialogFooter>
+          </div>
+        );
+      
+      case "projectId":
+        return (
+          <div className="space-y-4">
+            <h4 className="text-sm font-medium mb-2">Step 3: Select Project ID</h4>
+            
+            {projectIds.length === 0 ? (
+              <div className="text-center p-4 bg-muted rounded-md">
+                <p className="text-sm text-muted-foreground">No project IDs found in the CSV file.</p>
+              </div>
+            ) : (
+              <Select 
+                value={selectedProjectId || ""} 
+                onValueChange={handleProjectIdSelect}
+                disabled={isProcessing}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select Project ID" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projectIds.map((projectId, index) => (
+                    <SelectItem key={index} value={projectId}>
+                      {projectId}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            <DialogFooter className="pt-2">
+              <Button variant="outline" onClick={() => {
+                setCurrentStep("repository");
+              }} disabled={isProcessing}>
+                Back
+              </Button>
+              <Button variant="outline" onClick={handleCancel} disabled={isProcessing}>
+                Cancel
+              </Button>
+            </DialogFooter>
+          </div>
+        );
+      
+      case "author":
+        return (
+          <div className="space-y-4">
+            <h4 className="text-sm font-medium mb-2">Step 4: Select Author</h4>
+            
+            {authors.length === 0 ? (
+              <div className="text-center p-4 bg-muted rounded-md">
+                <p className="text-sm text-muted-foreground">No authors found for the selected project ID.</p>
+              </div>
+            ) : (
+              <Select 
+                value={selectedAuthor || ""} 
+                onValueChange={handleAuthorSelect}
+                disabled={isProcessing}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select Author" />
+                </SelectTrigger>
+                <SelectContent>
+                  {authors.map((author, index) => (
+                    <SelectItem key={index} value={author}>
+                      {author}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {selectedRecord && (
+              <div className="mt-4 p-4 border rounded-md bg-muted/30">
+                <h4 className="text-sm font-medium mb-2">Selected Record Summary:</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div><span className="font-medium">Project ID:</span> {selectedRecord.projectId}</div>
+                  <div><span className="font-medium">Author:</span> {selectedRecord.author}</div>
+                  <div><span className="font-medium">Email:</span> {selectedRecord.email}</div>
+                  <div><span className="font-medium">Date:</span> {selectedRecord.date}</div>
+                  {selectedRecord.additions && (
+                    <div><span className="font-medium">Additions:</span> {selectedRecord.additions}</div>
+                  )}
+                  {selectedRecord.deletions && (
+                    <div><span className="font-medium">Deletions:</span> {selectedRecord.deletions}</div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <DialogFooter className="pt-2">
+              <Button variant="outline" onClick={() => {
+                setCurrentStep("projectId");
+              }} disabled={isProcessing}>
+                Back
+              </Button>
+              <Button variant="outline" onClick={handleCancel} disabled={isProcessing}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleImportData} 
+                disabled={!selectedRecord || isProcessing} 
+                className="gap-2"
+              >
+                <Table className="h-4 w-4" />
+                {isProcessing ? "Importing..." : "Import Selected Data"}
+              </Button>
+            </DialogFooter>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Import CSV File</DialogTitle>
+          <DialogDescription>
+            Upload a CSV file and select data to import into an existing repository.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          {error && (
+            <div className="flex items-center gap-2 text-destructive text-sm">
               <AlertCircle className="h-4 w-4" />
               <span>{error}</span>
-            </div>}
+            </div>
+          )}
 
-          {file && !showSelection && <div className="text-sm">
-              <span className="font-medium">Selected file:</span> {file.name}
-            </div>}
+          {renderStepContent()}
         </div>
-
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={handleCancel} disabled={isProcessing}>
-            Cancel
-          </Button>
-          {error && error.includes("Storage bucket") && (
-            <Button 
-              onClick={checkBucketExists} 
-              className="gap-2"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Recheck Storage Bucket
-            </Button>
-          )}
-          {!showSelection ? (
-            <Button onClick={() => {}} disabled={!file || isProcessing} className="gap-2">
-              <FileUp className="h-4 w-4" />
-              {isProcessing ? "Processing..." : "Process File"}
-            </Button>
-          ) : (
-            <Button onClick={handleSubmit} disabled={!form.watch("selectedRecord") || isProcessing} className="gap-2">
-              <Table className="h-4 w-4" />
-              {isProcessing ? "Importing..." : "Import Selected Data"}
-            </Button>
-          )}
-        </DialogFooter>
       </DialogContent>
-    </Dialog>;
+    </Dialog>
+  );
 }
