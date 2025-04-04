@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronRight, Home, GitBranch, LogOut } from "lucide-react";
@@ -80,10 +81,13 @@ export function SideNav() {
             </Avatar>
             {!collapsed}
           </div>
-          <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 ml-1" onClick={() => setShowSignOutDialog(true)}>
-            <LogOut className="h-4 w-4 text-muted-foreground" />
-            <span className="sr-only">Sign Out</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            {!collapsed && <span className="text-sm text-muted-foreground">Sign Out</span>}
+            <Button variant="ghost" size="icon" className="rounded-full h-8 w-8" onClick={() => setShowSignOutDialog(true)}>
+              <LogOut className="h-4 w-4 text-muted-foreground" />
+              <span className="sr-only">Sign Out</span>
+            </Button>
+          </div>
         </div>
       </div>
 
