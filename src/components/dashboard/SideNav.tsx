@@ -7,8 +7,7 @@ import {
   GitBranch,
   Settings,
   LogOut,
-  Key,
-  ChevronDown
+  Key
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -70,73 +69,10 @@ function NavItem({ icon: Icon, label, to, active, collapsed, onClick }: NavItemP
   );
 }
 
-interface NavSubMenuProps {
-  icon: React.ElementType;
-  label: string;
-  active?: boolean;
-  collapsed?: boolean;
-  isOpen: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-}
-
-function NavSubMenu({ icon: Icon, label, active, collapsed, isOpen, onToggle, children }: NavSubMenuProps) {
-  return (
-    <div className="space-y-1">
-      <Tooltip delayDuration={0}>
-        <TooltipTrigger asChild>
-          <button 
-            className={cn(
-              "flex items-center justify-between w-full px-3 py-2 rounded-md transition-all duration-200 group hover:bg-primary/10",
-              active && "bg-primary/10 text-primary font-medium"
-            )}
-            onClick={onToggle}
-          >
-            <div className="flex items-center gap-3">
-              <Icon className={cn(
-                "h-5 w-5",
-                active ? "text-primary" : "text-muted-foreground"
-              )} />
-              {!collapsed && (
-                <span className={cn(
-                  "text-sm transition-opacity duration-200",
-                  collapsed ? "opacity-0 w-0" : "opacity-100"
-                )}>
-                  {label}
-                </span>
-              )}
-            </div>
-            {!collapsed && (
-              <ChevronDown 
-                className={cn(
-                  "h-4 w-4 text-muted-foreground transition-transform",
-                  isOpen && "transform rotate-180"
-                )} 
-              />
-            )}
-          </button>
-        </TooltipTrigger>
-        {collapsed && (
-          <TooltipContent side="right">
-            {label}
-          </TooltipContent>
-        )}
-      </Tooltip>
-      
-      {isOpen && !collapsed && (
-        <div className="pl-8 space-y-1">
-          {children}
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function SideNav() {
   const [collapsed, setCollapsed] = useState(false);
   const [activeItem, setActiveItem] = useState("Dashboard");
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
-  const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
 
@@ -195,27 +131,25 @@ export function SideNav() {
             collapsed={collapsed}
             onClick={() => setActiveItem("Repositories")}
           />
-          
-          <NavSubMenu
-            icon={Settings}
-            label="Settings"
-            active={activeItem === "Settings"}
+          <NavItem 
+            icon={Settings} 
+            label="Settings" 
+            to="/settings"
+            active={activeItem === "Settings" && window.location.hash !== "#password"} 
             collapsed={collapsed}
-            isOpen={settingsMenuOpen}
-            onToggle={() => setSettingsMenuOpen(!settingsMenuOpen)}
-          >
-            <NavItem
-              icon={Key}
-              label="Password"
-              to="/settings#password"
-              active={activeItem === "Settings" && window.location.hash === "#password"}
-              collapsed={collapsed}
-              onClick={() => {
-                setActiveItem("Settings");
-                navigate("/settings#password");
-              }}
-            />
-          </NavSubMenu>
+            onClick={() => setActiveItem("Settings")}
+          />
+          <NavItem 
+            icon={Key} 
+            label="Password" 
+            to="/settings#password"
+            active={activeItem === "Settings" && window.location.hash === "#password"} 
+            collapsed={collapsed}
+            onClick={() => {
+              setActiveItem("Settings");
+              navigate("/settings#password");
+            }}
+          />
         </nav>
       </div>
       
