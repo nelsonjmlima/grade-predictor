@@ -22,7 +22,6 @@ import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 import VerificationPage from "./pages/VerificationPage";
 import Index from "./pages/Index";
-import LogoPage from "./pages/LogoPage";
 import GradePredictionPage from "./pages/GradePredictionPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
@@ -58,7 +57,6 @@ const App = () => {
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/index" element={<Navigate to="/" replace />} />
-              <Route path="/logo" element={<LogoPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/verification" element={<VerificationPage />} />
               
