@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { updateRepository, Repository } from "@/services/repositoryData";
+import { Student } from "@/services/studentData";
 
 const formSchema = z.object({
   name: z.string().min(3, { message: "Repository name must be at least 3 characters" }),
@@ -33,7 +34,13 @@ export function EditRepositoryDialog({
   onRepositoryUpdated
 }: EditRepositoryDialogProps) {
   const [isSaving, setIsSaving] = useState(false);
-  const studentsCount = repository.students?.length || 0;
+  
+  // Calculate students count safely
+  const studentsCount = Array.isArray(repository.students) 
+    ? repository.students.length 
+    : (typeof repository.students === 'string' 
+      ? repository.students.split('\n').filter(email => email.trim()).length 
+      : 0);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -56,8 +63,18 @@ export function EditRepositoryDialog({
     setIsSaving(true);
     
     try {
-      // Create dummy students array if needed based on the new count
-      let updatedStudents = repository.students || [];
+      // Create or update students array based on the existing type
+      let updatedStudents: Student[] = [];
+      
+      // If students is already an array, use it directly
+      if (Array.isArray(repository.students)) {
+        updatedStudents = [...repository.students];
+      }
+      // If students is a string, convert it to an empty array (this shouldn't happen in normal flow)
+      else if (typeof repository.students === 'string') {
+        updatedStudents = [];
+      }
+      
       const currentCount = updatedStudents.length;
       const targetCount = values.studentsCount;
       

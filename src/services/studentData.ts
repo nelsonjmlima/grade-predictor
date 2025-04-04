@@ -1,4 +1,33 @@
+
 // Type definitions for student data
+export interface Student {
+  id: string;
+  name: string;
+  email: string;
+  commitCount: number;
+  commitTrend?: "up" | "down" | "stable";
+  commitPercentChange?: number;
+  currentGrade?: string;
+  activityScore?: number;
+  studentNumber?: string;
+  gitlabUsername?: string;
+  groupNumber?: number;
+  lastActivity: string;
+  grade?: string;
+  commits?: { date: string; count: number }[];
+  fileChanges?: { type: string; count: number; color: string }[];
+  codeQuality?: { category: string; score: number; maxScore: number }[];
+  codeReviews?: {
+    title: string;
+    type: "positive" | "negative" | "improvement";
+    message: string;
+    reviewer: string;
+    date: string;
+  }[];
+  contributions?: { date: string; count: number }[];
+}
+
+// Type definitions for student data details
 export interface StudentData {
   id: string;
   name: string;

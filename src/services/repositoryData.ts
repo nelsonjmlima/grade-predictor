@@ -47,19 +47,6 @@ export interface Repository {
   csvFileUrl?: string;
 }
 
-export interface Student {
-  id: string;
-  name: string;
-  email: string;
-  commitCount: number;
-  grade?: string;
-  lastActivity: string;
-  studentNumber?: string;
-  gitlabUsername?: string;
-  groupNumber?: number;
-  activityTrend?: 'up' | 'down' | 'stable';
-}
-
 const defaultRepositories: Repository[] = [];
 
 export const getRepositories = (): Repository[] => {
@@ -248,7 +235,12 @@ export const getRepositoryStudents = (repositoryId: string): Student[] => {
   const repository = repositories.find(repo => repo.id === repositoryId);
   
   if (repository && repository.students) {
-    return repository.students;
+    if (Array.isArray(repository.students)) {
+      return repository.students;
+    } else if (typeof repository.students === 'string') {
+      // Convert string representation to Student array if needed
+      return [];
+    }
   }
   
   return repositoryId === 'programming-fundamentals' ? [...programmingStudents] : [...sampleStudents];
@@ -264,12 +256,19 @@ export const saveRepositoryStudent = (repositoryId: string, student: Student): b
     repositories[index].students = [];
   }
   
-  const studentIndex = repositories[index].students!.findIndex(s => s.id === student.id);
+  // Handle the case where students is a string
+  if (typeof repositories[index].students === 'string') {
+    repositories[index].students = [];
+  }
+  
+  // Now we can safely use array methods since we've ensured students is an array
+  const studentArray = repositories[index].students as Student[];
+  const studentIndex = studentArray.findIndex(s => s.id === student.id);
   
   if (studentIndex >= 0) {
-    repositories[index].students![studentIndex] = student;
+    studentArray[studentIndex] = student;
   } else {
-    repositories[index].students!.push(student);
+    studentArray.push(student);
   }
   
   localStorage.setItem('repositories', JSON.stringify(repositories));
