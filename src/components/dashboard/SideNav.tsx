@@ -5,8 +5,7 @@ import {
   ChevronRight,
   Home,
   GitBranch,
-  LogOut,
-  Key
+  LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -129,17 +128,6 @@ export function SideNav() {
             active={activeItem === "Repositories"} 
             collapsed={collapsed}
             onClick={() => setActiveItem("Repositories")}
-          />
-          <NavItem 
-            icon={Key} 
-            label="Password" 
-            to="/settings#password"
-            active={activeItem === "Password"} 
-            collapsed={collapsed}
-            onClick={() => {
-              setActiveItem("Password");
-              navigate("/settings#password");
-            }}
           />
         </nav>
       </div>
