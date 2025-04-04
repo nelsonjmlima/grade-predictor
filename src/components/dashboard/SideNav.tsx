@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronRight, Home, GitBranch, LogOut } from "lucide-react";
+import { ChevronRight, Home, GitBranch, LogOut, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -58,7 +58,7 @@ export function SideNav() {
   const userEmail = user?.email || "user@example.com";
   const userName = user?.user_metadata?.name || userEmail.split('@')[0] || "User";
   const userInitials = userName.slice(0, 2).toUpperCase();
-  return <div className={cn("flex flex-col h-screen bg-card border-r border-border transition-all duration-300 ease-in-out", collapsed ? "w-[52px]" : "w-[187px]")}>
+  return <div className={cn("flex flex-col h-screen bg-card border-r border-border transition-all duration-300 ease-in-out", collapsed ? "w-[52px]" : "w-[157px]")}>
       <div className="p-4 flex items-center justify-between border-b border-border">
         <div className="flex items-center gap-2 overflow-hidden">
           {!collapsed && <span className="font-semibold text-lg truncate animate-fade-in">Grade Predictor</span>}
@@ -70,6 +70,7 @@ export function SideNav() {
         <nav className="space-y-2 px-2">
           <NavItem icon={Home} label="Dashboard" to="/dashboard" active={activeItem === "Dashboard"} collapsed={collapsed} onClick={() => setActiveItem("Dashboard")} />
           <NavItem icon={GitBranch} label="Repositories" to="/repositories" active={activeItem === "Repositories"} collapsed={collapsed} onClick={() => setActiveItem("Repositories")} />
+          <NavItem icon={Lock} label="Password" to="/password" active={activeItem === "Password"} collapsed={collapsed} onClick={() => setActiveItem("Password")} />
         </nav>
       </div>
       
@@ -77,9 +78,9 @@ export function SideNav() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Avatar className="h-8 w-8">
-              
+              <AvatarFallback>{userInitials}</AvatarFallback>
             </Avatar>
-            {!collapsed}
+            {!collapsed && <span className="text-sm font-medium truncate">{userName}</span>}
           </div>
           <div className="flex items-center gap-2">
             {!collapsed && <span className="text-sm text-muted-foreground">Sign Out</span>}

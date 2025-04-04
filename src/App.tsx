@@ -19,6 +19,7 @@ import NotFound from "./pages/NotFound";
 import VerificationPage from "./pages/VerificationPage";
 import Index from "./pages/Index";
 import GradePredictionPage from "./pages/GradePredictionPage";
+import PasswordPage from "./pages/PasswordPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -63,6 +64,7 @@ const App = () => {
               <Route path="/repositories/:id" element={<ProtectedRoute><RepositoryDetailsPage /></ProtectedRoute>} />
               <Route path="/repositories/:id/student/:studentId" element={<ProtectedRoute><StudentMetricsPage /></ProtectedRoute>} />
               <Route path="/repositories/:id/student/:studentId/prediction" element={<ProtectedRoute><GradePredictionPage /></ProtectedRoute>} />
+              <Route path="/password" element={<ProtectedRoute><PasswordPage /></ProtectedRoute>} />
               
               <Route path="*" element={<NotFound />} />
             </Routes>
