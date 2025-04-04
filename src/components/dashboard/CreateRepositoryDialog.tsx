@@ -16,7 +16,7 @@ import { addRepository } from "@/services/repositoryData";
 const formSchema = z.object({
   name: z.string().min(3, { message: "Repository name must be at least 3 characters" }),
   link: z.string().url({ message: "Please enter a valid URL" }).optional().or(z.literal("")),
-  apiKey: z.string().optional(),
+  apiKey: z.string().min(1, { message: "API key is required for repository access" }).optional().or(z.literal("")),
   studentList: z.string().optional(),
 });
 
@@ -124,6 +124,9 @@ export function CreateRepositoryDialog({
                       <Input placeholder="https://github.com/username/repository" {...field} />
                     </div>
                   </FormControl>
+                  <FormDescription>
+                    Enter the full URL to your repository (GitHub, GitLab, etc.)
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -146,6 +149,9 @@ export function CreateRepositoryDialog({
                       />
                     </div>
                   </FormControl>
+                  <FormDescription>
+                    Enter the API key for repository access. Required for metrics retrieval.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

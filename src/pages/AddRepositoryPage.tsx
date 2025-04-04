@@ -20,7 +20,9 @@ const formSchema = z.object({
   link: z.string().url({
     message: "Please enter a valid URL"
   }).optional().or(z.literal("")),
-  apiKey: z.string().optional(),
+  apiKey: z.string().min(1, { 
+    message: "API key is required for repository access" 
+  }).optional().or(z.literal("")),
   studentList: z.string().optional(),
 });
 
@@ -57,6 +59,13 @@ export default function AddRepositoryPage() {
         apiKey: values.apiKey || undefined,
         students: values.studentList
       };
+      
+      console.log("Creating repository with:", {
+        name: newRepo.name,
+        link: newRepo.link,
+        hasApiKey: Boolean(newRepo.apiKey),
+        studentListLength: typeof newRepo.students === 'string' ? newRepo.students.split('\n').length : 0
+      });
       
       addRepository(newRepo as any);
       
@@ -117,6 +126,9 @@ export default function AddRepositoryPage() {
                           <Input placeholder="https://github.com/username/repository" {...field} />
                         </div>
                       </FormControl>
+                      <FormDescription>
+                        Enter the full URL to your repository (GitHub, GitLab, etc.)
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )} 
@@ -131,9 +143,17 @@ export default function AddRepositoryPage() {
                       <FormControl>
                         <div className="flex items-center space-x-2">
                           <Key className="h-4 w-4 text-muted-foreground" />
-                          <Input placeholder="Enter repository API key" type="password" showPasswordToggle {...field} />
+                          <Input 
+                            placeholder="Enter repository API key" 
+                            type="password"
+                            showPasswordToggle 
+                            {...field} 
+                          />
                         </div>
                       </FormControl>
+                      <FormDescription>
+                        Enter the API key for repository access. Required for metrics retrieval.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )} 
