@@ -62,9 +62,7 @@ export function SideNav() {
         <div className="flex items-center gap-2 overflow-hidden">
           {!collapsed && <span className="font-semibold text-lg truncate animate-fade-in">Grade Predictor</span>}
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setCollapsed(!collapsed)} className="h-8 w-8 rounded-full">
-          <ChevronRight className={cn("h-4 w-4 transition-transform", collapsed && "rotate-180")} />
-        </Button>
+        
       </div>
       
       <div className="flex-1 py-6 overflow-y-auto scrollbar-none">
