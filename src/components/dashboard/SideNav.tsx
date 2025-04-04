@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronRight, Home, LogOut } from "lucide-react";
+import { ChevronRight, Home, LogOut, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -71,7 +71,11 @@ export function SideNav() {
         </nav>
       </div>
       
-      <div className="mt-auto p-3 border-t border-border">        
+      <div className="p-3 border-t border-border">
+        <nav className="space-y-2 px-2 mb-4">
+          <NavItem icon={Lock} label="Password" to="/password" active={activeItem === "Password"} collapsed={collapsed} onClick={() => setActiveItem("Password")} />
+        </nav>
+        
         <div className="flex justify-start">
           <Button variant="ghost" size="sm" onClick={() => setShowSignOutDialog(true)} className="flex items-center gap-2 text-center text-sm mx-0 px-[30px] rounded-none">
             <span className="text-sm font-light">Sign Out</span>
