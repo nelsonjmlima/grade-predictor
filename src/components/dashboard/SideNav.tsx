@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronRight, Home, GitBranch, LogOut, Lock } from "lucide-react";
@@ -73,20 +74,22 @@ export function SideNav() {
         <nav className="space-y-2 px-2">
           <NavItem icon={Home} label="Dashboard" to="/dashboard" active={activeItem === "Dashboard"} collapsed={collapsed} onClick={() => setActiveItem("Dashboard")} />
           <NavItem icon={GitBranch} label="Repositories" to="/repositories" active={activeItem === "Repositories"} collapsed={collapsed} onClick={() => setActiveItem("Repositories")} />
-          <NavItem icon={Lock} label="Password" to="/password" active={activeItem === "Password"} collapsed={collapsed} onClick={() => setActiveItem("Password")} />
         </nav>
       </div>
       
-      <div className="p-3 border-t border-border mt-auto">
+      <div className="p-3 border-t border-border">
+        <nav className="space-y-2 px-2 mb-4">
+          <NavItem icon={Lock} label="Password" to="/password" active={activeItem === "Password"} collapsed={collapsed} onClick={() => setActiveItem("Password")} />
+        </nav>
+        
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Avatar className="h-8 w-8">
-              
+              <AvatarFallback>{userInitials}</AvatarFallback>
             </Avatar>
-            {!collapsed}
+            {!collapsed && <span className="text-sm font-medium truncate">{userName}</span>}
           </div>
-          <div className="flex items-center gap-2">
-            {!collapsed && <span className="text-sm text-muted-foreground">Sign Out</span>}
+          <div className="flex items-center">
             <Button variant="ghost" size="icon" className="rounded-full h-8 w-8" onClick={() => setShowSignOutDialog(true)}>
               <LogOut className="h-4 w-4 text-muted-foreground" />
               <span className="sr-only">Sign Out</span>
