@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronRight, Home, GitBranch, LogOut, Lock } from "lucide-react";
@@ -78,9 +77,9 @@ export function SideNav() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Avatar className="h-8 w-8">
-              <AvatarFallback>{userInitials}</AvatarFallback>
+              
             </Avatar>
-            {!collapsed && <span className="text-sm font-medium truncate">{userName}</span>}
+            {!collapsed}
           </div>
           <div className="flex items-center gap-2">
             {!collapsed && <span className="text-sm text-muted-foreground">Sign Out</span>}
