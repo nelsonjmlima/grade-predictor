@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -50,7 +49,6 @@ export default function AddRepositoryPage() {
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
     try {
-      // Determine which student data to use based on the active tab
       const studentData = activeTab === "ids" 
         ? { studentIds: values.studentIds } 
         : { students: values.studentList };
@@ -84,7 +82,7 @@ export default function AddRepositoryPage() {
       toast.success("Repository created successfully", {
         description: `${values.name} has been created and is ready to use.`
       });
-      navigate("/repositories");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Error creating repository:", error);
       toast.error("Failed to create repository", {
@@ -99,7 +97,7 @@ export default function AddRepositoryPage() {
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center gap-2 mb-6">
-          <Button variant="ghost" size="icon" className="rounded-full" onClick={() => navigate("/repositories")}>
+          <Button variant="ghost" size="icon" className="rounded-full" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-2xl font-semibold tracking-tight">Add Repository</h1>
@@ -226,7 +224,7 @@ export default function AddRepositoryPage() {
                 </FormItem>
               </CardContent>
               <CardFooter className="flex justify-end space-x-4 pt-6">
-                <Button variant="outline" type="button" onClick={() => navigate("/repositories")} disabled={isSubmitting}>
+                <Button variant="outline" type="button" onClick={() => navigate("/dashboard")} disabled={isSubmitting}>
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>

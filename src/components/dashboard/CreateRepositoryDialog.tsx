@@ -1,10 +1,10 @@
-
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, Key, Users } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
@@ -38,6 +38,7 @@ export function CreateRepositoryDialog({
 }: CreateRepositoryDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("text");
+  const navigate = useNavigate();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -54,7 +55,6 @@ export function CreateRepositoryDialog({
     setIsSubmitting(true);
     
     try {
-      // Determine which student data to use based on the active tab
       const studentData = activeTab === "ids" 
         ? { studentIds: values.studentIds } 
         : { students: values.studentList };
@@ -96,6 +96,8 @@ export function CreateRepositoryDialog({
       if (onRepositoryCreated) {
         onRepositoryCreated();
       }
+      
+      navigate("/dashboard");
     } catch (error) {
       console.error("Error creating repository:", error);
       toast.error("Failed to create repository", {
