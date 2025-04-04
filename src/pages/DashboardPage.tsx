@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getRepositories, Repository, filterRepositories, sortRepositories, updateRepository, addRepository } from "@/services/repositoryData";
-import { toast } from "sonner";
 
 export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
