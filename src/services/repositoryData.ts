@@ -1,3 +1,6 @@
+
+import { Student } from "./studentData";
+
 export interface Repository {
   name: string;
   description: string;
@@ -8,7 +11,8 @@ export interface Repository {
   progress: number;
   predictedGrade?: string;
   id?: string;
-  students?: Student[];
+  students?: Student[] | string;
+  studentIds?: string[];
   contributorsCount?: number;
   issuesCount?: number;
   codeQuality?: number;
@@ -150,9 +154,19 @@ export const addRepository = (repository: Repository): void => {
     repository.finalGradePrediction = grades[randomIndex];
   }
   
+  // Handle student IDs if provided
+  if (repository.studentIds && repository.studentIds.length > 0) {
+    repository.students = repository.studentIds.map(id => ({
+      id: `student-${id}`,
+      name: `Student ${id}`,
+      email: `student${id}@example.com`,
+      commitCount: 0,
+      lastActivity: 'Never'
+    }));
+  }
   // Parse student emails if provided as string
-  if (repository.students && typeof repository.students === 'string') {
-    const emailsText = repository.students as unknown as string;
+  else if (repository.students && typeof repository.students === 'string') {
+    const emailsText = repository.students as string;
     if (emailsText.trim()) {
       const emails = emailsText
         .split('\n')

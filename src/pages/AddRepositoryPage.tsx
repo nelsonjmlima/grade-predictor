@@ -12,6 +12,8 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { addRepository } from "@/services/repositoryData";
+import { StudentIdSelector } from "@/components/dashboard/StudentIdSelector";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const formSchema = z.object({
   name: z.string().min(3, {
@@ -24,12 +26,14 @@ const formSchema = z.object({
     message: "API key is required for repository access" 
   }).optional().or(z.literal("")),
   studentList: z.string().optional(),
+  studentIds: z.array(z.string()).optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 export default function AddRepositoryPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("text");
   const navigate = useNavigate();
   
   const form = useForm<FormValues>({
@@ -39,12 +43,18 @@ export default function AddRepositoryPage() {
       link: "",
       apiKey: "",
       studentList: "",
+      studentIds: [],
     }
   });
 
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
     try {
+      // Determine which student data to use based on the active tab
+      const studentData = activeTab === "ids" 
+        ? { studentIds: values.studentIds } 
+        : { students: values.studentList };
+      
       const newRepo = {
         id: values.name.toLowerCase().replace(/\s+/g, '-'),
         name: values.name,
@@ -57,14 +67,16 @@ export default function AddRepositoryPage() {
         createdAt: new Date().toISOString(),
         link: values.link || undefined,
         apiKey: values.apiKey || undefined,
-        students: values.studentList
+        ...studentData
       };
       
       console.log("Creating repository with:", {
         name: newRepo.name,
         link: newRepo.link,
         hasApiKey: Boolean(newRepo.apiKey),
-        studentListLength: typeof newRepo.students === 'string' ? newRepo.students.split('\n').length : 0
+        studentData: activeTab === "ids" 
+          ? `Selected ${values.studentIds?.length || 0} student IDs` 
+          : `Added ${values.studentList?.split('\n').filter(email => email.trim()).length || 0} student emails`
       });
       
       addRepository(newRepo as any);
@@ -159,29 +171,59 @@ export default function AddRepositoryPage() {
                   )} 
                 />
                 
-                <FormField 
-                  control={form.control} 
-                  name="studentList" 
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Student List</FormLabel>
-                      <FormControl>
-                        <div className="flex items-center space-x-2">
-                          <Users className="h-4 w-4 text-muted-foreground" />
-                          <Textarea 
-                            placeholder="Enter student emails, one per line"
-                            className="min-h-[120px]"
-                            {...field} 
-                          />
-                        </div>
-                      </FormControl>
-                      <FormDescription>
-                        Enter student email addresses, one per line. These will be added as students in the repository.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )} 
-                />
+                <FormItem>
+                  <FormLabel>Student Information</FormLabel>
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="text">Enter Emails</TabsTrigger>
+                      <TabsTrigger value="ids">Select IDs</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="text">
+                      <FormField 
+                        control={form.control} 
+                        name="studentList" 
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <div className="flex items-center space-x-2">
+                                <Users className="h-4 w-4 text-muted-foreground" />
+                                <Textarea 
+                                  placeholder="Enter student emails, one per line"
+                                  className="min-h-[120px]"
+                                  {...field} 
+                                />
+                              </div>
+                            </FormControl>
+                            <FormDescription>
+                              Enter student email addresses, one per line. These will be added as students in the repository.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )} 
+                      />
+                    </TabsContent>
+                    <TabsContent value="ids">
+                      <FormField
+                        control={form.control}
+                        name="studentIds"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <StudentIdSelector
+                                selectedIds={field.value || []}
+                                onChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Select student IDs from the available list. These will be associated with the repository.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </TabsContent>
+                  </Tabs>
+                </FormItem>
               </CardContent>
               <CardFooter className="flex justify-end space-x-4 pt-6">
                 <Button variant="outline" type="button" onClick={() => navigate("/repositories")} disabled={isSubmitting}>
