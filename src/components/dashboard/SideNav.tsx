@@ -58,7 +58,7 @@ export function SideNav() {
   const userEmail = user?.email || "user@example.com";
   const userName = user?.user_metadata?.name || userEmail.split('@')[0] || "User";
   const userInitials = userName.slice(0, 2).toUpperCase();
-  return <div className={cn("flex flex-col h-screen bg-card border-r border-border transition-all duration-300 ease-in-out", collapsed ? "w-[70px]" : "w-[250px]")}>
+  return <div className={cn("flex flex-col h-screen bg-card border-r border-border transition-all duration-300 ease-in-out", collapsed ? "w-[52px]" : "w-[187px]")}>
       <div className="p-4 flex items-center justify-between border-b border-border">
         <div className="flex items-center gap-2 overflow-hidden">
           {!collapsed && <span className="font-semibold text-lg truncate animate-fade-in">Grade Predictor</span>}
