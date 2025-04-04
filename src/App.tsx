@@ -15,7 +15,6 @@ import StudentMetricsPage from "./pages/StudentMetricsPage";
 import AddRepositoryPage from "./pages/AddRepositoryPage";
 import RepositoryComparisonPage from "./pages/RepositoryComparisonPage";
 import RepositoryRankingPage from "./pages/RepositoryRankingPage";
-import AnalyticsPage from "./pages/AnalyticsPage";
 import NotFound from "./pages/NotFound";
 import VerificationPage from "./pages/VerificationPage";
 import Index from "./pages/Index";
@@ -64,7 +63,6 @@ const App = () => {
               <Route path="/repositories/:id" element={<ProtectedRoute><RepositoryDetailsPage /></ProtectedRoute>} />
               <Route path="/repositories/:id/student/:studentId" element={<ProtectedRoute><StudentMetricsPage /></ProtectedRoute>} />
               <Route path="/repositories/:id/student/:studentId/prediction" element={<ProtectedRoute><GradePredictionPage /></ProtectedRoute>} />
-              <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
               
               <Route path="*" element={<NotFound />} />
             </Routes>
