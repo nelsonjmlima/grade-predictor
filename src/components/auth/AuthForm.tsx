@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -176,32 +177,32 @@ export function AuthForm({
         </TabsContent>
         
         <TabsContent value="signup">
-          <CardHeader>
-            <CardTitle className="text-3xl font-medium text-white text-center">Create an account</CardTitle>
-            <CardDescription className="text-gray-300 text-lg text-center">
+          <CardHeader className="py-4">
+            <CardTitle className="text-2xl font-medium text-white text-center">Create an account</CardTitle>
+            <CardDescription className="text-gray-300 text-base text-center">
               Enter your details to get started
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6 px-8">
+          <CardContent className="space-y-4 px-6">
             <Form {...signupForm}>
-              <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-5">
-                <div className="grid grid-cols-2 gap-5">
+              <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
                   <FormField control={signupForm.control} name="firstName" render={({
                   field
-                }) => <FormItem className="space-y-3">
-                        <FormLabel className="text-gray-200 text-lg">First name</FormLabel>
+                }) => <FormItem className="space-y-2">
+                        <FormLabel className="text-gray-200 text-base">First name</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Michael" className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-12 text-lg" />
+                          <Input {...field} placeholder="Michael" className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-10 text-base" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>} />
                   
                   <FormField control={signupForm.control} name="lastName" render={({
                   field
-                }) => <FormItem className="space-y-3">
-                        <FormLabel className="text-gray-200 text-lg">Last name</FormLabel>
+                }) => <FormItem className="space-y-2">
+                        <FormLabel className="text-gray-200 text-base">Last name</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Scott" className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-12 text-lg" />
+                          <Input {...field} placeholder="Scott" className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-10 text-base" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>} />
@@ -209,32 +210,32 @@ export function AuthForm({
                 
                 <FormField control={signupForm.control} name="institution" render={({
                 field
-              }) => <FormItem className="space-y-3">
-                      <FormLabel className="text-gray-200 text-lg">Institution</FormLabel>
+              }) => <FormItem className="space-y-2">
+                      <FormLabel className="text-gray-200 text-base">Institution</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="University name" className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-12 text-lg" />
+                        <Input {...field} placeholder="University name" className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-10 text-base" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>} />
                 
                 <FormField control={signupForm.control} name="email" render={({
                 field
-              }) => <FormItem className="space-y-3">
-                      <FormLabel className="text-gray-200 text-lg">Email</FormLabel>
+              }) => <FormItem className="space-y-2">
+                      <FormLabel className="text-gray-200 text-base">Email</FormLabel>
                       <FormControl>
-                        <Input {...field} type="email" placeholder="m.scott@example.com" className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-12 text-lg" />
+                        <Input {...field} type="email" placeholder="m.scott@example.com" className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-10 text-base" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>} />
                 
                 <FormField control={signupForm.control} name="password" render={({
                 field
-              }) => <FormItem className="space-y-3">
-                      <FormLabel className="text-gray-200 text-lg">Password</FormLabel>
+              }) => <FormItem className="space-y-2">
+                      <FormLabel className="text-gray-200 text-base">Password</FormLabel>
                       <FormControl>
-                        <Input {...field} type="password" showPasswordToggle className="bg-white/10 border-white/20 text-white h-12 text-lg" />
+                        <Input {...field} type="password" showPasswordToggle className="bg-white/10 border-white/20 text-white h-10 text-base" />
                       </FormControl>
-                      <p className="text-sm text-gray-400 mt-1 text-center">
+                      <p className="text-xs text-gray-400 mt-0.5 text-center">
                         Password must be at least 8 characters and include a number and special character
                       </p>
                       <FormMessage />
@@ -242,24 +243,24 @@ export function AuthForm({
                 
                 <FormField control={signupForm.control} name="confirmPassword" render={({
                 field
-              }) => <FormItem className="space-y-3">
-                      <FormLabel className="text-gray-200 text-lg">Confirm Password</FormLabel>
+              }) => <FormItem className="space-y-2">
+                      <FormLabel className="text-gray-200 text-base">Confirm Password</FormLabel>
                       <FormControl>
-                        <Input {...field} type="password" showPasswordToggle className="bg-white/10 border-white/20 text-white h-12 text-lg" />
+                        <Input {...field} type="password" showPasswordToggle className="bg-white/10 border-white/20 text-white h-10 text-base" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>} />
                 
-                <Button type="submit" className="w-full group bg-blue-600/80 hover:bg-blue-700/90 text-white h-14 text-lg mt-2" disabled={isLoading}>
+                <Button type="submit" className="w-full group bg-blue-600/80 hover:bg-blue-700/90 text-white h-12 text-base mt-1" disabled={isLoading}>
                   {isLoading ? "Creating account..." : <>
-                      Create Account <UserPlus className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                      Create Account <UserPlus className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                     </>}
                 </Button>
               </form>
             </Form>
           </CardContent>
-          <CardFooter className="pb-6 px-8">
-            <p className="text-md text-gray-300 text-center w-full">
+          <CardFooter className="pb-4 pt-2 px-6">
+            <p className="text-sm text-gray-300 text-center w-full">
               Already have an account? Click the Login tab above.
             </p>
           </CardFooter>
