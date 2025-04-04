@@ -60,7 +60,7 @@ export function SideNav() {
   return <div className={cn("flex flex-col h-screen bg-card border-r border-border transition-all duration-300 ease-in-out", collapsed ? "w-[52px]" : "w-[157px]")}>
       <div className="p-4 flex items-center justify-between border-b border-border">
         <div className="flex items-center gap-2 overflow-hidden">
-          {!collapsed && <span className="font-semibold text-lg truncate animate-fade-in">Grade Predictor</span>}
+          {!collapsed && <span className="font-semibold truncate animate-fade-in text-base">Grade Predictor</span>}
         </div>
         
       </div>
