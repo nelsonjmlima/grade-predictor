@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 // Updated password schema to match signup requirements
 const passwordSchema = z.object({
@@ -33,6 +34,7 @@ type PasswordFormValues = z.infer<typeof passwordSchema>;
 export default function PasswordPage() {
   const { updatePassword } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const form = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordSchema),
@@ -57,6 +59,8 @@ export default function PasswordPage() {
       
       toast.success("Password updated successfully");
       form.reset();
+      // Navigate to dashboard after successful password update
+      navigate('/dashboard');
     } catch (error) {
       console.error("Error updating password:", error);
       toast.error("Failed to update password", {
