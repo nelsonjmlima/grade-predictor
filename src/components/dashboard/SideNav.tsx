@@ -135,7 +135,7 @@ export function SideNav() {
             icon={Settings} 
             label="Settings" 
             to="/settings"
-            active={activeItem === "Settings"} 
+            active={activeItem === "Settings" && window.location.hash !== "#password"} 
             collapsed={collapsed}
             onClick={() => setActiveItem("Settings")}
           />
@@ -143,10 +143,10 @@ export function SideNav() {
             icon={Key} 
             label="Password" 
             to="/settings#password"
-            active={window.location.hash === "#password"} 
+            active={activeItem === "Settings" && window.location.hash === "#password"} 
             collapsed={collapsed}
             onClick={() => {
-              setActiveItem("Password");
+              setActiveItem("Settings");
               navigate("/settings#password");
             }}
           />
