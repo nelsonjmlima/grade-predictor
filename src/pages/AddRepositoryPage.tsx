@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -13,7 +12,6 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { toast } from "sonner";
 import { addRepository } from "@/services/repositoryData";
 import { cn } from "@/lib/utils";
-
 const formSchema = z.object({
   name: z.string().min(3, {
     message: "Repository name must be at least 3 characters"
@@ -27,13 +25,10 @@ const formSchema = z.object({
   apiKey: z.string().optional(),
   authorId: z.string().optional()
 });
-
 type FormValues = z.infer<typeof formSchema>;
-
 export default function AddRepositoryPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -46,14 +41,14 @@ export default function AddRepositoryPage() {
       authorId: ""
     }
   });
-
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
     try {
       const newRepo = {
         id: values.name.toLowerCase().replace(/\s+/g, '-'),
         name: values.name,
-        description: "", // Using empty string as default
+        description: "",
+        // Using empty string as default
         lastActivity: "Just now",
         commitCount: 0,
         mergeRequestCount: 0,
@@ -64,17 +59,15 @@ export default function AddRepositoryPage() {
         numberOfStudents: values.numberOfStudents || undefined,
         link: values.link || undefined,
         apiKey: values.apiKey || undefined,
-        userId: values.authorId || undefined, // Keep userId in the repository object for compatibility
+        userId: values.authorId || undefined,
+        // Keep userId in the repository object for compatibility
         authorId: values.authorId || undefined,
         students: values.students || undefined
       };
-
       addRepository(newRepo as any);
-
       toast.success("Repository created successfully", {
         description: `${values.name} has been created and is ready to use.`
       });
-
       navigate("/repositories");
     } catch (error) {
       console.error("Error creating repository:", error);
@@ -85,7 +78,6 @@ export default function AddRepositoryPage() {
       setIsSubmitting(false);
     }
   };
-
   return <div className="min-h-screen bg-background p-6">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center gap-2 mb-6">
@@ -182,7 +174,7 @@ export default function AddRepositoryPage() {
               }) => <FormItem>
                       <FormLabel>Student Email Addresses <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Enter student email addresses, one per line" className="resize-none h-24" {...field} />
+                        <Textarea placeholder="Enter student email addresses, one per line" className="resize-none h-6" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>} />
