@@ -5,10 +5,9 @@ import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
 import { RepositoriesTable } from "@/components/dashboard/RepositoriesTable";
 import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
 import { Button } from "@/components/ui/button";
-import { Plus, FileUp } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getRepositories, Repository, filterRepositories, sortRepositories, updateRepository, addRepository } from "@/services/repositoryData";
-import { MetricsImportDialog } from "@/components/dashboard/MetricsImportDialog";
 import { toast } from "sonner";
 
 export default function DashboardPage() {
@@ -16,7 +15,6 @@ export default function DashboardPage() {
   const [repositories, setRepositories] = useState<Repository[]>([]);
   // Always use grid mode now that we've removed the toggle
   const [viewMode] = useState<"grid">("grid");
-  const [metricsImportDialogOpen, setMetricsImportDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   // Fetch repositories on mount and when dialogOpen changes (indicating a potential new repo)
@@ -40,7 +38,7 @@ export default function DashboardPage() {
       averageCommitsPerWeek: repo.averageCommitsPerWeek || Math.floor(Math.random() * 20) + 1
     }));
     setRepositories(enhancedRepositories);
-  }, [dialogOpen, metricsImportDialogOpen]);
+  }, [dialogOpen]);
   
   const handleCreateRepository = () => {
     setDialogOpen(true);
@@ -52,50 +50,6 @@ export default function DashboardPage() {
   
   const handleAddRepository = () => {
     navigate("/repositories/add");
-  };
-
-  // Handle data import from the metrics import dialog
-  const handleMetricsDataImported = (data: Partial<Repository>) => {
-    if (!data.projectId) {
-      toast.success("CSV file uploaded", {
-        description: "The CSV file has been stored in the backend."
-      });
-      return;
-    }
-    
-    // Check if repository with this project ID already exists
-    const existingRepo = repositories.find(repo => repo.projectId === data.projectId);
-    
-    if (existingRepo) {
-      // Update existing repository with imported data
-      const updatedRepo = updateRepository(existingRepo.id || '', data);
-      if (updatedRepo) {
-        toast.success("Repository updated", {
-          description: `Repository data for ${data.projectId} has been updated.`
-        });
-      } else {
-        toast.error("Update failed", {
-          description: "Failed to update repository with imported data."
-        });
-      }
-    } else {
-      // Create a new repository with the imported data
-      const newRepository: Repository = {
-        name: data.projectId || "New Repository",
-        description: `Repository for ${data.author || 'Unknown Author'}`,
-        lastActivity: data.date || new Date().toISOString(),
-        commitCount: 0,
-        mergeRequestCount: 0,
-        branchCount: 0,
-        progress: 0,
-        ...data
-      };
-      
-      addRepository(newRepository);
-      toast.success("Repository created", {
-        description: `New repository created for ${data.projectId}.`
-      });
-    }
   };
 
   // Get all repositories without filtering or sorting
@@ -121,15 +75,6 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="h-14 px-6 text-base" 
-                onClick={() => setMetricsImportDialogOpen(true)}
-              >
-                <FileUp className="h-5 w-5 mr-2" />
-                Import CSV
-              </Button>
               <Button 
                 size="lg" 
                 className="h-14 px-6 text-base" 
@@ -158,7 +103,5 @@ export default function DashboardPage() {
       const updatedRepositories = getRepositories();
       setRepositories(updatedRepositories);
     }} />
-
-      <MetricsImportDialog open={metricsImportDialogOpen} onOpenChange={setMetricsImportDialogOpen} onDataImported={handleMetricsDataImported} />
     </div>;
 }
