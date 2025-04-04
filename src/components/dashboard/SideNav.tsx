@@ -1,10 +1,8 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronRight, Home, GitBranch, LogOut, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -59,10 +57,6 @@ export function SideNav() {
     }
   };
 
-  const userEmail = user?.email || "user@example.com";
-  const userName = user?.user_metadata?.name || userEmail.split('@')[0] || "User";
-  const userInitials = userName.slice(0, 2).toUpperCase();
-
   return <div className={cn("flex flex-col h-screen bg-card border-r border-border transition-all duration-300 ease-in-out", collapsed ? "w-[52px]" : "w-[157px]")}>
       <div className="p-4 flex items-center justify-between border-b border-border">
         <div className="flex items-center gap-2 overflow-hidden">
@@ -82,19 +76,16 @@ export function SideNav() {
           <NavItem icon={Lock} label="Password" to="/password" active={activeItem === "Password"} collapsed={collapsed} onClick={() => setActiveItem("Password")} />
         </nav>
         
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback>{userInitials}</AvatarFallback>
-            </Avatar>
-            {!collapsed && <span className="text-sm font-medium truncate">{userName}</span>}
-          </div>
-          <div className="flex items-center">
-            <Button variant="ghost" size="icon" className="rounded-full h-8 w-8" onClick={() => setShowSignOutDialog(true)}>
-              <LogOut className="h-4 w-4 text-muted-foreground" />
-              <span className="sr-only">Sign Out</span>
-            </Button>
-          </div>
+        <div className="flex justify-end">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="flex items-center gap-2"
+            onClick={() => setShowSignOutDialog(true)}
+          >
+            <LogOut className="h-4 w-4 text-muted-foreground" />
+            {!collapsed && <span className="text-sm">Sign Out</span>}
+          </Button>
         </div>
       </div>
 
