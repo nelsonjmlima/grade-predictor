@@ -1,4 +1,3 @@
-
 import { Student } from "./studentData";
 
 export interface Repository {
@@ -23,7 +22,6 @@ export interface Repository {
   language?: string;
   technologies?: string[];
   
-  // Repository metrics fields
   projectId?: string;
   author?: string;
   email?: string;
@@ -43,7 +41,6 @@ export interface Repository {
   weekOfPrediction?: string;
   finalGradePrediction?: string;
   
-  // CSV file URL from Supabase storage
   csvFileUrl?: string;
 }
 
@@ -62,17 +59,14 @@ export const getRepositories = (): Repository[] => {
 export const addRepository = (repository: Repository): void => {
   const repositories = getRepositories();
   
-  // Generate createdAt timestamp
   if (!repository.createdAt) {
     repository.createdAt = new Date().toISOString();
   }
   
-  // Generate ID if not provided
   if (!repository.id) {
     repository.id = `repo-${Math.random().toString(36).substr(2, 9)}`;
   }
   
-  // Ensure new repositories have the fields required for the updated table
   if (!repository.projectId) {
     repository.projectId = repository.id || `project-${Math.random().toString(36).substr(2, 9)}`;
   }
@@ -101,7 +95,6 @@ export const addRepository = (repository: Repository): void => {
     repository.operations = repository.additions + repository.deletions;
   }
   
-  // Add the new fields with random data for demonstration
   if (!repository.totalAdditions) {
     repository.totalAdditions = Math.floor(Math.random() * 2000) + repository.additions;
   }
@@ -123,13 +116,11 @@ export const addRepository = (repository: Repository): void => {
     repository.averageCommitsPerWeek = Math.floor(Math.random() * 20) + 1;
   }
   
-  // New fields for the updated header
   if (!repository.gitlabUser) {
     repository.gitlabUser = "gitlab_" + repository.author?.toLowerCase().replace(/\s+/g, "_") || "gitlab_user";
   }
   
   if (!repository.weekOfPrediction) {
-    // Generate a random week in the current year
     const year = new Date().getFullYear();
     const week = Math.floor(Math.random() * 52) + 1;
     repository.weekOfPrediction = `Week ${week}, ${year}`;
@@ -141,7 +132,6 @@ export const addRepository = (repository: Repository): void => {
     repository.finalGradePrediction = grades[randomIndex];
   }
   
-  // Handle student IDs if provided
   if (repository.studentIds && repository.studentIds.length > 0) {
     repository.students = repository.studentIds.map(id => ({
       id: `student-${id}`,
@@ -150,9 +140,7 @@ export const addRepository = (repository: Repository): void => {
       commitCount: 0,
       lastActivity: 'Never'
     }));
-  }
-  // Parse student emails if provided as string
-  else if (repository.students && typeof repository.students === 'string') {
+  } else if (repository.students && typeof repository.students === 'string') {
     const emailsText = repository.students as string;
     if (emailsText.trim()) {
       const emails = emailsText
@@ -168,7 +156,6 @@ export const addRepository = (repository: Repository): void => {
         lastActivity: 'Never'
       }));
     } else {
-      // Empty string case
       repository.students = [];
     }
   }
@@ -180,10 +167,8 @@ export const addRepository = (repository: Repository): void => {
 export const updateRepository = (id: string, updatedRepo: Partial<Repository>): Repository | null => {
   const repositories = getRepositories();
   
-  // Try to find by ID first
   let index = repositories.findIndex(repo => repo.id === id);
   
-  // If not found by ID, try to find by projectId (for CSV import matching)
   if (index === -1 && updatedRepo.projectId) {
     index = repositories.findIndex(repo => 
       repo.projectId === updatedRepo.projectId
@@ -194,25 +179,18 @@ export const updateRepository = (id: string, updatedRepo: Partial<Repository>): 
     return null;
   }
   
-  // Handle ID change separately if needed
   if (updatedRepo.id && updatedRepo.id !== repositories[index].id) {
-    // If we're changing the ID, we need to update references in other places
     const oldId = repositories[index].id;
     
-    // Update the ID
     repositories[index].id = updatedRepo.id;
     
-    // Remove the ID from the updatedRepo to avoid duplicate assignment
     const { id: _, ...restOfUpdates } = updatedRepo;
     
-    // Merge the rest of the repositories
     repositories[index] = { ...repositories[index], ...restOfUpdates };
   } else {
-    // Normal merge without ID change
     repositories[index] = { ...repositories[index], ...updatedRepo };
   }
   
-  // Save to localStorage
   localStorage.setItem('repositories', JSON.stringify(repositories));
   
   return repositories[index];
@@ -238,7 +216,6 @@ export const getRepositoryStudents = (repositoryId: string): Student[] => {
     if (Array.isArray(repository.students)) {
       return repository.students;
     } else if (typeof repository.students === 'string') {
-      // Convert string representation to Student array if needed
       return [];
     }
   }
@@ -256,12 +233,10 @@ export const saveRepositoryStudent = (repositoryId: string, student: Student): b
     repositories[index].students = [];
   }
   
-  // Handle the case where students is a string
   if (typeof repositories[index].students === 'string') {
     repositories[index].students = [];
   }
   
-  // Now we can safely use array methods since we've ensured students is an array
   const studentArray = repositories[index].students as Student[];
   const studentIndex = studentArray.findIndex(s => s.id === student.id);
   
@@ -327,6 +302,3 @@ export const clearAllRepositories = (): void => {
   localStorage.removeItem('repositories');
   localStorage.setItem('repositories', JSON.stringify([]));
 };
-
-// REMOVE the automatic clearing - this is the line causing the issue
-// clearAllRepositories();

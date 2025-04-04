@@ -242,16 +242,16 @@ export default function RepositoryDetailsPage() {
                             <TableCell>{student.email || 'N/A'}</TableCell>
                             <TableCell>
                               <div className="flex items-center">
-                                {student.activityTrend === 'up' ? (
+                                {student.commitTrend === 'up' ? (
                                   <ArrowUp className="h-4 w-4 text-green-500" />
-                                ) : student.activityTrend === 'down' ? (
+                                ) : student.commitTrend === 'down' ? (
                                   <ArrowDown className="h-4 w-4 text-red-500" />
                                 ) : (
                                   <Minus className="h-4 w-4 text-yellow-500" />
                                 )}
                                 <span className="ml-1">
-                                  {student.activityTrend === 'up' ? 'Increasing' : 
-                                   student.activityTrend === 'down' ? 'Decreasing' : 'Stable'}
+                                  {student.commitTrend === 'up' ? 'Increasing' : 
+                                   student.commitTrend === 'down' ? 'Decreasing' : 'Stable'}
                                 </span>
                               </div>
                             </TableCell>

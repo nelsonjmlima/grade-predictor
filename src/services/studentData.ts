@@ -25,6 +25,12 @@ export interface Student {
     date: string;
   }[];
   contributions?: { date: string; count: number }[];
+  projectId?: string;
+  additions?: number;
+  deletions?: number;
+  averageOperationsPerCommit?: number;
+  averageCommitsPerWeek?: number;
+  activityTrend?: "up" | "down" | "stable";
 }
 
 // Type definitions for student data details

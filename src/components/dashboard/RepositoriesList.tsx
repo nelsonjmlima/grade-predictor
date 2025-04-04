@@ -18,15 +18,6 @@ interface Repository {
   id?: string;
 }
 
-interface Student {
-  id: string;
-  name: string;
-  email: string;
-  commitCount: number;
-  grade?: string;
-  lastActivity: string;
-}
-
 interface RepositoriesListProps {
   repositories: Repository[];
   viewMode: 'grid' | 'list';
