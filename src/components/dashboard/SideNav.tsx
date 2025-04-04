@@ -72,7 +72,7 @@ export function SideNav() {
         </nav>
         
         <div className="flex justify-start">
-          <Button variant="ghost" size="sm" onClick={() => setShowSignOutDialog(true)} className="flex items-center gap-2 text-center mx-[30px] text-sm">
+          <Button variant="ghost" size="sm" onClick={() => setShowSignOutDialog(true)} className="flex items-center gap-2 text-center text-sm mx-0 px-[30px] rounded-none">
             {!collapsed && <span className="text-sm font-light">Sign Out</span>}
             <LogOut className="h-4 w-4 text-muted-foreground" />
           </Button>
