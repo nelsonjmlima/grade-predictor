@@ -5,7 +5,6 @@ import {
   ChevronRight,
   Home,
   GitBranch,
-  Settings,
   LogOut,
   Key
 } from "lucide-react";
@@ -132,21 +131,13 @@ export function SideNav() {
             onClick={() => setActiveItem("Repositories")}
           />
           <NavItem 
-            icon={Settings} 
-            label="Settings" 
-            to="/settings"
-            active={activeItem === "Settings" && window.location.hash !== "#password"} 
-            collapsed={collapsed}
-            onClick={() => setActiveItem("Settings")}
-          />
-          <NavItem 
             icon={Key} 
             label="Password" 
             to="/settings#password"
-            active={activeItem === "Settings" && window.location.hash === "#password"} 
+            active={activeItem === "Password"} 
             collapsed={collapsed}
             onClick={() => {
-              setActiveItem("Settings");
+              setActiveItem("Password");
               navigate("/settings#password");
             }}
           />
