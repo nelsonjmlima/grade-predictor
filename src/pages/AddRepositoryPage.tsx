@@ -1,46 +1,42 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { GitBranch, Link, Key, User, ArrowLeft } from "lucide-react";
+import { Link, Key, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { addRepository } from "@/services/repositoryData";
-import { cn } from "@/lib/utils";
+
 const formSchema = z.object({
   name: z.string().min(3, {
     message: "Repository name must be at least 3 characters"
   }),
-  projectId: z.string().optional(),
-  numberOfStudents: z.string().optional(),
-  students: z.string().optional(),
   link: z.string().url({
     message: "Please enter a valid URL"
   }).optional().or(z.literal("")),
   apiKey: z.string().optional(),
-  authorId: z.string().optional()
 });
+
 type FormValues = z.infer<typeof formSchema>;
+
 export default function AddRepositoryPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      projectId: "",
-      numberOfStudents: "",
-      students: "",
       link: "",
       apiKey: "",
-      authorId: ""
     }
   });
+
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
     try {
@@ -48,23 +44,18 @@ export default function AddRepositoryPage() {
         id: values.name.toLowerCase().replace(/\s+/g, '-'),
         name: values.name,
         description: "",
-        // Using empty string as default
         lastActivity: "Just now",
         commitCount: 0,
         mergeRequestCount: 0,
         branchCount: 1,
         progress: 0,
         createdAt: new Date().toISOString(),
-        projectId: values.projectId || undefined,
-        numberOfStudents: values.numberOfStudents || undefined,
         link: values.link || undefined,
         apiKey: values.apiKey || undefined,
-        userId: values.authorId || undefined,
-        // Keep userId in the repository object for compatibility
-        authorId: values.authorId || undefined,
-        students: values.students || undefined
       };
+      
       addRepository(newRepo as any);
+      
       toast.success("Repository created successfully", {
         description: `${values.name} has been created and is ready to use.`
       });
@@ -78,7 +69,9 @@ export default function AddRepositoryPage() {
       setIsSubmitting(false);
     }
   };
-  return <div className="min-h-screen bg-background p-6">
+
+  return (
+    <div className="min-h-screen bg-background p-6">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center gap-2 mb-6">
           <Button variant="ghost" size="icon" className="rounded-full" onClick={() => navigate("/repositories")}>
@@ -94,46 +87,26 @@ export default function AddRepositoryPage() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <CardContent className="space-y-6">
-                <FormField control={form.control} name="name" render={({
-                field
-              }) => <FormItem>
+                <FormField 
+                  control={form.control} 
+                  name="name" 
+                  render={({ field }) => (
+                    <FormItem>
                       <FormLabel>Repository Name</FormLabel>
                       <FormControl>
                         <Input placeholder="e.g., Software Engineering 2023" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>} />
+                    </FormItem>
+                  )} 
+                />
 
-                <FormField control={form.control} name="projectId" render={({
-                field
-              }) => <FormItem>
-                      <FormLabel>Project ID <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
-                      <FormControl>
-                        <div className="flex items-center space-x-2">
-                          <GitBranch className="h-4 w-4 text-muted-foreground" />
-                          <Input placeholder="Enter Project ID" {...field} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>} />
-
-                <FormField control={form.control} name="numberOfStudents" render={({
-                field
-              }) => <FormItem>
-                      <FormLabel>Number of Students <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
-                      <FormControl>
-                        <div className="flex items-center space-x-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <Input placeholder="Enter number of students" type="number" {...field} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>} />
-
-                <FormField control={form.control} name="link" render={({
-                field
-              }) => <FormItem>
-                      <FormLabel>Repository Link <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
+                <FormField 
+                  control={form.control} 
+                  name="link" 
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Repository Link</FormLabel>
                       <FormControl>
                         <div className="flex items-center space-x-2">
                           <Link className="h-4 w-4 text-muted-foreground" />
@@ -141,12 +114,16 @@ export default function AddRepositoryPage() {
                         </div>
                       </FormControl>
                       <FormMessage />
-                    </FormItem>} />
+                    </FormItem>
+                  )} 
+                />
 
-                <FormField control={form.control} name="apiKey" render={({
-                field
-              }) => <FormItem>
-                      <FormLabel>API Key <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
+                <FormField 
+                  control={form.control} 
+                  name="apiKey" 
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>API Key</FormLabel>
                       <FormControl>
                         <div className="flex items-center space-x-2">
                           <Key className="h-4 w-4 text-muted-foreground" />
@@ -154,30 +131,9 @@ export default function AddRepositoryPage() {
                         </div>
                       </FormControl>
                       <FormMessage />
-                    </FormItem>} />
-
-                <FormField control={form.control} name="authorId" render={({
-                field
-              }) => <FormItem>
-                      <FormLabel>Author ID <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
-                      <FormControl>
-                        <div className="flex items-center space-x-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <Input placeholder="Enter author ID" {...field} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>} />
-
-                <FormField control={form.control} name="students" render={({
-                field
-              }) => <FormItem>
-                      <FormLabel>Student Email Addresses <span className="text-sm text-muted-foreground">(optional)</span></FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Enter student email addresses, one per line" className="resize-none h-6" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>} />
+                    </FormItem>
+                  )} 
+                />
               </CardContent>
               <CardFooter className="flex justify-end space-x-4 pt-6">
                 <Button variant="outline" type="button" onClick={() => navigate("/repositories")} disabled={isSubmitting}>
@@ -191,5 +147,6 @@ export default function AddRepositoryPage() {
           </Form>
         </Card>
       </div>
-    </div>;
+    </div>
+  );
 }
