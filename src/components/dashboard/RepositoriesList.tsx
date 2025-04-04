@@ -4,6 +4,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Student } from "@/services/studentData";
+
 interface Repository {
   name: string;
   description: string;
@@ -15,6 +17,7 @@ interface Repository {
   predictedGrade?: string;
   id?: string;
 }
+
 interface Student {
   id: string;
   name: string;
@@ -23,6 +26,7 @@ interface Student {
   grade?: string;
   lastActivity: string;
 }
+
 interface RepositoriesListProps {
   repositories: Repository[];
   viewMode: 'grid' | 'list';
@@ -35,6 +39,7 @@ interface RepositoriesListProps {
   onSelectButtonClick?: (repo: Repository) => void; // Added custom handler for select button
   showSelectButton?: boolean; // Flag to show select button
 }
+
 export function RepositoriesList({
   repositories,
   viewMode,
@@ -48,6 +53,7 @@ export function RepositoriesList({
   showSelectButton = false
 }: RepositoriesListProps) {
   const navigate = useNavigate();
+
   const handleRepositoryClick = (repo: Repository) => {
     if (onSelectButtonClick && showSelectButton) {
       // If we're showing select buttons, don't navigate on card click
@@ -60,6 +66,7 @@ export function RepositoriesList({
       onRepositorySelect('programming-fundamentals');
     }
   };
+
   if (showGradesTemplate) {
     return <div className="mb-4">
         <RepositoryGradesView repositoryName={selectedRepository === 'programming-fundamentals' ? "Programming Fundamentals 2023" : "Advanced Programming Course"} students={selectedRepository === 'programming-fundamentals' ? programmingStudents : sampleStudents} />

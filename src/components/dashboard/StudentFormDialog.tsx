@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Student } from "@/services/repositoryData";
+import { Student } from "@/services/studentData";
 import { getStudentData, saveStudentData } from "@/services/studentData";
 
 // Define the form schema

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -8,25 +7,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useNavigate } from "react-router-dom";
 import { StudentFormDialog } from "@/components/dashboard/StudentFormDialog";
 import { toast } from "sonner";
+import { Student } from "@/services/studentData";
 
-export interface Student {
-  id: string;
-  name: string;
-  email: string;
-  commitCount: number;
-  grade?: string;
-  lastActivity: string;
-  studentNumber?: string;
-  gitlabUsername?: string;
-  groupNumber?: number;
-  additions?: number;
-  deletions?: number;
-  averageOperationsPerCommit?: number;
-  averageCommitsPerWeek?: number;
-  projectId?: string;
-}
-
-interface RepositoryGradesViewProps {
+export interface RepositoryGradesViewProps {
   repositoryName: string;
   students: Student[];
   repositoryId?: string;

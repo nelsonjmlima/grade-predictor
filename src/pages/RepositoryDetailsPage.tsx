@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Edit, Save, User, ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { toast } from "sonner";
-import { getRepositories, updateRepository, Repository, Student, getRepositoryStudents, saveRepositoryStudent } from "@/services/repositoryData";
+import { getRepositories, updateRepository, Repository, getRepositoryStudents, saveRepositoryStudent } from "@/services/repositoryData";
+import { Student } from "@/services/studentData";
 import { DeleteRepositoryDialog } from "@/components/dashboard/DeleteRepositoryDialog";
 import { EditRepositoryDialog } from "@/components/dashboard/EditRepositoryDialog";
 import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
@@ -25,6 +26,10 @@ export default function RepositoryDetailsPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
   
+  useEffect(() => {
+    loadRepository();
+  }, [id]);
+
   const loadRepository = () => {
     if (id) {
       const allRepositories = getRepositories();
@@ -35,7 +40,7 @@ export default function RepositoryDetailsPage() {
         
         const studentsWithTrend = repoStudents.map(student => ({
           ...student,
-          activityTrend: student.activityTrend || 
+          commitTrend: student.commitTrend || 
             ['up', 'down', 'stable'][Math.floor(Math.random() * 3)] as 'up' | 'down' | 'stable'
         }));
         
@@ -44,10 +49,6 @@ export default function RepositoryDetailsPage() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    loadRepository();
-  }, [id]);
 
   const handleGoBack = () => {
     navigate("/repositories");
