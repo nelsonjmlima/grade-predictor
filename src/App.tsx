@@ -9,12 +9,9 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import LoginPage from "./pages/LoginPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import DashboardPage from "./pages/DashboardPage";
-import RepositoriesPage from "./pages/RepositoriesPage";
 import RepositoryDetailsPage from "./pages/RepositoryDetailsPage";
 import StudentMetricsPage from "./pages/StudentMetricsPage";
 import AddRepositoryPage from "./pages/AddRepositoryPage";
-import RepositoryComparisonPage from "./pages/RepositoryComparisonPage";
-import RepositoryRankingPage from "./pages/RepositoryRankingPage";
 import NotFound from "./pages/NotFound";
 import VerificationPage from "./pages/VerificationPage";
 import Index from "./pages/Index";
@@ -56,10 +53,7 @@ const App = () => {
               
               {/* Protected Routes */}
               <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-              <Route path="/repositories" element={<ProtectedRoute><RepositoriesPage /></ProtectedRoute>} />
               <Route path="/repositories/add" element={<ProtectedRoute><AddRepositoryPage /></ProtectedRoute>} />
-              <Route path="/repositories/compare" element={<ProtectedRoute><RepositoryComparisonPage /></ProtectedRoute>} />
-              <Route path="/repositories/ranking" element={<ProtectedRoute><RepositoryRankingPage /></ProtectedRoute>} />
               <Route path="/repositories/:id" element={<ProtectedRoute><RepositoryDetailsPage /></ProtectedRoute>} />
               <Route path="/repositories/:id/student/:studentId" element={<ProtectedRoute><StudentMetricsPage /></ProtectedRoute>} />
               <Route path="/password" element={<ProtectedRoute><PasswordPage /></ProtectedRoute>} />

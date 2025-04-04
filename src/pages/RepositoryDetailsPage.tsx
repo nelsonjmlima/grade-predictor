@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
@@ -51,14 +52,14 @@ export default function RepositoryDetailsPage() {
   };
 
   const handleGoBack = () => {
-    navigate("/repositories");
+    navigate("/dashboard");
   };
 
   const handleRepositoryDeleted = () => {
-    toast.success("Redirecting to repositories", {
+    toast.success("Redirecting to dashboard", {
       description: "Repository has been deleted successfully."
     });
-    navigate("/repositories");
+    navigate("/dashboard");
   };
 
   const handleRepositoryUpdated = (updatedRepo: Repository) => {

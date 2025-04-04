@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { updateRepository, Repository } from "@/services/repositoryData";
 import { Student } from "@/services/studentData";
+import { useNavigate } from "react-router-dom";
 
 const formSchema = z.object({
   name: z.string().min(3, { message: "Repository name must be at least 3 characters" }),
@@ -34,6 +35,7 @@ export function EditRepositoryDialog({
   onRepositoryUpdated
 }: EditRepositoryDialogProps) {
   const [isSaving, setIsSaving] = useState(false);
+  const navigate = useNavigate();
   
   // Calculate students count safely
   const studentsCount = Array.isArray(repository.students) 
