@@ -1,11 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Edit, Save, User, ArrowUp, ArrowDown, Minus } from "lucide-react";
+import { ArrowLeft, Edit, Save, User } from "lucide-react";
 import { toast } from "sonner";
 import { getRepositories, updateRepository, Repository, getRepositoryStudents, saveRepositoryStudent } from "@/services/repositoryData";
 import { Student } from "@/services/studentData";
@@ -224,9 +222,6 @@ export default function RepositoryDetailsPage() {
                       <TableRow>
                         <TableHead>Name</TableHead>
                         <TableHead>GitLab User</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Activity Trend</TableHead>
-                        <TableHead>Progress</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -240,37 +235,11 @@ export default function RepositoryDetailsPage() {
                               </div>
                             </TableCell>
                             <TableCell>{student.gitlabUsername || 'N/A'}</TableCell>
-                            <TableCell>{student.email || 'N/A'}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center">
-                                {student.commitTrend === 'up' ? (
-                                  <ArrowUp className="h-4 w-4 text-green-500" />
-                                ) : student.commitTrend === 'down' ? (
-                                  <ArrowDown className="h-4 w-4 text-red-500" />
-                                ) : (
-                                  <Minus className="h-4 w-4 text-yellow-500" />
-                                )}
-                                <span className="ml-1">
-                                  {student.commitTrend === 'up' ? 'Increasing' : 
-                                   student.commitTrend === 'down' ? 'Decreasing' : 'Stable'}
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="space-y-2 w-full max-w-[200px]">
-                                <div className="flex justify-between text-sm">
-                                  <span className="font-medium">
-                                    {student.commitCount > 0 ? Math.min(100, Math.floor((student.commitCount / 20) * 100)) : 0}%
-                                  </span>
-                                </div>
-                                <Progress value={student.commitCount > 0 ? Math.min(100, Math.floor((student.commitCount / 20) * 100)) : 0} className="h-2" />
-                              </div>
-                            </TableCell>
                           </TableRow>
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
+                          <TableCell colSpan={2} className="text-center py-4 text-muted-foreground">
                             No students found. Add students from the Student Grades section below.
                           </TableCell>
                         </TableRow>
