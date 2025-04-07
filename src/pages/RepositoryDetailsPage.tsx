@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
@@ -163,6 +164,28 @@ export default function RepositoryDetailsPage() {
 
   return <div className="flex h-screen overflow-hidden">
       <SideNav />
+      
+      {repository && (
+        <div className="w-60 border-r bg-background p-4 hidden md:flex flex-col space-y-4">
+          <h2 className="font-semibold text-lg">{repository.name}</h2>
+          <p className="text-sm text-muted-foreground">{repository.description}</p>
+          <div className="text-sm">
+            <div className="flex justify-between py-1">
+              <span className="text-muted-foreground">ID/Group:</span> 
+              <span className="font-medium">{repository.id || 'N/A'}</span>
+            </div>
+            <div className="flex justify-between py-1">
+              <span className="text-muted-foreground">Project ID:</span>
+              <span className="font-medium">{repository.projectId || 'N/A'}</span>
+            </div>
+            <div className="flex justify-between py-1">
+              <span className="text-muted-foreground">Students:</span>
+              <span className="font-medium">{students.length}</span>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <main className="flex-1 overflow-y-auto p-6 bg-background">
         <div className="max-w-6xl mx-auto space-y-6">
           <Button variant="outline" onClick={handleGoBack} className="gap-2">
@@ -197,14 +220,12 @@ export default function RepositoryDetailsPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Project ID</TableHead>
-                        <TableHead>ID/Group</TableHead>
                         <TableHead>Number of Students</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       <TableRow>
                         <TableCell>{repository.projectId || 'N/A'}</TableCell>
-                        <TableCell>{repository.id || 'N/A'}</TableCell>
                         <TableCell>{students.length}</TableCell>
                       </TableRow>
                     </TableBody>
