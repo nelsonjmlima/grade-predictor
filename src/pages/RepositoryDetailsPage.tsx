@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
@@ -259,11 +258,7 @@ export default function RepositoryDetailsPage() {
                       <TableRow>
                         <TableHead>Author</TableHead>
                         <TableHead>Date</TableHead>
-                        <TableHead>Commits</TableHead>
-                        <TableHead>Additions</TableHead>
-                        <TableHead>Deletions</TableHead>
-                        <TableHead>Operations</TableHead>
-                        <TableHead>Week of Prediction</TableHead>
+                        <TableHead>Last Prediction</TableHead>
                         <TableHead>Final Grade Prediction</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -271,10 +266,6 @@ export default function RepositoryDetailsPage() {
                       <TableRow>
                         <TableCell>{repository.author || 'N/A'}</TableCell>
                         <TableCell>{repository.date || repository.lastActivity || 'N/A'}</TableCell>
-                        <TableCell>{repository.commitCount || 0}</TableCell>
-                        <TableCell>{repository.additions || 0}</TableCell>
-                        <TableCell>{repository.deletions || 0}</TableCell>
-                        <TableCell>{repository.operations || 0}</TableCell>
                         <TableCell>{repository.weekOfPrediction || 'Not set'}</TableCell>
                         <TableCell>{repository.finalGradePrediction || repository.predictedGrade || 'Not predicted'}</TableCell>
                       </TableRow>
@@ -282,8 +273,6 @@ export default function RepositoryDetailsPage() {
                   </Table>
                 </CardContent>
               </Card>
-              
-              {/* Removed RepositoryGradesView component */}
               
               <div className="flex justify-end mt-6">
                 <Button variant="default" onClick={saveChanges} className="gap-2" disabled={!hasUnsavedChanges}>
