@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
@@ -9,7 +10,6 @@ import { getRepositories, updateRepository, Repository, getRepositoryStudents, s
 import { Student } from "@/services/studentData";
 import { DeleteRepositoryDialog } from "@/components/dashboard/DeleteRepositoryDialog";
 import { EditRepositoryDialog } from "@/components/dashboard/EditRepositoryDialog";
-import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
 import { saveStudentData } from "@/services/studentData";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -240,7 +240,7 @@ export default function RepositoryDetailsPage() {
                       ) : (
                         <TableRow>
                           <TableCell colSpan={2} className="text-center py-4 text-muted-foreground">
-                            No students found. Add students from the Student Grades section below.
+                            No students found.
                           </TableCell>
                         </TableRow>
                       )}
@@ -283,13 +283,7 @@ export default function RepositoryDetailsPage() {
                 </CardContent>
               </Card>
               
-              <RepositoryGradesView 
-                repositoryName={repository.name} 
-                students={students} 
-                repositoryId={id} 
-                onStudentAdded={handleStudentAdded} 
-                onStudentEdited={handleStudentEdited} 
-              />
+              {/* Removed RepositoryGradesView component */}
               
               <div className="flex justify-end mt-6">
                 <Button variant="default" onClick={saveChanges} className="gap-2" disabled={!hasUnsavedChanges}>
