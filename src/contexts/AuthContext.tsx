@@ -5,6 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
 import { toast } from "sonner";
 
+// Set the inactivity timeout to 5 minutes (in milliseconds)
+const INACTIVITY_TIMEOUT = 5 * 60 * 1000;
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -22,7 +25,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [inactivityTimer, setInactivityTimer] = useState<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
+
+  // Function to reset the inactivity timer
+  const resetInactivityTimer = () => {
+    // Clear any existing timer
+    if (inactivityTimer) {
+      clearTimeout(inactivityTimer);
+    }
+
+    // Only set a new timer if the user is signed in
+    if (user) {
+      // Set a new timer
+      const newTimer = setTimeout(async () => {
+        console.log("User inactive for 5 minutes, logging out");
+        toast.info("You have been logged out due to inactivity");
+        await signOut();
+      }, INACTIVITY_TIMEOUT);
+      
+      setInactivityTimer(newTimer);
+    }
+  };
+
+  // Set up event listeners to track user activity
+  useEffect(() => {
+    // Only add listeners if user is logged in
+    if (user) {
+      const activityEvents = ['mousedown', 'keydown', 'mousemove', 'wheel', 'touchstart', 'scroll'];
+      
+      // Handler for any user activity
+      const handleUserActivity = () => {
+        resetInactivityTimer();
+      };
+
+      // Add event listeners
+      activityEvents.forEach(event => {
+        window.addEventListener(event, handleUserActivity);
+      });
+
+      // Initialize the inactivity timer
+      resetInactivityTimer();
+
+      // Clean up event listeners when component unmounts
+      return () => {
+        activityEvents.forEach(event => {
+          window.removeEventListener(event, handleUserActivity);
+        });
+        
+        if (inactivityTimer) {
+          clearTimeout(inactivityTimer);
+        }
+      };
+    }
+  }, [user]);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -33,9 +89,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (event === 'SIGNED_IN') {
+          // Reset inactivity timer when signed in
+          resetInactivityTimer();
           // Direct to dashboard instead of verification page
           navigate('/dashboard');
         } else if (event === 'SIGNED_OUT') {
+          // Clear inactivity timer when signed out
+          if (inactivityTimer) {
+            clearTimeout(inactivityTimer);
+            setInactivityTimer(null);
+          }
           navigate('/');
         } else if (event === 'PASSWORD_RECOVERY') {
           navigate('/reset-password?type=update');
@@ -48,6 +111,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
+      
+      // If user is already logged in, set up the inactivity timer
+      if (session?.user) {
+        resetInactivityTimer();
+      }
     });
 
     return () => subscription.unsubscribe();
