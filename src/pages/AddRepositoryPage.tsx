@@ -9,7 +9,7 @@ import { GitLabForm } from "@/components/repository/GitLabForm";
 import { StudentIdManager } from "@/components/repository/StudentIdManager";
 import { addRepository } from "@/services/repositoryData";
 import { Input } from "@/components/ui/input";
-import { FormItem, FormLabel } from "@/components/ui/form";
+import { Label } from "@/components/ui/label"; // Import Label instead of FormLabel
 
 export default function AddRepositoryPage() {
   const navigate = useNavigate();
@@ -121,19 +121,19 @@ export default function AddRepositoryPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <FormItem>
-                    <FormLabel>Project Name</FormLabel>
-                    <Input value={repositoryData.projectName} readOnly />
-                  </FormItem>
-                  <FormItem>
-                    <FormLabel>Project ID</FormLabel>
-                    <Input value={repositoryData.projectId} readOnly />
-                  </FormItem>
+                  <div className="space-y-2">
+                    <Label htmlFor="projectName">Project Name</Label>
+                    <Input id="projectName" value={repositoryData.projectName} readOnly />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="projectId">Project ID</Label>
+                    <Input id="projectId" value={repositoryData.projectId} readOnly />
+                  </div>
                 </div>
-                <FormItem>
-                  <FormLabel>Project URL</FormLabel>
-                  <Input value={repositoryData.projectUrl} readOnly />
-                </FormItem>
+                <div className="space-y-2">
+                  <Label htmlFor="projectUrl">Project URL</Label>
+                  <Input id="projectUrl" value={repositoryData.projectUrl} readOnly />
+                </div>
               </CardContent>
             </Card>
             

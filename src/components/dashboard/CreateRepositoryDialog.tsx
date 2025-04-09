@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 import { addRepository } from "@/services/repositoryData";
 import { GitLabForm } from "@/components/repository/GitLabForm";
 import { StudentIdManager } from "@/components/repository/StudentIdManager";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { FormItem, FormLabel } from "@/components/ui/form";
+import { Label } from "@/components/ui/label"; // Using Label instead of FormItem/FormLabel
 
 interface CreateRepositoryDialogProps {
   open: boolean;
@@ -149,19 +149,19 @@ export function CreateRepositoryDialog({
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <FormItem>
-                    <FormLabel>Project Name</FormLabel>
-                    <Input value={repositoryData.projectName} readOnly />
-                  </FormItem>
-                  <FormItem>
-                    <FormLabel>Project ID</FormLabel>
-                    <Input value={repositoryData.projectId} readOnly />
-                  </FormItem>
+                  <div className="space-y-2">
+                    <Label htmlFor="dialog-projectName">Project Name</Label>
+                    <Input id="dialog-projectName" value={repositoryData.projectName} readOnly />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="dialog-projectId">Project ID</Label>
+                    <Input id="dialog-projectId" value={repositoryData.projectId} readOnly />
+                  </div>
                 </div>
-                <FormItem>
-                  <FormLabel>Project URL</FormLabel>
-                  <Input value={repositoryData.projectUrl} readOnly />
-                </FormItem>
+                <div className="space-y-2">
+                  <Label htmlFor="dialog-projectUrl">Project URL</Label>
+                  <Input id="dialog-projectUrl" value={repositoryData.projectUrl} readOnly />
+                </div>
               </CardContent>
             </Card>
             
