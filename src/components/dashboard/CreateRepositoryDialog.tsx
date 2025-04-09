@@ -1,29 +1,16 @@
+
 import { useState } from "react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, Key, Users } from "lucide-react";
-import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { addRepository } from "@/services/repositoryData";
-import { StudentIdSelector } from "@/components/dashboard/StudentIdSelector";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-const formSchema = z.object({
-  name: z.string().min(3, { message: "Repository name must be at least 3 characters" }),
-  link: z.string().url({ message: "Please enter a valid URL" }).optional().or(z.literal("")),
-  apiKey: z.string().min(1, { message: "API key is required for repository access" }).optional().or(z.literal("")),
-  studentList: z.string().optional(),
-  studentIds: z.array(z.string()).optional(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+import { GitLabForm } from "@/components/repository/GitLabForm";
+import { StudentIdManager } from "@/components/repository/StudentIdManager";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { FormItem, FormLabel } from "@/components/ui/form";
 
 interface CreateRepositoryDialogProps {
   open: boolean;
@@ -37,61 +24,91 @@ export function CreateRepositoryDialog({
   onRepositoryCreated 
 }: CreateRepositoryDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>("text");
+  const [step, setStep] = useState<"gitlab" | "details">("gitlab");
   const navigate = useNavigate();
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      link: "",
-      apiKey: "",
-      studentList: "",
-      studentIds: [],
-    },
+  
+  const [repositoryData, setRepositoryData] = useState({
+    projectId: 0,
+    projectName: "",
+    projectUrl: "",
+    members: [] as Array<{
+      id: number;
+      name: string;
+      username: string;
+    }>,
   });
 
-  const onSubmit = async (values: FormValues) => {
+  const handleGitLabSuccess = (data: {
+    projectId: number;
+    projectName: string;
+    projectUrl: string;
+    members: Array<{
+      id: number;
+      name: string;
+      username: string;
+    }>;
+  }) => {
+    setRepositoryData(data);
+    setStep("details");
+  };
+
+  const handleStudentsChange = (students: Array<{
+    id: number;
+    name: string;
+    username: string;
+  }>) => {
+    setRepositoryData({
+      ...repositoryData,
+      members: students,
+    });
+  };
+
+  const handleDialogClose = () => {
+    // Reset form state when dialog is closed
+    setStep("gitlab");
+    setRepositoryData({
+      projectId: 0,
+      projectName: "",
+      projectUrl: "",
+      members: [],
+    });
+    onOpenChange(false);
+  };
+
+  const handleSubmit = async () => {
     setIsSubmitting(true);
     
     try {
-      const studentData = activeTab === "ids" 
-        ? { studentIds: values.studentIds } 
-        : { students: values.studentList };
-      
       const newRepo = {
-        id: values.name.toLowerCase().replace(/\s+/g, '-'),
-        name: values.name,
-        description: "",
+        id: `gitlab-${repositoryData.projectId}`,
+        name: repositoryData.projectName,
+        projectId: repositoryData.projectId.toString(),
+        description: `GitLab project #${repositoryData.projectId}`,
         lastActivity: "Just now",
         commitCount: 0,
         mergeRequestCount: 0,
         branchCount: 1,
         progress: 0,
         createdAt: new Date().toISOString(),
-        link: values.link || undefined,
-        apiKey: values.apiKey || undefined,
-        ...studentData,
+        link: repositoryData.projectUrl,
+        students: repositoryData.members.map(member => ({
+          id: `student-${member.id}`,
+          name: member.name,
+          email: `${member.username}@gitlab.com`,
+          gitlabUsername: member.username,
+          commitCount: 0,
+          lastActivity: 'Never'
+        })),
       };
-      
-      console.log("Creating repository with:", {
-        name: newRepo.name,
-        link: newRepo.link,
-        hasApiKey: Boolean(newRepo.apiKey),
-        studentData: activeTab === "ids" 
-          ? `Selected ${values.studentIds?.length || 0} student IDs` 
-          : `Added ${values.studentList?.split('\n').filter(email => email.trim()).length || 0} student emails`
-      });
       
       addRepository(newRepo as any);
       
       toast.success("Repository created successfully", {
-        description: `${values.name} has been created and is ready to use.`,
+        description: `${repositoryData.projectName} has been created and is ready to use.`,
       });
       
       setIsSubmitting(false);
-      form.reset();
-      onOpenChange(false);
+      handleDialogClose();
       
       if (onRepositoryCreated) {
         onRepositoryCreated();
@@ -108,145 +125,68 @@ export function CreateRepositoryDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+    <Dialog open={open} onOpenChange={handleDialogClose}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Repository</DialogTitle>
+          <DialogTitle>
+            {step === "gitlab" ? "Connect GitLab Repository" : "Configure Repository"}
+          </DialogTitle>
           <DialogDescription>
-            Set up a new repository to track student progress and performance.
+            {step === "gitlab" 
+              ? "Connect to your GitLab repository to track student progress and performance."
+              : "Configure your repository settings and add student information."
+            }
           </DialogDescription>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
+        {step === "gitlab" ? (
+          <GitLabForm onSuccess={handleGitLabSuccess} />
+        ) : (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">GitLab Project Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <FormItem>
+                    <FormLabel>Project Name</FormLabel>
+                    <Input value={repositoryData.projectName} readOnly />
+                  </FormItem>
+                  <FormItem>
+                    <FormLabel>Project ID</FormLabel>
+                    <Input value={repositoryData.projectId} readOnly />
+                  </FormItem>
+                </div>
                 <FormItem>
-                  <FormLabel>Repository Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Software Engineering 2023" {...field} />
-                  </FormControl>
-                  <FormMessage />
+                  <FormLabel>Project URL</FormLabel>
+                  <Input value={repositoryData.projectUrl} readOnly />
                 </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="link"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Repository Link</FormLabel>
-                  <FormControl>
-                    <div className="flex items-center space-x-2">
-                      <Link className="h-4 w-4 text-muted-foreground" />
-                      <Input placeholder="https://github.com/username/repository" {...field} />
-                    </div>
-                  </FormControl>
-                  <FormDescription>
-                    Enter the full URL to your repository (GitHub, GitLab, etc.)
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="apiKey"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>API Key</FormLabel>
-                  <FormControl>
-                    <div className="flex items-center space-x-2">
-                      <Key className="h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        placeholder="Enter repository API key" 
-                        type="password"
-                        showPasswordToggle 
-                        {...field} 
-                      />
-                    </div>
-                  </FormControl>
-                  <FormDescription>
-                    Enter the API key for repository access. Required for metrics retrieval.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+              </CardContent>
+            </Card>
+            
+            <StudentIdManager 
+              initialStudents={repositoryData.members}
+              onChange={handleStudentsChange}
             />
             
-            <FormItem>
-              <FormLabel>Student Information</FormLabel>
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="text">Enter Emails</TabsTrigger>
-                  <TabsTrigger value="ids">Select IDs</TabsTrigger>
-                </TabsList>
-                <TabsContent value="text">
-                  <FormField
-                    control={form.control}
-                    name="studentList"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <div className="flex items-center space-x-2">
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                            <Textarea 
-                              placeholder="Enter student emails, one per line"
-                              className="min-h-[120px]"
-                              {...field} 
-                            />
-                          </div>
-                        </FormControl>
-                        <FormDescription>
-                          Enter student email addresses, one per line. These will be added as students in the repository.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </TabsContent>
-                <TabsContent value="ids">
-                  <FormField
-                    control={form.control}
-                    name="studentIds"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <StudentIdSelector
-                            selectedIds={field.value || []}
-                            onChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Select student IDs from the available list. These will be associated with the repository.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </TabsContent>
-              </Tabs>
-            </FormItem>
-
-            <DialogFooter className="pt-4">
+            <div className="flex justify-end space-x-4 pt-2">
               <Button 
                 variant="outline" 
-                type="button" 
-                onClick={() => onOpenChange(false)}
+                onClick={() => setStep("gitlab")}
                 disabled={isSubmitting}
               >
-                Cancel
+                Back
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button 
+                onClick={handleSubmit} 
+                disabled={isSubmitting || repositoryData.members.length === 0}
+              >
                 {isSubmitting ? "Creating..." : "Create Repository"}
               </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
