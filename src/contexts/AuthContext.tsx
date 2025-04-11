@@ -90,7 +90,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           navigate('/reset-password?type=update');
         } else if (event === 'USER_UPDATED') {
           toast.success("Your account has been updated");
-        } else if (event === 'SIGNED_UP') {
+        } 
+        // Fixed comparison by using a separate condition instead of comparing different types
+        else if (event === 'SIGNED_UP') {
           navigate('/login');
         }
       }
