@@ -12,7 +12,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
-  signUp: (email: string, password: string, metadata: any) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, metadata: any) => Promise<{ error: any; data?: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
@@ -123,14 +123,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, metadata: any) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      // First, check if a user with this email already exists
+      const { data: existingUsers, error: queryError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle();
+      
+      if (queryError) {
+        console.error("Error checking for existing user:", queryError);
+      }
+      
+      if (existingUsers) {
+        return { 
+          error: { 
+            message: "An account with this email address already exists." 
+          } 
+        };
+      }
+
+      // If no existing user, proceed with sign up
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: metadata,
+          emailRedirectTo: `${window.location.origin}/verification`,
         },
       });
-      return { error };
+
+      if (error) {
+        // Handle specific error codes
+        if (error.message.includes("already registered")) {
+          return { error: { message: "This email address is already registered. Please login instead." } };
+        }
+        return { error };
+      }
+      
+      return { data, error: null };
     } catch (error) {
       console.error("Error during signup:", error);
       return { error };

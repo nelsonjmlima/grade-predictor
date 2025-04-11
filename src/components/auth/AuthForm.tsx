@@ -60,6 +60,7 @@ export function AuthForm({
   defaultTab = "login"
 }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
   const {
     signIn,
     signUp
@@ -98,6 +99,7 @@ export function AuthForm({
       toast.success("Successfully logged in");
     }
   };
+  
   const handleSignup = async (data: SignupFormValues) => {
     setIsLoading(true);
     const metadata = {
@@ -105,16 +107,34 @@ export function AuthForm({
       last_name: data.lastName,
       institution: data.institution
     };
-    const {
-      error
-    } = await signUp(data.email, data.password, metadata);
+    
+    const { error, data: signUpData } = await signUp(data.email, data.password, metadata);
+    
     setIsLoading(false);
+    
     if (error) {
-      toast.error(error.message || "Failed to create account");
+      // Display specific error messages for common issues
+      if (error.message.includes("already registered") || error.message.includes("already exists")) {
+        toast.error("An account with this email address already exists");
+      } else {
+        toast.error(error.message || "Failed to create account");
+      }
     } else {
-      toast.success("Account created successfully! Please check your email to verify your account.");
+      // Check if email confirmation is required
+      if (signUpData?.user && !signUpData.user.confirmed_at) {
+        setVerificationSent(true);
+        toast.success("Account created! Please check your email to verify your account.", {
+          duration: 6000
+        });
+      } else {
+        toast.success("Account created successfully!");
+      }
+      
+      // Reset form after successful signup
+      signupForm.reset();
     }
   };
+  
   return <Card className="w-full mx-auto overflow-hidden animate-scale-in bg-black/40 backdrop-blur-xl border border-white/10 text-white scale-100">
       <Tabs defaultValue={defaultTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 bg-white/10 text-gray-200">
@@ -184,80 +204,99 @@ export function AuthForm({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 px-6">
-            <Form {...signupForm}>
-              <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <FormField control={signupForm.control} name="firstName" render={({
+            {verificationSent ? (
+              <div className="text-center space-y-4 py-6">
+                <div className="text-2xl font-medium text-green-400">Verification Email Sent!</div>
+                <p className="text-gray-300">
+                  Please check your email inbox and click the verification link to activate your account.
+                </p>
+                <p className="text-gray-400 text-sm">
+                  If you don't see the email, check your spam folder. The verification link will expire in 24 hours.
+                </p>
+                <Button
+                  type="button"
+                  className="mt-4 bg-blue-600/80 hover:bg-blue-700/90 text-white"
+                  onClick={() => setVerificationSent(false)}
+                >
+                  Back to Sign Up
+                </Button>
+              </div>
+            ) : (
+              <Form {...signupForm}>
+                <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormField control={signupForm.control} name="firstName" render={({
+                    field
+                  }) => <FormItem className="space-y-2">
+                          <FormLabel className="text-gray-200 text-base">First name</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Michael" className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-10 text-base" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>} />
+                    
+                    <FormField control={signupForm.control} name="lastName" render={({
+                    field
+                  }) => <FormItem className="space-y-2">
+                          <FormLabel className="text-gray-200 text-base">Last name</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Scott" className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-10 text-base" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>} />
+                  </div>
+                  
+                  <FormField control={signupForm.control} name="institution" render={({
                   field
                 }) => <FormItem className="space-y-2">
-                        <FormLabel className="text-gray-200 text-base">First name</FormLabel>
+                        <FormLabel className="text-gray-200 text-base">Institution</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Michael" className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-10 text-base" />
+                          <Input {...field} placeholder="University name" className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-10 text-base" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>} />
                   
-                  <FormField control={signupForm.control} name="lastName" render={({
+                  <FormField control={signupForm.control} name="email" render={({
                   field
                 }) => <FormItem className="space-y-2">
-                        <FormLabel className="text-gray-200 text-base">Last name</FormLabel>
+                        <FormLabel className="text-gray-200 text-base">Email</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Scott" className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-10 text-base" />
+                          <Input {...field} type="email" placeholder="m.scott@example.com" className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-10 text-base" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>} />
-                </div>
-                
-                <FormField control={signupForm.control} name="institution" render={({
-                field
-              }) => <FormItem className="space-y-2">
-                      <FormLabel className="text-gray-200 text-base">Institution</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="University name" className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-10 text-base" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>} />
-                
-                <FormField control={signupForm.control} name="email" render={({
-                field
-              }) => <FormItem className="space-y-2">
-                      <FormLabel className="text-gray-200 text-base">Email</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="email" placeholder="m.scott@example.com" className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-10 text-base" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>} />
-                
-                <FormField control={signupForm.control} name="password" render={({
-                field
-              }) => <FormItem className="space-y-2">
-                      <FormLabel className="text-gray-200 text-base">Password</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="password" showPasswordToggle className="bg-white/10 border-white/20 text-white h-10 text-base" />
-                      </FormControl>
-                      <p className="text-xs text-gray-400 mt-0.5 text-center">
-                        Password must be at least 8 characters and include a number and special character
-                      </p>
-                      <FormMessage />
-                    </FormItem>} />
-                
-                <FormField control={signupForm.control} name="confirmPassword" render={({
-                field
-              }) => <FormItem className="space-y-2">
-                      <FormLabel className="text-gray-200 text-base">Confirm Password</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="password" showPasswordToggle className="bg-white/10 border-white/20 text-white h-10 text-base" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>} />
-                
-                <Button type="submit" className="w-full group bg-blue-600/80 hover:bg-blue-700/90 text-white h-12 text-base mt-1" disabled={isLoading}>
-                  {isLoading ? "Creating account..." : <>
-                      Create Account <UserPlus className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                    </>}
-                </Button>
-              </form>
-            </Form>
+                  
+                  <FormField control={signupForm.control} name="password" render={({
+                  field
+                }) => <FormItem className="space-y-2">
+                        <FormLabel className="text-gray-200 text-base">Password</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="password" showPasswordToggle className="bg-white/10 border-white/20 text-white h-10 text-base" />
+                        </FormControl>
+                        <p className="text-xs text-gray-400 mt-0.5 text-center">
+                          Password must be at least 8 characters and include a number and special character
+                        </p>
+                        <FormMessage />
+                      </FormItem>} />
+                  
+                  <FormField control={signupForm.control} name="confirmPassword" render={({
+                  field
+                }) => <FormItem className="space-y-2">
+                        <FormLabel className="text-gray-200 text-base">Confirm Password</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="password" showPasswordToggle className="bg-white/10 border-white/20 text-white h-10 text-base" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>} />
+                  
+                  <Button type="submit" className="w-full group bg-blue-600/80 hover:bg-blue-700/90 text-white h-12 text-base mt-1" disabled={isLoading}>
+                    {isLoading ? "Creating account..." : <>
+                        Create Account <UserPlus className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                      </>}
+                  </Button>
+                </form>
+              </Form>
+            )}
           </CardContent>
           <CardFooter className="pb-4 pt-2 px-6">
             <p className="text-sm text-gray-300 text-center w-full">
