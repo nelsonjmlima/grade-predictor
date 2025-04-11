@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
+// Form schema for login
 const loginSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address"
@@ -21,6 +23,7 @@ const loginSchema = z.object({
   })
 });
 
+// Form schema for signup - removed idNumber field
 const signupSchema = z.object({
   firstName: z.string().min(1, {
     message: "First name is required"
@@ -48,14 +51,11 @@ const signupSchema = z.object({
   message: "Passwords do not match",
   path: ["confirmPassword"]
 });
-
 type LoginFormValues = z.infer<typeof loginSchema>;
 type SignupFormValues = z.infer<typeof signupSchema>;
-
 interface AuthFormProps {
   defaultTab?: string;
 }
-
 export function AuthForm({
   defaultTab = "login"
 }: AuthFormProps) {
@@ -66,6 +66,7 @@ export function AuthForm({
     signUp
   } = useAuth();
 
+  // Login form
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -74,6 +75,7 @@ export function AuthForm({
     }
   });
 
+  // Signup form - removed idNumber from defaultValues
   const signupForm = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -85,7 +87,6 @@ export function AuthForm({
       confirmPassword: ""
     }
   });
-
   const handleLogin = async (data: LoginFormValues) => {
     setIsLoading(true);
     const {
@@ -98,7 +99,7 @@ export function AuthForm({
       toast.success("Successfully logged in");
     }
   };
-
+  
   const handleSignup = async (data: SignupFormValues) => {
     setIsLoading(true);
     const metadata = {
@@ -112,12 +113,14 @@ export function AuthForm({
     setIsLoading(false);
     
     if (error) {
+      // Display specific error messages for common issues
       if (error.message.includes("already registered") || error.message.includes("already exists")) {
         toast.error("An account with this email address already exists");
       } else {
         toast.error(error.message || "Failed to create account");
       }
     } else {
+      // Check if email confirmation is required
       if (signUpData?.user && !signUpData.user.confirmed_at) {
         setVerificationSent(true);
         toast.success("Account created! Please check your email to verify your account.", {
@@ -127,12 +130,12 @@ export function AuthForm({
         toast.success("Account created successfully!");
       }
       
+      // Reset form after successful signup
       signupForm.reset();
     }
   };
-
-  return (
-    <Card className="w-full mx-auto overflow-hidden animate-scale-in bg-black/40 backdrop-blur-xl border border-white/10 text-white scale-100">
+  
+  return <Card className="w-full mx-auto overflow-hidden animate-scale-in bg-black/40 backdrop-blur-xl border border-white/10 text-white scale-100">
       <Tabs defaultValue={defaultTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 bg-white/10 text-gray-200">
           <TabsTrigger value="login" className="data-[state=active]:bg-blue-600/70 data-[state=active]:text-white text-lg py-3">
@@ -207,14 +210,6 @@ export function AuthForm({
                 <p className="text-gray-300">
                   Please check your email inbox and click the verification link to activate your account.
                 </p>
-                <div className="bg-blue-500/20 p-4 rounded-md text-sm text-blue-200 mb-4">
-                  <p className="font-medium">Important Security Information:</p>
-                  <ul className="list-disc list-inside mt-2 space-y-1">
-                    <li>After verifying your email, you will need to sign in to access your account.</li>
-                    <li>For security reasons, automatic login after verification is disabled.</li>
-                    <li>Your account will not be fully activated until you verify your email address.</li>
-                  </ul>
-                </div>
                 <p className="text-gray-400 text-sm">
                   If you don't see the email, check your spam folder. The verification link will expire in 24 hours.
                 </p>
@@ -310,6 +305,5 @@ export function AuthForm({
           </CardFooter>
         </TabsContent>
       </Tabs>
-    </Card>
-  );
+    </Card>;
 }

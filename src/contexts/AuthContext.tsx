@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -122,14 +123,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, metadata: any) => {
     try {
-      // Check if a user with this email already exists by trying an authentication request
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password: "dummy-password-for-check-only" // We just want to check if the email exists
-      });
-
-      // If there's NO error about invalid credentials, then the user exists
-      if (!authError || (authError.message && !authError.message.includes("Invalid login credentials"))) {
+      // First, check if a user with this email already exists
+      const { data: existingUsers, error: queryError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle();
+      
+      if (queryError) {
+        console.error("Error checking for existing user:", queryError);
+      }
+      
+      if (existingUsers) {
         return { 
           error: { 
             message: "An account with this email address already exists." 
@@ -137,13 +142,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
       }
 
-      // If we get here, the email doesn't exist, so proceed with sign up
+      // If no existing user, proceed with sign up
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: metadata,
-          emailRedirectTo: `${window.location.origin}/verification-confirm?type=signup`,
+          emailRedirectTo: `${window.location.origin}/verification`,
         },
       });
 
