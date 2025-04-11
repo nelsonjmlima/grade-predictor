@@ -99,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           toast.success("Your account has been updated");
         }
         
-        // Fix: Handle SIGNED_UP event separately with type assertion to avoid TypeScript error
+        // Handle SIGNED_UP event separately with type assertion to avoid TypeScript error
         if (event as string === 'SIGNED_UP') {
           // Redirect to verification page instead of login
           navigate('/verification');
@@ -127,8 +127,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, metadata: any) => {
     try {
-      // Check for existing user with the same email
-      // Using repositories table which exists in the database schema
+      // First check if the email is already registered in auth system
+      const { data: { users }, error: authCheckError } = await supabase.auth.admin.listUsers({
+        filter: {
+          email: email
+        }
+      });
+      
+      if (authCheckError) {
+        console.error("Error checking auth users:", authCheckError);
+      }
+      
+      // If auth check fails, we'll try our fallback check
+      if (users && users.length > 0) {
+        return { 
+          error: { 
+            message: "This email address is already registered. Please login instead." 
+          } 
+        };
+      }
+      
+      // Fallback check for existing user with the same email in repositories table
       const { data: existingUsers, error: queryError } = await supabase
         .from('repositories')
         .select('id, email')
