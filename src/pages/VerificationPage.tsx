@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ShieldCheck, ArrowRight } from "lucide-react";
+import { ShieldCheck, ArrowRight, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,23 +16,19 @@ export default function VerificationPage() {
     account: false,
     permissions: false
   });
+  const [emailResent, setEmailResent] = useState(false);
 
   // Perform actual verification checks
   useEffect(() => {
     const performVerification = async () => {
       if (!user) {
-        // Handle case where there's no user
-        navigate("/");
+        // If there's no user, don't redirect immediately
+        // This allows users to see the verification page even if they're not signed in
         return;
       }
 
       try {
-        // Step 1: Check if user identity is confirmed (email verification)
-        // For this demo, we'll simulate checking email confirmation
-        setVerificationSteps(prev => ({ ...prev, identity: true }));
-        
-        // Step 2: Check if user account is active in our database
-        // Here we're checking if the user exists in Supabase
+        // Check if user email is confirmed
         const { data: userData, error: userError } = await supabase.auth.getUser();
         
         if (userError) {
@@ -40,16 +36,14 @@ export default function VerificationPage() {
         }
         
         if (userData && userData.user) {
-          setVerificationSteps(prev => ({ ...prev, account: true }));
+          setVerificationSteps(prev => ({ ...prev, identity: true, account: true }));
+          
+          // If the email is confirmed, mark verification as complete
+          if (userData.user.email_confirmed_at) {
+            setVerificationSteps(prev => ({ ...prev, permissions: true }));
+            setVerificationComplete(true);
+          }
         }
-        
-        // Step 3: Check if user has the necessary permissions
-        // In a real app, you might check roles or permissions
-        // For demo purposes, we'll simulate this
-        setTimeout(() => {
-          setVerificationSteps(prev => ({ ...prev, permissions: true }));
-          setVerificationComplete(true);
-        }, 1000);
         
       } catch (error) {
         console.error("Verification error:", error);
@@ -61,6 +55,28 @@ export default function VerificationPage() {
 
   const handleContinue = () => {
     navigate("/dashboard");
+  };
+
+  const handleResendEmail = async () => {
+    if (!user?.email) return;
+    
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: user.email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/login?verified=true`,
+        }
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      setEmailResent(true);
+    } catch (error) {
+      console.error("Error resending verification email:", error);
+    }
   };
 
   return (
@@ -75,38 +91,54 @@ export default function VerificationPage() {
       <Card className="w-full max-w-md animate-scale-in bg-black/40 backdrop-blur-xl border border-white/10 text-white">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 rounded-full bg-blue-600/30 p-4 w-16 h-16 flex items-center justify-center">
-            <ShieldCheck 
-              className={`h-8 w-8 ${verificationComplete ? 'text-blue-400 animate-scale-in' : 'text-gray-400'}`} 
-            />
+            {verificationComplete ? (
+              <ShieldCheck className="h-8 w-8 text-blue-400 animate-scale-in" />
+            ) : (
+              <Mail className="h-8 w-8 text-gray-400" />
+            )}
           </div>
           <CardTitle className="text-2xl font-semibold text-white">
-            {verificationComplete ? "Verification Complete" : "Verifying User Data"}
+            {verificationComplete ? "Verification Complete" : "Email Verification Required"}
           </CardTitle>
           <CardDescription className="text-gray-300 text-lg">
             {verificationComplete 
               ? `Welcome ${user?.email || 'User'}!` 
-              : "Please wait while we verify your account information"}
+              : "Please verify your email to continue"}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="space-y-2">
-              {!verificationComplete ? (
-                <div className="flex flex-col items-center justify-center space-y-4">
-                  <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-500 rounded-full animate-[pulse_2s_ease-in-out_infinite]" 
-                         style={{ width: `${Object.values(verificationSteps).filter(Boolean).length / 3 * 100}%` }}>
-                    </div>
+            {!verificationComplete ? (
+              <div className="space-y-4">
+                <p className="text-gray-300">
+                  We've sent a verification link to <span className="font-medium text-white">{user?.email || 'your email'}</span>.
+                  Please check your inbox and click the verification link to activate your account.
+                </p>
+                
+                {emailResent ? (
+                  <div className="flex items-center space-x-2 bg-blue-500/20 text-blue-200 p-4 rounded-md">
+                    <ShieldCheck className="h-5 w-5" />
+                    <span>Verification email has been resent!</span>
                   </div>
-                  <p className="text-sm text-gray-300">Verifying credentials...</p>
+                ) : (
+                  <Button 
+                    className="w-full bg-blue-600/50 hover:bg-blue-700/60 text-white" 
+                    onClick={handleResendEmail}
+                  >
+                    Resend verification email
+                  </Button>
+                )}
+                
+                <div className="text-sm text-gray-400 mt-2">
+                  <p>Didn't receive an email? Check your spam folder or click the button above to resend.</p>
                 </div>
-              ) : (
-                <div className="flex items-center space-x-2 bg-blue-500/20 text-blue-200 p-4 rounded-md">
-                  <ShieldCheck className="h-5 w-5" />
-                  <span>User verification complete successful</span>
-                </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2 bg-blue-500/20 text-blue-200 p-4 rounded-md">
+                <ShieldCheck className="h-5 w-5" />
+                <span>User verification completed successfully</span>
+              </div>
+            )}
           </div>
         </CardContent>
         <CardFooter>

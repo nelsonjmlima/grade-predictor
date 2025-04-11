@@ -79,7 +79,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (event === 'SIGNED_IN') {
           resetInactivityTimer();
-          navigate('/dashboard');
+          
+          // Check if the user is verified before redirecting to dashboard
+          if (session?.user?.email_confirmed_at) {
+            navigate('/dashboard');
+          } else {
+            // If user is not verified, send to verification page
+            navigate('/verification');
+          }
         } else if (event === 'SIGNED_OUT') {
           if (inactivityTimer) {
             clearTimeout(inactivityTimer);
@@ -94,7 +101,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // Fix: Handle SIGNED_UP event separately with type assertion to avoid TypeScript error
         if (event as string === 'SIGNED_UP') {
-          navigate('/login');
+          // Redirect to verification page instead of login
+          navigate('/verification');
         }
       }
     );
@@ -106,6 +114,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (session?.user) {
         resetInactivityTimer();
+        
+        // Check if user is verified on initial load
+        if (!session.user.email_confirmed_at) {
+          navigate('/verification');
+        }
       }
     });
 
@@ -139,7 +152,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
         options: {
           data: metadata,
-          emailRedirectTo: `${window.location.origin}/login`,
+          emailRedirectTo: `${window.location.origin}/login?verified=true`,
         },
       });
 
