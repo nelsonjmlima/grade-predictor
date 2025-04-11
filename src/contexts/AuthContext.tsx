@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -110,9 +111,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, metadata: any) => {
     try {
+      // Check for existing user with the same email
+      // Using repositories table which exists in the database schema
       const { data: existingUsers, error: queryError } = await supabase
-        .from('profiles')
-        .select('id')
+        .from('repositories')
+        .select('id, email')
         .eq('email', email)
         .maybeSingle();
       
