@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -127,19 +126,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, metadata: any) => {
     try {
-      // First check if the email is already registered in auth system
-      const { data: { users }, error: authCheckError } = await supabase.auth.admin.listUsers({
-        filter: {
-          email: email
+      // First check if the email already exists by attempting a password reset
+      // This is a client-safe way to check if an email exists without revealing too much information
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false // Don't create a new user, just check if email exists
         }
       });
       
-      if (authCheckError) {
-        console.error("Error checking auth users:", authCheckError);
-      }
-      
-      // If auth check fails, we'll try our fallback check
-      if (users && users.length > 0) {
+      // If no error or specific error message about non-existent user, the email likely exists
+      if (!signInError || !signInError.message.includes("Email not found")) {
         return { 
           error: { 
             message: "This email address is already registered. Please login instead." 
