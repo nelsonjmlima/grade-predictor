@@ -3,12 +3,22 @@ import { AuthForm } from "@/components/auth/AuthForm";
 import { Logo } from "@/components/logo/Logo";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const { user, isLoading } = useAuth();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const defaultTab = searchParams.get("tab") === "signup" ? "signup" : "login";
+  const verificationSuccess = searchParams.get("verified") === "true";
+  
+  // Show toast if user was redirected after email verification
+  useEffect(() => {
+    if (verificationSuccess) {
+      toast.success("Email verified successfully! Please log in.");
+    }
+  }, [verificationSuccess]);
 
   // If user is already logged in, redirect to dashboard
   if (!isLoading && user) {

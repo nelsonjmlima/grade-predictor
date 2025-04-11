@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,16 +27,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [inactivityTimer, setInactivityTimer] = useState<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
 
-  // Function to reset the inactivity timer
   const resetInactivityTimer = () => {
-    // Clear any existing timer
     if (inactivityTimer) {
       clearTimeout(inactivityTimer);
     }
 
-    // Only set a new timer if the user is signed in
     if (user) {
-      // Set a new timer
       const newTimer = setTimeout(async () => {
         console.log("User inactive for 5 minutes, logging out");
         toast.info("You have been logged out due to inactivity");
@@ -48,26 +43,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Set up event listeners to track user activity
   useEffect(() => {
-    // Only add listeners if user is logged in
     if (user) {
       const activityEvents = ['mousedown', 'keydown', 'mousemove', 'wheel', 'touchstart', 'scroll'];
       
-      // Handler for any user activity
       const handleUserActivity = () => {
         resetInactivityTimer();
       };
 
-      // Add event listeners
       activityEvents.forEach(event => {
         window.addEventListener(event, handleUserActivity);
       });
 
-      // Initialize the inactivity timer
       resetInactivityTimer();
 
-      // Clean up event listeners when component unmounts
       return () => {
         activityEvents.forEach(event => {
           window.removeEventListener(event, handleUserActivity);
@@ -81,7 +70,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log("Auth state changed:", event);
@@ -89,12 +77,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (event === 'SIGNED_IN') {
-          // Reset inactivity timer when signed in
           resetInactivityTimer();
-          // Direct to dashboard instead of verification page
           navigate('/dashboard');
         } else if (event === 'SIGNED_OUT') {
-          // Clear inactivity timer when signed out
           if (inactivityTimer) {
             clearTimeout(inactivityTimer);
             setInactivityTimer(null);
@@ -102,17 +87,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           navigate('/');
         } else if (event === 'PASSWORD_RECOVERY') {
           navigate('/reset-password?type=update');
+        } else if (event === 'USER_UPDATED') {
+          toast.success("Your account has been updated");
+        } else if (event === 'SIGNED_UP') {
+          navigate('/login');
         }
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
       
-      // If user is already logged in, set up the inactivity timer
       if (session?.user) {
         resetInactivityTimer();
       }
@@ -123,7 +110,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, metadata: any) => {
     try {
-      // First, check if a user with this email already exists
       const { data: existingUsers, error: queryError } = await supabase
         .from('profiles')
         .select('id')
@@ -142,18 +128,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
       }
 
-      // If no existing user, proceed with sign up
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: metadata,
-          emailRedirectTo: `${window.location.origin}/verification`,
+          emailRedirectTo: `${window.location.origin}/login`,
         },
       });
 
       if (error) {
-        // Handle specific error codes
         if (error.message.includes("already registered")) {
           return { error: { message: "This email address is already registered. Please login instead." } };
         }
@@ -191,16 +175,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = async (email: string) => {
     try {
-      // Get the current domain instead of hardcoding it
       let baseUrl = window.location.origin;
       console.log("Reset password base URL:", baseUrl);
       
-      // Configure the reset password endpoint with the current site URL
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${baseUrl}/reset-password?type=update`,
+        redirectTo: `${baseUrl}/login`,
       });
       
-      console.log("Reset password request sent, redirect URL:", `${baseUrl}/reset-password?type=update`);
+      console.log("Reset password request sent, redirect URL:", `${baseUrl}/login`);
       
       return { error };
     } catch (error) {
