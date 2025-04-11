@@ -12,6 +12,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Form schema for login
 const loginSchema = z.object({
@@ -61,6 +62,7 @@ export function AuthForm({
 }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
+  const [signupError, setSignupError] = useState<string | null>(null);
   const {
     signIn,
     signUp
@@ -102,6 +104,8 @@ export function AuthForm({
   
   const handleSignup = async (data: SignupFormValues) => {
     setIsLoading(true);
+    setSignupError(null); // Reset any previous errors
+    
     const metadata = {
       first_name: data.firstName,
       last_name: data.lastName,
@@ -115,8 +119,10 @@ export function AuthForm({
     if (error) {
       // Display specific error messages for common issues
       if (error.message.includes("already registered") || error.message.includes("already exists")) {
-        toast.error("An account with this email address already exists");
+        setSignupError("An account with this email address already exists. Please use a different email or try logging in instead.");
+        toast.error("Email address already registered");
       } else {
+        setSignupError(error.message || "Failed to create account");
         toast.error(error.message || "Failed to create account");
       }
     } else {
@@ -223,6 +229,13 @@ export function AuthForm({
               </div>
             ) : (
               <Form {...signupForm}>
+                {signupError && (
+                  <Alert className="mb-4 bg-red-500/20 border border-red-400/40 text-white">
+                    <AlertDescription className="text-sm">
+                      {signupError}
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
                     <FormField control={signupForm.control} name="firstName" render={({
