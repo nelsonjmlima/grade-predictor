@@ -9,6 +9,21 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      Aluno: {
+        Row: {
+          id: number
+          nomeAluno: string | null
+        }
+        Insert: {
+          id?: number
+          nomeAluno?: string | null
+        }
+        Update: {
+          id?: number
+          nomeAluno?: string | null
+        }
+        Relationships: []
+      }
       repositories: {
         Row: {
           additions: number | null
@@ -72,6 +87,24 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
           week_of_prediction?: string | null
+        }
+        Relationships: []
+      }
+      Repositorio: {
+        Row: {
+          API_Key: string | null
+          id: number
+          URL_Repositorio: string | null
+        }
+        Insert: {
+          API_Key?: string | null
+          id?: number
+          URL_Repositorio?: string | null
+        }
+        Update: {
+          API_Key?: string | null
+          id?: number
+          URL_Repositorio?: string | null
         }
         Relationships: []
       }

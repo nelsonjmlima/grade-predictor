@@ -15,6 +15,7 @@ import StudentMetricsPage from "./pages/StudentMetricsPage";
 import AddRepositoryPage from "./pages/AddRepositoryPage";
 import NotFound from "./pages/NotFound";
 import VerificationPage from "./pages/VerificationPage";
+import VerificationConfirmPage from "./pages/VerificationConfirmPage";
 import Index from "./pages/Index";
 import PasswordPage from "./pages/PasswordPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -51,6 +52,7 @@ const App = () => {
               <Route path="/index" element={<Navigate to="/" replace />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/verification" element={<VerificationPage />} />
+              <Route path="/verification-confirm" element={<VerificationConfirmPage />} />
               
               {/* Protected Routes */}
               <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
