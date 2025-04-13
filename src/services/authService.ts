@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { trackAuthEvent } from "@/utils/authMonitoring";
 
 interface SignUpMetadata {
   [key: string]: any;
@@ -25,16 +26,12 @@ export async function signUp(email: string, password: string, metadata: SignUpMe
       };
     }
     
-    / Check for existing user in Repositorio table
-
-    import { RepositorioRow } from '@/integrations/supabase/types';
-
+    // Check for existing user in Repositorio table
     const { data: existingUsers, error: queryError } = await supabase
       .from('Repositorio')
       .select('id, email')
       .eq('email', email)
-      .maybeSingle() as { data: { id: number; email?: string } | null; error: any };
-    
+      .maybeSingle();
     
     if (queryError) {
       console.error("Error checking for existing user:", queryError);
@@ -49,6 +46,8 @@ export async function signUp(email: string, password: string, metadata: SignUpMe
       };
     }
 
+    trackAuthEvent('signup_request_submit', { email });
+    const startTime = Date.now();
     
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -57,6 +56,13 @@ export async function signUp(email: string, password: string, metadata: SignUpMe
         data: metadata,
         emailRedirectTo: `${window.location.origin}/login?verified=true`,
       },
+    });
+
+    const endTime = Date.now();
+    trackAuthEvent('signup_request_completed', { 
+      email, 
+      responseTimeMs: endTime - startTime,
+      success: !error
     });
 
     if (error) {
@@ -75,10 +81,21 @@ export async function signUp(email: string, password: string, metadata: SignUpMe
 
 export async function signIn(email: string, password: string) {
   try {
-    const { error } = await supabase.auth.signInWithPassword({
+    trackAuthEvent('signin_request_submit', { email });
+    const startTime = Date.now();
+    
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+    
+    const endTime = Date.now();
+    trackAuthEvent('signin_request_completed', { 
+      email, 
+      responseTimeMs: endTime - startTime,
+      success: !error
+    });
+    
     return { error };
   } catch (error) {
     console.error("Error during signin:", error);
@@ -101,8 +118,18 @@ export async function resetPassword(email: string) {
     let baseUrl = window.location.origin;
     console.log("Reset password base URL:", baseUrl);
     
+    trackAuthEvent('reset_password_request_submit', { email });
+    const startTime = Date.now();
+    
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${baseUrl}/login`,
+    });
+    
+    const endTime = Date.now();
+    trackAuthEvent('reset_password_request_completed', { 
+      email, 
+      responseTimeMs: endTime - startTime,
+      success: !error
     });
     
     console.log("Reset password request sent, redirect URL:", `${baseUrl}/login`);
@@ -116,9 +143,19 @@ export async function resetPassword(email: string) {
 
 export async function updatePassword(password: string) {
   try {
+    trackAuthEvent('update_password_request_submit', {});
+    const startTime = Date.now();
+    
     const { error } = await supabase.auth.updateUser({
       password,
     });
+    
+    const endTime = Date.now();
+    trackAuthEvent('update_password_request_completed', { 
+      responseTimeMs: endTime - startTime,
+      success: !error
+    });
+    
     return { error };
   } catch (error) {
     console.error("Error during password update:", error);
