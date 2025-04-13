@@ -146,7 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Fallback check for existing user with the same email in repositories table
       const { data: existingUsers, error: queryError } = await supabase
-        .from('repositorio')
+        .from('Repositoro')
         .select('id, email')
         .eq('email', email)
         .maybeSingle();
