@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,6 @@ import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-// Form schema for login
 const loginSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address"
@@ -24,7 +22,6 @@ const loginSchema = z.object({
   })
 });
 
-// Form schema for signup - removed idNumber field
 const signupSchema = z.object({
   firstName: z.string().min(1, {
     message: "First name is required"
@@ -52,23 +49,26 @@ const signupSchema = z.object({
   message: "Passwords do not match",
   path: ["confirmPassword"]
 });
+
 type LoginFormValues = z.infer<typeof loginSchema>;
 type SignupFormValues = z.infer<typeof signupSchema>;
+
 interface AuthFormProps {
   defaultTab?: string;
 }
+
 export function AuthForm({
   defaultTab = "login"
 }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
   const [signupError, setSignupError] = useState<string | null>(null);
+
   const {
     signIn,
     signUp
   } = useAuth();
 
-  // Login form
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -77,7 +77,6 @@ export function AuthForm({
     }
   });
 
-  // Signup form - removed idNumber from defaultValues
   const signupForm = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -89,6 +88,7 @@ export function AuthForm({
       confirmPassword: ""
     }
   });
+
   const handleLogin = async (data: LoginFormValues) => {
     setIsLoading(true);
     const {
@@ -101,23 +101,22 @@ export function AuthForm({
       toast.success("Successfully logged in");
     }
   };
-  
+
   const handleSignup = async (data: SignupFormValues) => {
     setIsLoading(true);
-    setSignupError(null); // Reset any previous errors
-    
+    setSignupError(null);
+
     const metadata = {
       first_name: data.firstName,
       last_name: data.lastName,
       institution: data.institution
     };
-    
+
     const { error, data: signUpData } = await signUp(data.email, data.password, metadata);
-    
+
     setIsLoading(false);
-    
+
     if (error) {
-      // Display specific error messages for common issues
       if (error.message.includes("already registered") || error.message.includes("already exists")) {
         setSignupError("An account with this email address already exists. Please use a different email or try logging in instead.");
         toast.error("Email address already registered");
@@ -126,7 +125,6 @@ export function AuthForm({
         toast.error(error.message || "Failed to create account");
       }
     } else {
-      // Check if email confirmation is required
       if (signUpData?.user && !signUpData.user.confirmed_at) {
         setVerificationSent(true);
         toast.success("Account created! Please check your email to verify your account.", {
@@ -135,12 +133,11 @@ export function AuthForm({
       } else {
         toast.success("Account created successfully!");
       }
-      
-      // Reset form after successful signup
+
       signupForm.reset();
     }
   };
-  
+
   return <Card className="w-full mx-auto overflow-hidden animate-scale-in bg-black/40 backdrop-blur-xl border border-white/10 text-white scale-100">
       <Tabs defaultValue={defaultTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 bg-white/10 text-gray-200">
@@ -151,7 +148,7 @@ export function AuthForm({
             Sign Up
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="login">
           <CardHeader>
             <CardTitle className="text-3xl font-medium text-white text-center">Welcome</CardTitle>
@@ -182,7 +179,12 @@ export function AuthForm({
                         </Button>
                       </div>
                       <FormControl>
-                        <Input {...field} type="password" className="bg-white/10 border-white/20 text-white h-12 text-lg" />
+                        <Input 
+                          {...field} 
+                          type="password" 
+                          showPasswordToggle
+                          className="bg-white/10 border-white/20 text-white h-12 text-lg" 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>} />
@@ -201,7 +203,7 @@ export function AuthForm({
             </p>
           </CardFooter>
         </TabsContent>
-        
+
         <TabsContent value="signup">
           <CardHeader className="py-4">
             <CardTitle className="text-2xl font-medium text-white text-center">Create an account</CardTitle>
@@ -297,7 +299,12 @@ export function AuthForm({
                 }) => <FormItem className="space-y-2">
                         <FormLabel className="text-gray-200 text-base">Confirm Password</FormLabel>
                         <FormControl>
-                          <Input {...field} type="password" showPasswordToggle className="bg-white/10 border-white/20 text-white h-10 text-base" />
+                          <Input 
+                            {...field} 
+                            type="password" 
+                            showPasswordToggle
+                            className="bg-white/10 border-white/20 text-white h-10 text-base" 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>} />

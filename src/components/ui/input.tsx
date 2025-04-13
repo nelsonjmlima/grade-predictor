@@ -1,6 +1,6 @@
 
 import * as React from "react"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff } from "lucide-react"  // Ensure these are imported correctly
 import { cn } from "@/lib/utils"
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
