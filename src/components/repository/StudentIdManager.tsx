@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 interface StudentIdManagerProps {
   initialStudents?: Array<{
@@ -39,6 +40,9 @@ export function StudentIdManager({ initialStudents = [], onChange }: StudentIdMa
     
     // Check if student ID already exists
     if (students.some(s => s.id === id)) {
+      toast.error("Student ID already exists", {
+        id: "student-id-exists", // Using a fixed ID to prevent duplicate toasts
+      });
       return;
     }
 
@@ -55,6 +59,10 @@ export function StudentIdManager({ initialStudents = [], onChange }: StudentIdMa
     setStudents(newStudents);
     onChange(newStudents);
     
+    toast.success("Student added successfully", {
+      id: "student-added", // Using a fixed ID to prevent duplicate toasts
+    });
+    
     // Clear inputs
     setStudentId("");
     setStudentName("");
@@ -69,6 +77,16 @@ export function StudentIdManager({ initialStudents = [], onChange }: StudentIdMa
     );
     setStudents(newStudents);
     onChange(newStudents);
+    
+    const selectedStudent = newStudents.find(s => s.id === idToToggle);
+    if (selectedStudent) {
+      toast.info(
+        selectedStudent.selected 
+          ? `Selected student: ${selectedStudent.name}` 
+          : `Deselected student: ${selectedStudent.name}`,
+        { id: `toggle-student-${idToToggle}` } // Using a dynamic ID based on the student to prevent duplicates
+      );
+    }
   };
 
   return (

@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/toaster";
 
 // Pages
 import LoginPage from "./pages/LoginPage";
@@ -61,7 +61,7 @@ const App = () => {
               
               <Route path="*" element={<NotFound />} />
             </Routes>
-            <Toaster position="top-right" />
+            <Toaster />
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
