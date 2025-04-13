@@ -21,6 +21,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarProvider,
 } from "@/components/ui/sidebar";
 
 export default function AddRepositoryPage() {
@@ -127,92 +128,96 @@ export default function AddRepositoryPage() {
     <div className="flex h-screen bg-background">
       <SideNav />
       
-      <Sidebar side="left" variant="inset">
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel>Repository Configuration</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton 
-                    onClick={() => navigate("/dashboard")}
-                    tooltip="Back to Dashboard"
-                  >
-                    <ArrowLeft className="h-5 w-5" />
-                    <span>Back to Dashboard</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                
-                {step === "details" && (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      onClick={() => setStep("gitlab")}
-                      tooltip="Back to GitLab Connection"
-                    >
-                      <ArrowLeft className="h-5 w-5" />
-                      <span>Back to GitLab</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )}
-                
-                {step === "details" && (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      onClick={handleSubmit}
-                      disabled={isSubmitting || repositoryData.members.filter(m => m.selected !== false).length === 0}
-                      tooltip="Add Repository"
-                    >
-                      <Plus className="h-5 w-5" />
-                      <span>{isSubmitting ? "Adding..." : "Add Repository"}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-      </Sidebar>
-      
-      <main className="flex-1 overflow-y-auto p-6">
-        <div className="mx-auto max-w-2xl space-y-8">
-          <h1 className="text-3xl font-bold">
-            {step === "gitlab" ? "Connect GitLab Repository" : "Configure Repository"}
-          </h1>
+      <SidebarProvider>
+        <div className="flex h-full w-full">
+          <Sidebar side="left" variant="inset">
+            <SidebarContent>
+              <SidebarGroup>
+                <SidebarGroupLabel>Repository Configuration</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton 
+                        onClick={() => navigate("/dashboard")}
+                        tooltip="Back to Dashboard"
+                      >
+                        <ArrowLeft className="h-5 w-5" />
+                        <span>Back to Dashboard</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    
+                    {step === "details" && (
+                      <SidebarMenuItem>
+                        <SidebarMenuButton 
+                          onClick={() => setStep("gitlab")}
+                          tooltip="Back to GitLab Connection"
+                        >
+                          <ArrowLeft className="h-5 w-5" />
+                          <span>Back to GitLab</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )}
+                    
+                    {step === "details" && (
+                      <SidebarMenuItem>
+                        <SidebarMenuButton 
+                          onClick={handleSubmit}
+                          disabled={isSubmitting || repositoryData.members.filter(m => m.selected !== false).length === 0}
+                          tooltip="Add Repository"
+                        >
+                          <Plus className="h-5 w-5" />
+                          <span>{isSubmitting ? "Adding..." : "+ Add Repository"}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            </SidebarContent>
+          </Sidebar>
           
-          {step === "gitlab" ? (
-            <GitLabForm onSuccess={handleGitLabSuccess} />
-          ) : (
-            <div className="space-y-6">
-              <Card className="border shadow-md">
-                <CardHeader>
-                  <CardTitle>GitLab Project Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="projectName">Project Name</Label>
-                      <Input id="projectName" value={repositoryData.projectName} readOnly />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="projectId">Project ID</Label>
-                      <Input id="projectId" value={repositoryData.projectId} readOnly />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="projectUrl">Project URL</Label>
-                    <Input id="projectUrl" value={repositoryData.projectUrl} readOnly />
-                  </div>
-                </CardContent>
-              </Card>
+          <main className="flex-1 overflow-y-auto p-6">
+            <div className="mx-auto max-w-2xl space-y-8">
+              <h1 className="text-3xl font-bold">
+                {step === "gitlab" ? "Connect GitLab Repository" : "Configure Repository"}
+              </h1>
               
-              <StudentIdManager 
-                initialStudents={repositoryData.members}
-                onChange={handleStudentsChange}
-              />
+              {step === "gitlab" ? (
+                <GitLabForm onSuccess={handleGitLabSuccess} />
+              ) : (
+                <div className="space-y-6">
+                  <Card className="border shadow-md">
+                    <CardHeader>
+                      <CardTitle>GitLab Project Information</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="projectName">Project Name</Label>
+                          <Input id="projectName" value={repositoryData.projectName} readOnly />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="projectId">Project ID</Label>
+                          <Input id="projectId" value={repositoryData.projectId} readOnly />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="projectUrl">Project URL</Label>
+                        <Input id="projectUrl" value={repositoryData.projectUrl} readOnly />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <StudentIdManager 
+                    initialStudents={repositoryData.members}
+                    onChange={handleStudentsChange}
+                  />
+                </div>
+              )}
             </div>
-          )}
+          </main>
         </div>
-      </main>
+      </SidebarProvider>
     </div>
   );
 }
