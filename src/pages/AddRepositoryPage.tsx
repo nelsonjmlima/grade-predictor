@@ -155,9 +155,14 @@ export default function AddRepositoryPage() {
               />
               
               <Card>
-                <CardFooter className="flex justify-end space-x-4 pt-6">
-                  <Button variant="outline" onClick={() => setStep("gitlab")} disabled={isSubmitting}>
-                    Back
+                <CardFooter className="flex justify-between items-center pt-6">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => setStep("gitlab")} 
+                    disabled={isSubmitting}
+                  >
+                    <ArrowLeft className="h-6 w-6" />
                   </Button>
                   <Button 
                     onClick={handleSubmit} 
@@ -175,3 +180,4 @@ export default function AddRepositoryPage() {
     </div>
   );
 }
+
