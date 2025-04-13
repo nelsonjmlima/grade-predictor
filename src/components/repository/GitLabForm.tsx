@@ -125,7 +125,7 @@ export function GitLabForm({ onSuccess }: GitLabFormProps) {
               )} 
             />
           </CardContent>
-          <CardFooter className="flex justify-end space-x-4 pt-2">
+          <CardFooter className="flex justify-start space-x-4 pt-2"> {/* Changed from justify-end to justify-start */}
             <Button type="submit" disabled={isLoading}>
               {isLoading ? (
                 <>
