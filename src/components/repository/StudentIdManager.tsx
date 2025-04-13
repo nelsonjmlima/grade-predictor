@@ -24,7 +24,7 @@ interface StudentIdManagerProps {
 export function StudentIdManager({ initialStudents = [], onChange }: StudentIdManagerProps) {
   const [students, setStudents] = useState(initialStudents.map(student => ({
     ...student,
-    selected: student.selected !== undefined ? student.selected : true
+    selected: false // Explicitly set to false for all students
   })));
   const [studentId, setStudentId] = useState("");
   const [studentName, setStudentName] = useState("");
@@ -48,7 +48,7 @@ export function StudentIdManager({ initialStudents = [], onChange }: StudentIdMa
         id,
         name: studentName || `Student ${id}`,
         username: studentUsername || `user_${id}`,
-        selected: false, // Changed from true to false
+        selected: false, // Ensure new students are not pre-selected
       }
     ];
     
