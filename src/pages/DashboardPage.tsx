@@ -1,11 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
-import { RepositoriesTable } from "@/components/dashboard/RepositoriesTable";
 import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getRepositories, Repository, filterRepositories, sortRepositories, updateRepository, addRepository } from "@/services/repositoryData";
 
@@ -39,21 +35,10 @@ export default function DashboardPage() {
     setRepositories(enhancedRepositories);
   }, [dialogOpen]);
   
-  const handleCreateRepository = () => {
-    setDialogOpen(true);
-  };
-  
   const handleRepositoryClick = (repoId: string) => {
     navigate(`/repositories/${repoId}`);
   };
-  
-  const handleAddRepository = () => {
-    navigate("/repositories/add");
-  };
 
-  // Get all repositories without filtering or sorting
-  const sortedRepositories = repositories;
-  
   return <div className="flex h-screen overflow-hidden bg-background">
       <SideNav />
       
@@ -67,40 +52,39 @@ export default function DashboardPage() {
             </p>
           </div>
           
-          <div className="flex items-center justify-between mb-4 rounded-2xl">
-            <div className="flex-1">
-              <p className="text-sm text-muted-foreground">
-                {repositories.length > 0 ? `Managing ${repositories.length} repositories.` : ""}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button 
-                size="lg" 
-                className="h-14 px-6 text-base" 
-                onClick={handleAddRepository}
-              >
-                <Plus className="h-5 w-5 mr-2" />
-                Add Repository
-              </Button>
-            </div>
+          <div className="mb-4">
+            <p className="text-sm text-muted-foreground">
+              {repositories.length > 0 ? `Managing ${repositories.length} repositories.` : ""}
+            </p>
           </div>
           
           <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {sortedRepositories.length > 0 ? sortedRepositories.map(repo => <div key={repo.id || repo.name} className="cursor-pointer transform transition-transform hover:scale-[1.01]" onClick={() => handleRepositoryClick(repo.id || '')}>
-                  <RepositoryCard {...repo} />
-                </div>) : <div className="col-span-full p-8 text-center">
+            {repositories.length > 0 ? repositories.map(repo => (
+              <div 
+                key={repo.id || repo.name} 
+                className="cursor-pointer transform transition-transform hover:scale-[1.01]" 
+                onClick={() => handleRepositoryClick(repo.id || '')}
+              >
+                <RepositoryCard {...repo} />
+              </div>
+            )) : (
+              <div className="col-span-full p-8 text-center">
                 <p className="text-muted-foreground">
                   No repositories found.
                 </p>
-              </div>}
+              </div>
+            )}
           </div>
         </div>
       </main>
 
-      <CreateRepositoryDialog open={dialogOpen} onOpenChange={setDialogOpen} onRepositoryCreated={() => {
-      // Refresh repositories after creation
-      const updatedRepositories = getRepositories();
-      setRepositories(updatedRepositories);
-    }} />
+      <CreateRepositoryDialog 
+        open={dialogOpen} 
+        onOpenChange={setDialogOpen} 
+        onRepositoryCreated={() => {
+          const updatedRepositories = getRepositories();
+          setRepositories(updatedRepositories);
+        }} 
+      />
     </div>;
 }
