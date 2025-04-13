@@ -277,16 +277,18 @@ export default function RepositoryDetailsPage() {
                 </CardContent>
               </Card>
               
-              <div className="flex justify-end mt-6">
-                <Button 
-                  onClick={saveChanges} 
-                  disabled={!hasUnsavedChanges}
-                  className="w-full md:w-auto gap-2"
-                >
-                  <Save className="h-4 w-4" />
-                  Save Changes
-                </Button>
-              </div>
+              <Card>
+                <CardContent className="pt-6">
+                  <Button 
+                    onClick={saveChanges} 
+                    disabled={!hasUnsavedChanges}
+                    className="w-full flex items-center justify-center gap-2"
+                  >
+                    <Save className="h-4 w-4" />
+                    Save Changes
+                  </Button>
+                </CardContent>
+              </Card>
               
               <DeleteRepositoryDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} repositoryId={repository.id || ""} repositoryName={repository.name} onRepositoryDeleted={handleRepositoryDeleted} />
               
