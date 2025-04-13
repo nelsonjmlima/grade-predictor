@@ -27,7 +27,6 @@ export async function signUp(email: string, password: string, metadata: SignUpMe
     
     / Check for existing user in Repositorio table
 
-
     import { RepositorioRow } from '@/integrations/supabase/types';
 
     const { data: existingUsers, error: queryError } = await supabase
