@@ -1,11 +1,10 @@
 
 import { useState } from "react";
-import { Plus, Trash2, User, Check } from "lucide-react";
+import { Plus, User, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 
 interface StudentIdManagerProps {
   initialStudents?: Array<{
@@ -60,12 +59,6 @@ export function StudentIdManager({ initialStudents = [], onChange }: StudentIdMa
     setStudentId("");
     setStudentName("");
     setStudentUsername("");
-  };
-
-  const removeStudent = (idToRemove: number) => {
-    const newStudents = students.filter(student => student.id !== idToRemove);
-    setStudents(newStudents);
-    onChange(newStudents);
   };
 
   const toggleStudentSelection = (idToToggle: number) => {
@@ -162,15 +155,6 @@ export function StudentIdManager({ initialStudents = [], onChange }: StudentIdMa
                   <span>
                     {student.name} ({student.username}, ID: {student.id})
                   </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0 ml-1 hover:bg-destructive/20"
-                    onClick={() => removeStudent(student.id)}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                    <span className="sr-only">Remove</span>
-                  </Button>
                 </Badge>
               ))}
             </div>
