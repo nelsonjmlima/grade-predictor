@@ -167,9 +167,9 @@ export default function AddRepositoryPage() {
                   <Button 
                     onClick={handleSubmit} 
                     disabled={isSubmitting || repositoryData.members.filter(m => m.selected !== false).length === 0}
-                    className="w-full sm:w-auto flex items-center gap-2"
+                    className="w-full flex items-center justify-center"
                   >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-4 w-4 mr-1" />
                     {isSubmitting ? "Adding..." : "Add Repository"}
                   </Button>
                 </CardFooter>

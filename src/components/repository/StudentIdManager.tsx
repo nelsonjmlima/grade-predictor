@@ -116,11 +116,12 @@ export function StudentIdManager({ initialStudents = [], onChange }: StudentIdMa
               />
             </div>
           </div>
-          <div className="flex justify-end mt-2">
+          <div className="mt-2">
             <Button 
-              size="sm" 
+              size="default" 
               onClick={addStudent}
               disabled={!studentId || isNaN(Number(studentId))}
+              className="w-full flex items-center justify-center"
             >
               <Plus className="h-4 w-4 mr-1" /> Add Student
             </Button>
