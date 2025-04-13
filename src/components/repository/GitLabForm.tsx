@@ -125,8 +125,12 @@ export function GitLabForm({ onSuccess }: GitLabFormProps) {
               )} 
             />
           </CardContent>
-          <CardFooter className="flex justify-start space-x-4 pt-2"> {/* Changed from justify-end to justify-start */}
-            <Button type="submit" disabled={isLoading}>
+          <CardFooter className="pt-2">
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
