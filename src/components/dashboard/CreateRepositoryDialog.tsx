@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -10,7 +9,7 @@ import { GitLabForm } from "@/components/repository/GitLabForm";
 import { StudentIdManager } from "@/components/repository/StudentIdManager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label"; // Using Label instead of FormItem/FormLabel
+import { Label } from "@/components/ui/label";
 
 interface CreateRepositoryDialogProps {
   open: boolean;
@@ -64,7 +63,6 @@ export function CreateRepositoryDialog({
   };
 
   const handleDialogClose = () => {
-    // Reset form state when dialog is closed
     setStep("gitlab");
     setRepositoryData({
       projectId: 0,
