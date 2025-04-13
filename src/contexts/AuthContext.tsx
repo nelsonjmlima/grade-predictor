@@ -1,25 +1,40 @@
-
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
 import { toast } from "sonner";
-import { trackAuthEvent, inspectSession } from "@/utils/authMonitoring";
 
 // Set the inactivity timeout to 5 minutes (in milliseconds)
 const INACTIVITY_TIMEOUT = 5 * 60 * 1000;
 
+// Define specific types for errors and data
+interface AuthError {
+  message: string;
+  [key: string]: unknown;
+}
+
+interface SignUpResponse {
+  user?: User | null;
+  session?: Session | null;
+}
+
+// Define the AuthContextType with explicit types
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
-  signUp: (email: string, password: string, metadata: any) => Promise<{ error: any; data?: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (
+    email: string,
+    password: string,
+    metadata: Record<string, unknown>
+  ) => Promise<{ error: AuthError | null; data?: SignUpResponse }>;
+  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<{ error: any }>;
-  updatePassword: (password: string) => Promise<{ error: any }>;
+  resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
+  updatePassword: (password: string) => Promise<{ error: AuthError | null }>;
 }
 
+// Create the context with an explicit type
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -40,30 +55,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         toast.info("You have been logged out due to inactivity");
         await signOut();
       }, INACTIVITY_TIMEOUT);
-      
+
       setInactivityTimer(newTimer);
     }
   };
 
   useEffect(() => {
     if (user) {
-      const activityEvents = ['mousedown', 'keydown', 'mousemove', 'wheel', 'touchstart', 'scroll'];
-      
+      const activityEvents = ["mousedown", "keydown", "mousemove", "wheel", "touchstart", "scroll"];
+
       const handleUserActivity = () => {
         resetInactivityTimer();
       };
 
-      activityEvents.forEach(event => {
+      activityEvents.forEach((event) => {
         window.addEventListener(event, handleUserActivity);
       });
 
       resetInactivityTimer();
 
       return () => {
-        activityEvents.forEach(event => {
+        activityEvents.forEach((event) => {
           window.removeEventListener(event, handleUserActivity);
         });
-        
+
         if (inactivityTimer) {
           clearTimeout(inactivityTimer);
         }
@@ -72,58 +87,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   useEffect(() => {
-    console.log("Setting up auth state change listener");
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log("Auth state changed:", event);
-        trackAuthEvent(`auth_state_changed_${event}`, { session: session?.user?.email });
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (event === 'SIGNED_IN') {
-          resetInactivityTimer();
-          
-          // Check if the user is verified before redirecting to dashboard
-          if (session?.user?.email_confirmed_at) {
-            navigate('/dashboard');
-          } else {
-            // If user is not verified, send to verification page
-            navigate('/verification');
-          }
-        } else if (event === 'SIGNED_OUT') {
-          if (inactivityTimer) {
-            clearTimeout(inactivityTimer);
-            setInactivityTimer(null);
-          }
-          navigate('/');
-        } else if (event === 'PASSWORD_RECOVERY') {
-          navigate('/reset-password?type=update');
-        } else if (event === 'USER_UPDATED') {
-          toast.success("Your account has been updated");
-        }
-        
-        // Handle SIGNED_UP event separately with type assertion to avoid TypeScript error
-        if (event as string === 'SIGNED_UP') {
-          // Redirect to verification page instead of login
-          navigate('/verification');
-        }
-      }
-    );
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event);
+      setSession(session);
+      setUser(session?.user ?? null);
 
-    console.log("Initial session check");
+      if (event === "SIGNED_IN") {
+        resetInactivityTimer();
+
+        // Check if the user is verified before redirecting to dashboard
+        if (session?.user?.email_confirmed_at) {
+          navigate("/dashboard");
+        } else {
+          // If user is not verified, send to verification page
+          navigate("/verification");
+        }
+      } else if (event === "SIGNED_OUT") {
+        if (inactivityTimer) {
+          clearTimeout(inactivityTimer);
+          setInactivityTimer(null);
+        }
+        navigate("/");
+      } else if (event === "PASSWORD_RECOVERY") {
+        navigate("/reset-password?type=update");
+      } else if (event === "USER_UPDATED") {
+        toast.success("Your account has been updated");
+      }
+
+      // Handle SIGNED_UP event
+      if (event === "SIGNED_UP") {
+        navigate("/verification");
+      }
+    });
+
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log("Initial session check:", session ? "Session found" : "No session");
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
-      
+
       if (session?.user) {
         resetInactivityTimer();
-        
+
         // Check if user is verified on initial load
         if (!session.user.email_confirmed_at) {
-          navigate('/verification');
+          navigate("/verification");
         }
       }
     });
@@ -131,172 +138,121 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-/**
- * Registers a new user with Supabase authentication.
- * Checks for existing email addresses to prevent duplicates and sends a verification email.
- * @param email - The user's email address.
- * @param password - The user's password.
- * @param metadata - Additional user metadata (e.g., name, institution).
- * @returns A promise resolving to an object with:
- * - `data`: User and session data if successful.
- * - `error`: Error object if registration fails.
- */
-const signUp = async (email: string, password: string, metadata: any) => {
-  try {
-    trackAuthEvent('signup_attempt', { email });
-    
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: false
+  const signUp = async (email: string, password: string, metadata: Record<string, unknown>) => {
+    try {
+      // Check if the email already exists
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false,
+        },
+      });
+
+      if (!signInError || !signInError.message.includes("Email not found")) {
+        return {
+          error: {
+            message: "This email address is already registered. Please login instead.",
+          },
+        };
       }
-    });
-    
-    if (!signInError || !signInError.message.includes("Email not found")) {
-      trackAuthEvent('signup_email_exists', { email });
-      return { 
-        error: { 
-          message: "This email address is already registered. Please login instead." 
-        } 
-      };
-    }
-    
-    // Check for existing user in Repositorio table
-    const { data: existingUsers, error: queryError } = await supabase
-      .from('Repositorio')
-      .select('id, email')
-      .eq('email', email)
-      .maybeSingle();
-    
-    if (queryError) {
-      console.error("Error checking for existing user:", queryError);
-      trackAuthEvent('signup_db_check_error', { email, error: queryError.message });
-    }
-    
-    if (existingUsers) {
-      trackAuthEvent('signup_user_exists_in_db', { email });
-      return { 
-        error: { 
-          message: "An account with this email address already exists." 
-        } 
-      };
-    }
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: metadata,
-        emailRedirectTo: `${window.location.origin}/login?verified=true`,
-      },
-    });
+      // Fallback check for existing user in repositories table
+      const { data: existingUsers, error: queryError } = await supabase
+        .from("repositories")
+        .select("id, email")
+        .eq("email", email)
+        .maybeSingle();
 
-    if (error) {
-      trackAuthEvent('signup_error', { email, error: error.message });
-      if (error.message.includes("already registered")) {
-        return { error: { message: "This email address is already registered. Please login instead." } };
+      if (queryError) {
+        console.error("Error checking for existing user:", queryError);
       }
+
+      if (existingUsers) {
+        return {
+          error: {
+            message: "An account with this email address already exists.",
+          },
+        };
+      }
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: metadata,
+          emailRedirectTo: `${window.location.origin}/login?verified=true`,
+        },
+      });
+
+      if (error) {
+        if (error.message.includes("already registered")) {
+          return {
+            error: { message: "This email address is already registered. Please login instead." },
+          };
+        }
+        return { error };
+      }
+
+      return { data, error: null };
+    } catch (error: unknown) {
+      console.error("Error during signup:", error);
+      return { error: error as AuthError };
+    }
+  };
+
+  const signIn = async (email: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       return { error };
+    } catch (error: unknown) {
+      console.error("Error during signin:", error);
+      return { error: error as AuthError };
     }
-    
-    trackAuthEvent('signup_success', { email });
-    return { data, error: null };
-  } catch (error) {
-    console.error("Error during signup:", error);
-    trackAuthEvent('signup_exception', { email, error: (error as Error).message });
-    return { error };
-  }
-};
+  };
 
-/**
- * Signs in a user with their email and password.
- * @param email - The user's email address.
- * @param password - The user's password.
- * @returns A promise resolving to an object with error information (if any).
- */
-const signIn = async (email: string, password: string) => {
-  try {
-    trackAuthEvent('signin_attempt', { email });
-    
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    
-    if (error) {
-      trackAuthEvent('signin_error', { email, error: error.message });
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (error: unknown) {
+      console.error("Error during signout:", error);
+      toast.error("Failed to sign out");
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    try {
+      let baseUrl = window.location.origin;
+      console.log("Reset password base URL:", baseUrl);
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${baseUrl}/login`,
+      });
+
+      console.log("Reset password request sent, redirect URL:", `${baseUrl}/login`);
+
       return { error };
+    } catch (error: unknown) {
+      console.error("Error during password reset:", error);
+      return { error: error as AuthError };
     }
-    
-    trackAuthEvent('signin_success', { email });
-    return { error: null };
-  } catch (error) {
-    console.error("Error during signin:", error);
-    trackAuthEvent('signin_exception', { email, error: (error as Error).message });
-    return { error };
-  }
-};
-  
-const signOut = async () => {
-  try {
-    trackAuthEvent('signout_attempt', { user: user?.email });
-    await supabase.auth.signOut();
-    trackAuthEvent('signout_success', { user: user?.email });
-  } catch (error) {
-    console.error("Error during signout:", error);
-    trackAuthEvent('signout_error', { user: user?.email, error: (error as Error).message });
-    toast.error("Failed to sign out");
-  }
-};
+  };
 
-const resetPassword = async (email: string) => {
-  try {
-    let baseUrl = window.location.origin;
-    console.log("Reset password base URL:", baseUrl);
-    trackAuthEvent('reset_password_attempt', { email });
-    
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${baseUrl}/login`,
-    });
-    
-    console.log("Reset password request sent, redirect URL:", `${baseUrl}/login`);
-    
-    if (error) {
-      trackAuthEvent('reset_password_error', { email, error: error.message });
-    } else {
-      trackAuthEvent('reset_password_email_sent', { email, redirectUrl: `${baseUrl}/login` });
+  const updatePassword = async (password: string) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password,
+      });
+      return { error };
+    } catch (error: unknown) {
+      console.error("Error during password update:", error);
+      return { error: error as AuthError };
     }
-    
-    return { error };
-  } catch (error) {
-    console.error("Error during password reset:", error);
-    trackAuthEvent('reset_password_exception', { email, error: (error as Error).message });
-    return { error };
-  }
-};
+  };
 
-const updatePassword = async (password: string) => {
-  try {
-    trackAuthEvent('update_password_attempt', { user: user?.email });
-    const { error } = await supabase.auth.updateUser({
-      password,
-    });
-    
-    if (error) {
-      trackAuthEvent('update_password_error', { user: user?.email, error: error.message });
-    } else {
-      trackAuthEvent('update_password_success', { user: user?.email });
-    }
-    
-    return { error };
-  } catch (error) {
-    console.error("Error during password update:", error);
-    trackAuthEvent('update_password_exception', { user: user?.email, error: (error as Error).message });
-    return { error };
-  }
-};
-
-  const value = {
+  const value: AuthContextType = {
     user,
     session,
     isLoading,
