@@ -1,24 +1,3 @@
-
-
-export type RepositorioRow = {
-  API_Key: string | null;
-  id: number;
-  URL_Repositorio: string | null;
-};
-
-export type RepositorioInsert = {
-  API_Key?: string | null;
-  id?: number;
-  URL_Repositorio?: string | null;
-};
-
-export type RepositorioUpdate = {
-  API_Key?: string | null;
-  id?: number;
-  URL_Repositorio?: string | null;
-};
-
-
 export type Json =
   | string
   | number
