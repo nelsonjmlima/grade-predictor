@@ -48,7 +48,7 @@ export function StudentIdManager({ initialStudents = [], onChange }: StudentIdMa
         id,
         name: studentName || `Student ${id}`,
         username: studentUsername || `user_${id}`,
-        selected: true,
+        selected: false, // Changed from true to false
       }
     ];
     
