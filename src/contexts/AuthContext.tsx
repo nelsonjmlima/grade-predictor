@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -70,6 +71,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   useEffect(() => {
+    console.log("Setting up auth state change listener");
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log("Auth state changed:", event);
@@ -77,29 +80,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (event === 'SIGNED_IN') {
+          console.log("User signed in:", session?.user?.email);
           resetInactivityTimer();
           
           // Check if the user is verified before redirecting to dashboard
           if (session?.user?.email_confirmed_at) {
+            console.log("User verified, redirecting to dashboard");
             navigate('/dashboard');
           } else {
             // If user is not verified, send to verification page
+            console.log("User not verified, redirecting to verification page");
             navigate('/verification');
           }
         } else if (event === 'SIGNED_OUT') {
+          console.log("User signed out");
           if (inactivityTimer) {
             clearTimeout(inactivityTimer);
             setInactivityTimer(null);
           }
           navigate('/');
         } else if (event === 'PASSWORD_RECOVERY') {
+          console.log("Password recovery initiated");
           navigate('/reset-password?type=update');
         } else if (event === 'USER_UPDATED') {
+          console.log("User account updated");
           toast.success("Your account has been updated");
         }
         
         // Handle SIGNED_UP event separately with type assertion to avoid TypeScript error
         if (event as string === 'SIGNED_UP') {
+          console.log("User signed up, redirecting to verification");
           // Redirect to verification page instead of login
           navigate('/verification');
         }
@@ -107,6 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Initial session check:", session ? "Session found" : "No session");
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
@@ -116,6 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // Check if user is verified on initial load
         if (!session.user.email_confirmed_at) {
+          console.log("User not verified on initial load, redirecting to verification");
           navigate('/verification');
         }
       }
@@ -126,6 +138,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, metadata: any) => {
     try {
+      console.log("Attempting to sign up user:", email);
+      
       // First check if the email already exists by attempting a password reset
       // This is a client-safe way to check if an email exists without revealing too much information
       const { data: signInData, error: signInError } = await supabase.auth.signInWithOtp({
@@ -135,8 +149,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       });
       
+      console.log("OTP check result:", !signInError ? "Email exists" : "Email doesn't exist");
+      
       // If no error or specific error message about non-existent user, the email likely exists
       if (!signInError || !signInError.message.includes("Email not found")) {
+        console.log("Email already registered:", email);
         return { 
           error: { 
             message: "This email address is already registered. Please login instead." 
@@ -145,8 +162,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       // Fallback check for existing user with the same email in repositories table
+      // Fix the case of the table name to match Supabase's case sensitivity
       const { data: existingUsers, error: queryError } = await supabase
-        .from('Repositoro')
+        .from('Repositorio')
         .select('id, email')
         .eq('email', email)
         .maybeSingle();
@@ -156,6 +174,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       if (existingUsers) {
+        console.log("User with this email already exists in database:", email);
         return { 
           error: { 
             message: "An account with this email address already exists." 
@@ -163,6 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
       }
 
+      console.log("Creating new user account for:", email);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -173,25 +193,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) {
+        console.error("Signup error:", error.message);
         if (error.message.includes("already registered")) {
           return { error: { message: "This email address is already registered. Please login instead." } };
         }
         return { error };
       }
       
+      console.log("Signup successful, verification email should be sent now");
       return { data, error: null };
     } catch (error) {
-      console.error("Error during signup:", error);
+      console.error("Unexpected error during signup:", error);
       return { error };
     }
   };
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log("Attempting to sign in user:", email);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+      
+      if (error) {
+        console.error("Sign in error:", error.message);
+      } else {
+        console.log("Sign in successful for:", email);
+      }
+      
       return { error };
     } catch (error) {
       console.error("Error during signin:", error);
@@ -201,7 +231,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
+      console.log("Signing out user");
       await supabase.auth.signOut();
+      console.log("User signed out successfully");
     } catch (error) {
       console.error("Error during signout:", error);
       toast.error("Failed to sign out");
@@ -211,13 +243,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const resetPassword = async (email: string) => {
     try {
       let baseUrl = window.location.origin;
+      console.log("Sending password reset email to:", email);
       console.log("Reset password base URL:", baseUrl);
       
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${baseUrl}/login`,
       });
       
-      console.log("Reset password request sent, redirect URL:", `${baseUrl}/login`);
+      if (error) {
+        console.error("Password reset error:", error.message);
+      } else {
+        console.log("Password reset email sent successfully to:", email);
+      }
       
       return { error };
     } catch (error) {
@@ -228,9 +265,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const updatePassword = async (password: string) => {
     try {
+      console.log("Updating user password");
       const { error } = await supabase.auth.updateUser({
         password,
       });
+      
+      if (error) {
+        console.error("Password update error:", error.message);
+      } else {
+        console.log("Password updated successfully");
+      }
+      
       return { error };
     } catch (error) {
       console.error("Error during password update:", error);
