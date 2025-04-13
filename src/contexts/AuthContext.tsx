@@ -146,11 +146,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       // Fallback check for existing user with the same email in Repositorio table
+      // Fix the type inference issue by using explicit typing
+      interface RepositorioRow {
+        id: number;
+        email?: string;
+      }
+      
       const { data: existingUsers, error: queryError } = await supabase
         .from('Repositorio')
         .select('id, email')
         .eq('email', email)
-        .maybeSingle();
+        .maybeSingle<RepositorioRow>();
       
       if (queryError) {
         console.error("Error checking for existing user:", queryError);
