@@ -1,17 +1,10 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus, Trash2, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
 
 interface StudentIdManagerProps {
   initialStudents?: Array<{
@@ -31,41 +24,26 @@ export function StudentIdManager({ initialStudents = [], onChange }: StudentIdMa
   const [studentId, setStudentId] = useState("");
   const [studentName, setStudentName] = useState("");
   const [studentUsername, setStudentUsername] = useState("");
-  const [studentCount, setStudentCount] = useState<string>("1");
-  
-  const generateSequentialIds = (startId: number, count: number) => {
-    const ids = [];
-    for (let i = 0; i < count; i++) {
-      ids.push(startId + i);
-    }
-    return ids;
-  };
 
   const addStudent = () => {
     if (!studentId || isNaN(Number(studentId))) {
       return;
     }
 
-    const baseId = Number(studentId);
-    const count = Number(studentCount);
+    const id = Number(studentId);
     
-    // Generate sequential IDs
-    const newIds = generateSequentialIds(baseId, count);
-    
-    // Filter out IDs that already exist in students
-    const availableIds = newIds.filter(id => !students.some(s => s.id === id));
-    
-    if (availableIds.length === 0) {
+    // Check if student ID already exists
+    if (students.some(s => s.id === id)) {
       return;
     }
-    
+
     const newStudents = [
       ...students,
-      ...availableIds.map(id => ({
+      {
         id,
         name: studentName || `Student ${id}`,
         username: studentUsername || `user_${id}`,
-      }))
+      }
     ];
     
     setStudents(newStudents);
@@ -90,10 +68,10 @@ export function StudentIdManager({ initialStudents = [], onChange }: StudentIdMa
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-col space-y-2">
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <div className="flex flex-col">
               <label htmlFor="studentId" className="text-sm font-medium mb-1">
-                Starting ID
+                Student ID
               </label>
               <Input
                 id="studentId"
@@ -104,28 +82,8 @@ export function StudentIdManager({ initialStudents = [], onChange }: StudentIdMa
               />
             </div>
             <div className="flex flex-col">
-              <label htmlFor="studentCount" className="text-sm font-medium mb-1">
-                Number of Students
-              </label>
-              <Select 
-                value={studentCount} 
-                onValueChange={(value) => setStudentCount(value)}
-              >
-                <SelectTrigger id="studentCount">
-                  <SelectValue placeholder="Select count" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[1, 2, 3, 4, 5, 10].map(count => (
-                    <SelectItem key={count} value={count.toString()}>
-                      {count}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col">
               <label htmlFor="studentName" className="text-sm font-medium mb-1">
-                Base Name
+                Name
               </label>
               <Input
                 id="studentName"
@@ -137,7 +95,7 @@ export function StudentIdManager({ initialStudents = [], onChange }: StudentIdMa
             </div>
             <div className="flex flex-col">
               <label htmlFor="studentUsername" className="text-sm font-medium mb-1">
-                Base Username
+                Username
               </label>
               <Input
                 id="studentUsername"
@@ -154,7 +112,7 @@ export function StudentIdManager({ initialStudents = [], onChange }: StudentIdMa
               onClick={addStudent}
               disabled={!studentId || isNaN(Number(studentId))}
             >
-              <Plus className="h-4 w-4 mr-1" /> Add Students
+              <Plus className="h-4 w-4 mr-1" /> Add Student
             </Button>
           </div>
         </div>
