@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Edit, Save, User } from "lucide-react";
+import { ArrowLeft, Edit, Save, Trash2, User } from "lucide-react";
 import { toast } from "sonner";
 import { getRepositories, updateRepository, Repository, getRepositoryStudents, saveRepositoryStudent } from "@/services/repositoryData";
 import { Student } from "@/services/studentData";
@@ -164,27 +165,29 @@ export default function RepositoryDetailsPage() {
       <SideNav />
       <main className="flex-1 overflow-y-auto p-6 bg-background">
         <div className="max-w-6xl mx-auto space-y-6">
-          <Button variant="outline" onClick={handleGoBack} className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={handleGoBack} className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+            {repository && (
+              <>
+                <Button variant="outline" onClick={() => setEditDialogOpen(true)} className="gap-2">
+                  <Edit className="h-4 w-4" />
+                  Edit
+                </Button>
+                <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)} className="gap-2">
+                  <Trash2 className="h-4 w-4" />
+                  Delete
+                </Button>
+              </>
+            )}
+          </div>
           
           {repository && <>
-              <div className="flex justify-between items-center">
-                <div>
-                  <h1 className="text-2xl font-semibold">{repository.name}</h1>
-                  <p className="text-muted-foreground">{repository.description}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" onClick={() => setEditDialogOpen(true)} className="gap-2">
-                    <Edit className="h-4 w-4" />
-                    Edit
-                  </Button>
-                  <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)} className="gap-2">
-                    <Edit className="h-4 w-4" />
-                    Delete
-                  </Button>
-                </div>
+              <div>
+                <h1 className="text-2xl font-semibold">{repository.name}</h1>
+                <p className="text-muted-foreground">{repository.description}</p>
               </div>
               
               <Card>
@@ -278,9 +281,9 @@ export default function RepositoryDetailsPage() {
                 <Button 
                   onClick={saveChanges} 
                   disabled={!hasUnsavedChanges}
-                  className="w-full md:w-auto"
+                  className="w-full md:w-auto gap-2"
                 >
-                  <Save className="mr-2 h-4 w-4" />
+                  <Save className="h-4 w-4" />
                   Save Changes
                 </Button>
               </div>
