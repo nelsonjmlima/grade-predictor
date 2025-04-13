@@ -1,26 +1,32 @@
 
 import { useState } from "react";
-import { Plus, Trash2, User } from "lucide-react";
+import { Plus, Trash2, User, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface StudentIdManagerProps {
   initialStudents?: Array<{
     id: number;
     name: string;
     username: string;
+    selected?: boolean;
   }>;
   onChange: (students: Array<{
     id: number;
     name: string;
     username: string;
+    selected?: boolean;
   }>) => void;
 }
 
 export function StudentIdManager({ initialStudents = [], onChange }: StudentIdManagerProps) {
-  const [students, setStudents] = useState(initialStudents);
+  const [students, setStudents] = useState(initialStudents.map(student => ({
+    ...student,
+    selected: student.selected !== undefined ? student.selected : true
+  })));
   const [studentId, setStudentId] = useState("");
   const [studentName, setStudentName] = useState("");
   const [studentUsername, setStudentUsername] = useState("");
@@ -43,6 +49,7 @@ export function StudentIdManager({ initialStudents = [], onChange }: StudentIdMa
         id,
         name: studentName || `Student ${id}`,
         username: studentUsername || `user_${id}`,
+        selected: true,
       }
     ];
     
@@ -57,6 +64,16 @@ export function StudentIdManager({ initialStudents = [], onChange }: StudentIdMa
 
   const removeStudent = (idToRemove: number) => {
     const newStudents = students.filter(student => student.id !== idToRemove);
+    setStudents(newStudents);
+    onChange(newStudents);
+  };
+
+  const toggleStudentSelection = (idToToggle: number) => {
+    const newStudents = students.map(student => 
+      student.id === idToToggle 
+        ? { ...student, selected: !student.selected } 
+        : student
+    );
     setStudents(newStudents);
     onChange(newStudents);
   };
@@ -124,9 +141,23 @@ export function StudentIdManager({ initialStudents = [], onChange }: StudentIdMa
               {students.map((student) => (
                 <Badge 
                   key={student.id} 
-                  variant="secondary"
-                  className="flex items-center gap-1 py-1.5 px-2"
+                  variant={student.selected ? "secondary" : "outline"}
+                  className={`flex items-center gap-1 py-1.5 px-2 ${student.selected ? 'bg-secondary' : 'bg-muted/50'}`}
                 >
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-4 w-4 p-0 mr-1"
+                    onClick={() => toggleStudentSelection(student.id)}
+                  >
+                    {student.selected ? 
+                      <Check className="h-3 w-3 text-primary" /> : 
+                      <Plus className="h-3 w-3" />
+                    }
+                    <span className="sr-only">
+                      {student.selected ? "Deselect" : "Select"} student
+                    </span>
+                  </Button>
                   <User className="h-3 w-3" />
                   <span>
                     {student.name} ({student.username}, ID: {student.id})

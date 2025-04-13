@@ -10,7 +10,7 @@ import { GitLabForm } from "@/components/repository/GitLabForm";
 import { StudentIdManager } from "@/components/repository/StudentIdManager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label"; // Using Label instead of FormItem/FormLabel
+import { Label } from "@/components/ui/label"; 
 
 interface CreateRepositoryDialogProps {
   open: boolean;
@@ -35,6 +35,7 @@ export function CreateRepositoryDialog({
       id: number;
       name: string;
       username: string;
+      selected?: boolean;
     }>,
   });
 
@@ -46,9 +47,13 @@ export function CreateRepositoryDialog({
       id: number;
       name: string;
       username: string;
+      selected?: boolean;
     }>;
   }) => {
-    setRepositoryData(data);
+    setRepositoryData({
+      ...data,
+      members: data.members.map(member => ({...member, selected: true}))
+    });
     setStep("details");
   };
 
@@ -56,6 +61,7 @@ export function CreateRepositoryDialog({
     id: number;
     name: string;
     username: string;
+    selected?: boolean;
   }>) => {
     setRepositoryData({
       ...repositoryData,
@@ -79,6 +85,9 @@ export function CreateRepositoryDialog({
     setIsSubmitting(true);
     
     try {
+      // Filter only selected students
+      const selectedStudents = repositoryData.members.filter(member => member.selected !== false);
+      
       const newRepo = {
         id: `gitlab-${repositoryData.projectId}`,
         name: repositoryData.projectName,
@@ -91,7 +100,7 @@ export function CreateRepositoryDialog({
         progress: 0,
         createdAt: new Date().toISOString(),
         link: repositoryData.projectUrl,
-        students: repositoryData.members.map(member => ({
+        students: selectedStudents.map(member => ({
           id: `student-${member.id}`,
           name: member.name,
           email: `${member.username}@gitlab.com`,
@@ -104,7 +113,7 @@ export function CreateRepositoryDialog({
       addRepository(newRepo as any);
       
       toast.success("Repository created successfully", {
-        description: `${repositoryData.projectName} has been created and is ready to use.`,
+        description: `${repositoryData.projectName} has been created with ${selectedStudents.length} selected students.`,
       });
       
       setIsSubmitting(false);
@@ -180,7 +189,8 @@ export function CreateRepositoryDialog({
               </Button>
               <Button 
                 onClick={handleSubmit} 
-                disabled={isSubmitting || repositoryData.members.length === 0}
+                disabled={isSubmitting || repositoryData.members.filter(m => m.selected !== false).length === 0}
+                className="w-full sm:w-auto"
               >
                 {isSubmitting ? "Creating..." : "Create Repository"}
               </Button>

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
@@ -24,6 +25,7 @@ export default function AddRepositoryPage() {
       id: number;
       name: string;
       username: string;
+      selected?: boolean;
     }>,
   });
 
@@ -35,9 +37,13 @@ export default function AddRepositoryPage() {
       id: number;
       name: string;
       username: string;
+      selected?: boolean;
     }>;
   }) => {
-    setRepositoryData(data);
+    setRepositoryData({
+      ...data,
+      members: data.members.map(member => ({...member, selected: true}))
+    });
     setStep("details");
   };
 
@@ -45,6 +51,7 @@ export default function AddRepositoryPage() {
     id: number;
     name: string;
     username: string;
+    selected?: boolean;
   }>) => {
     setRepositoryData({
       ...repositoryData,
@@ -55,6 +62,9 @@ export default function AddRepositoryPage() {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
+      // Filter only selected students
+      const selectedStudents = repositoryData.members.filter(member => member.selected !== false);
+      
       const newRepo = {
         id: `gitlab-${repositoryData.projectId}`,
         name: repositoryData.projectName,
@@ -67,7 +77,7 @@ export default function AddRepositoryPage() {
         progress: 0,
         createdAt: new Date().toISOString(),
         link: repositoryData.projectUrl,
-        students: repositoryData.members.map(member => ({
+        students: selectedStudents.map(member => ({
           id: `student-${member.id}`,
           name: member.name,
           email: `${member.username}@gitlab.com`,
@@ -80,7 +90,7 @@ export default function AddRepositoryPage() {
       addRepository(newRepo as any);
       
       toast.success("Repository created successfully", {
-        description: `${repositoryData.projectName} has been created and is ready to use.`,
+        description: `${repositoryData.projectName} has been created with ${selectedStudents.length} selected students.`,
       });
       
       navigate("/dashboard");
@@ -151,7 +161,8 @@ export default function AddRepositoryPage() {
                   </Button>
                   <Button 
                     onClick={handleSubmit} 
-                    disabled={isSubmitting || repositoryData.members.length === 0}
+                    disabled={isSubmitting || repositoryData.members.filter(m => m.selected !== false).length === 0}
+                    className="w-full sm:w-auto"
                   >
                     {isSubmitting ? "Creating..." : "Create Repository"}
                   </Button>
