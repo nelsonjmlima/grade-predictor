@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -144,9 +145,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
       }
       
-      // Fallback check for existing user with the same email in repositories table
+      // Fallback check for existing user with the same email in Repositorio table
       const { data: existingUsers, error: queryError } = await supabase
-        .from('repositories')
+        .from('Repositorio')
         .select('id, email')
         .eq('email', email)
         .maybeSingle();
