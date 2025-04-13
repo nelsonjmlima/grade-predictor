@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,10 +9,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lock } from "lucide-react";
+import { Lock, ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-// Updated password schema to match signup requirements
 const passwordSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
   newPassword: z.string().min(8, "Password must be at least 8 characters")
@@ -59,7 +57,6 @@ export default function PasswordPage() {
       
       toast.success("Password updated successfully");
       form.reset();
-      // Navigate to dashboard after successful password update
       navigate('/dashboard');
     } catch (error) {
       console.error("Error updating password:", error);
@@ -71,12 +68,24 @@ export default function PasswordPage() {
     }
   };
 
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
   return (
     <div className="flex h-screen bg-background">
       <SideNav />
       <main className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-2xl space-y-8">
           <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleGoBack}
+              className="mr-2"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </Button>
             <h1 className="text-3xl font-bold">Password Management</h1>
           </div>
           
