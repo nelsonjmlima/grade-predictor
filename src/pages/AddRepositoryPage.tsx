@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -167,9 +167,10 @@ export default function AddRepositoryPage() {
                   <Button 
                     onClick={handleSubmit} 
                     disabled={isSubmitting || repositoryData.members.filter(m => m.selected !== false).length === 0}
-                    className="w-full sm:w-auto"
+                    className="w-full sm:w-auto flex items-center gap-2"
                   >
-                    {isSubmitting ? "Creating..." : "Create Repository"}
+                    <Plus className="h-4 w-4" />
+                    {isSubmitting ? "Adding..." : "Add Repository"}
                   </Button>
                 </CardFooter>
               </Card>
@@ -180,4 +181,3 @@ export default function AddRepositoryPage() {
     </div>
   );
 }
-
