@@ -1,18 +1,13 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Session, User } from "@supabase/supabase-js";
+import { Session, User, AuthError } from "@supabase/supabase-js";
 import { toast } from "sonner";
 
 // Set the inactivity timeout to 5 minutes (in milliseconds)
 const INACTIVITY_TIMEOUT = 5 * 60 * 1000;
 
-// Define specific types for errors and data
-interface AuthError {
-  message: string;
-  [key: string]: unknown;
-}
-
+// Define response type for signUp
 interface SignUpResponse {
   user?: User | null;
   session?: Session | null;
@@ -113,11 +108,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else if (event === "USER_UPDATED") {
         toast.success("Your account has been updated");
       }
-
-      // Handle SIGNED_UP event
-      if (event === "SIGNED_UP") {
-        navigate("/verification");
-      }
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -152,13 +142,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return {
           error: {
             message: "This email address is already registered. Please login instead.",
-          },
+            name: "AuthError",
+            status: 400,
+          } as AuthError,
         };
       }
 
-      // Fallback check for existing user in repositories table
+      // Check for existing user in Repositorio table
       const { data: existingUsers, error: queryError } = await supabase
-        .from("repositories")
+        .from("Repositorio")
         .select("id, email")
         .eq("email", email)
         .maybeSingle();
@@ -171,7 +163,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return {
           error: {
             message: "An account with this email address already exists.",
-          },
+            name: "AuthError",
+            status: 400,
+          } as AuthError,
         };
       }
 
@@ -187,11 +181,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         if (error.message.includes("already registered")) {
           return {
-            error: { message: "This email address is already registered. Please login instead." },
+            error: {
+              message: "This email address is already registered. Please login instead.",
+              name: "AuthError",
+              status: 400,
+            } as AuthError,
           };
         }
         return { error };
       }
+
+      // Redirect to verification after successful sign-up
+      navigate("/verification");
 
       return { data, error: null };
     } catch (error: unknown) {
