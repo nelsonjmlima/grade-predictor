@@ -1,83 +1,128 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-export const sendMagicLink = async (email: string) => {
+interface SignUpMetadata {
+  [key: string]: any;
+}
+
+export async function signUp(email: string, password: string, metadata: SignUpMetadata) {
   try {
-    console.log(`Attempting to send magic link to: ${email}`);
-    const startTime = Date.now();
-    
-    const { data, error } = await supabase.auth.signInWithOtp({
+    // First check if the email already exists by attempting a password reset
+    // This is a client-safe way to check if an email exists without revealing too much information
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        // You can customize email options here
-        emailRedirectTo: `${window.location.origin}/login`
+        shouldCreateUser: false // Don't create a new user, just check if email exists
       }
     });
+    
+    // If no error or specific error message about non-existent user, the email likely exists
+    if (!signInError || !signInError.message.includes("Email not found")) {
+      return { 
+        error: { 
+          message: "This email address is already registered. Please login instead." 
+        } 
+      };
+    }
+    
+    / Check for existing user in Repositorio table
 
-    const endTime = Date.now();
-    const responseTime = endTime - startTime;
 
-    if (error) {
-      console.error('Magic Link Send Error:', error);
-      console.error('Error details:', {
-        message: error.message,
-        status: error.status,
-        details: error.details,
-        responseTime: `${responseTime}ms`
-      });
-      throw error;
+    import { RepositorioRow } from '@/integrations/supabase/types';
+
+    const { data: existingUsers, error: queryError } = await supabase
+      .from('Repositorio')
+      .select('id, email')
+      .eq('email', email)
+      .maybeSingle() as { data: { id: number; email?: string } | null; error: any };
+    
+    
+    if (queryError) {
+      console.error("Error checking for existing user:", queryError);
+    }
+    
+    if (existingUsers) {
+      return { 
+        data: null,
+        error: { 
+          message: "An account with this email address already exists." 
+        } 
+      };
     }
 
-    console.log('Magic link request successful', {
-      email,
-      timestamp: new Date().toISOString(),
-      responseTime: `${responseTime}ms`,
-      redirectTo: `${window.location.origin}/login`
-    });
     
-    // Note: Supabase doesn't provide immediate confirmation of email delivery
-    // The email is queued for delivery after this API call succeeds
-    console.log('Email delivery status: QUEUED. Check Supabase authentication logs for delivery status.');
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: metadata,
+        emailRedirectTo: `${window.location.origin}/login?verified=true`,
+      },
+    });
+
+    if (error) {
+      if (error.message.includes("already registered")) {
+        return { data: null, error: { message: "This email address is already registered. Please login instead." } };
+      }
+      return { data: null, error: { message: error.message } };
+    }
     
     return { data, error: null };
   } catch (error) {
-    console.error('Unexpected error in magic link:', error);
-    return { data: null, error };
+    console.error("Error during signup:", error);
+    return { data: null, error: { message: (error as Error).message } };
   }
-};
+}
 
-// Function to verify status of an email (useful for debugging)
-export const checkEmailStatus = async (email: string) => {
+export async function signIn(email: string, password: string) {
   try {
-    console.log(`Checking user status for email: ${email}`);
-    
-    const { data, error } = await supabase.auth.admin.listUsers();
-    
-    if (error) {
-      console.error('Error checking email status:', error);
-      return { exists: false, verified: false, error };
-    }
-    
-    // Find the user with the matching email
-    const user = data.users.find(u => u.email === email);
-    
-    if (!user) {
-      console.log(`No user found with email: ${email}`);
-      return { exists: false, verified: false, error: null };
-    }
-    
-    console.log(`User found with email: ${email}`);
-    console.log(`Email verified: ${!!user.email_confirmed_at}`);
-    console.log(`Last sign in: ${user.last_sign_in_at}`);
-    
-    return { 
-      exists: true, 
-      verified: !!user.email_confirmed_at, 
-      lastSignIn: user.last_sign_in_at,
-      error: null 
-    };
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    return { error };
   } catch (error) {
-    console.error('Error in checkEmailStatus:', error);
-    return { exists: false, verified: false, error };
+    console.error("Error during signin:", error);
+    return { error };
   }
-};
+}
+
+export async function signOut() {
+  try {
+    await supabase.auth.signOut();
+    return { error: null };
+  } catch (error) {
+    console.error("Error during signout:", error);
+    return { error };
+  }
+}
+
+export async function resetPassword(email: string) {
+  try {
+    let baseUrl = window.location.origin;
+    console.log("Reset password base URL:", baseUrl);
+    
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${baseUrl}/login`,
+    });
+    
+    console.log("Reset password request sent, redirect URL:", `${baseUrl}/login`);
+    
+    return { error };
+  } catch (error) {
+    console.error("Error during password reset:", error);
+    return { error };
+  }
+}
+
+export async function updatePassword(password: string) {
+  try {
+    const { error } = await supabase.auth.updateUser({
+      password,
+    });
+    return { error };
+  } catch (error) {
+    console.error("Error during password update:", error);
+    return { error };
+  }
+}
