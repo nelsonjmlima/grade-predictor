@@ -25,18 +25,22 @@ export async function signUp(email: string, password: string, metadata: SignUpMe
       };
     }
     
-    // Fallback check for existing user with the same email in Repositorio table
-    // Fix the type inference issue by using explicit typing
-    interface RepositorioRow {
-      id: number;
-      email?: string;
-    }
+    / Check for existing user in Repositorio table
     
+    const result = await supabase
+      .from('Repositorio')
+      .select('id, email')
+      .eq('email', email)
+      .maybeSingle();
+
+    import { RepositorioRow } from '@/integrations/supabase/types';
+
     const { data: existingUsers, error: queryError } = await supabase
       .from('Repositorio')
       .select('id, email')
       .eq('email', email)
-      .maybeSingle<RepositorioRow>();
+      .maybeSingle() as { data: { id: number; email?: string } | null; error: any };
+    
     
     if (queryError) {
       console.error("Error checking for existing user:", queryError);
@@ -44,12 +48,14 @@ export async function signUp(email: string, password: string, metadata: SignUpMe
     
     if (existingUsers) {
       return { 
+        data: null,
         error: { 
           message: "An account with this email address already exists." 
         } 
       };
     }
 
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -61,15 +67,15 @@ export async function signUp(email: string, password: string, metadata: SignUpMe
 
     if (error) {
       if (error.message.includes("already registered")) {
-        return { error: { message: "This email address is already registered. Please login instead." } };
+        return { data: null, error: { message: "This email address is already registered. Please login instead." } };
       }
-      return { error };
+      return { data: null, error: { message: error.message } };
     }
     
     return { data, error: null };
   } catch (error) {
     console.error("Error during signup:", error);
-    return { error };
+    return { data: null, error: { message: (error as Error).message } };
   }
 }
 
