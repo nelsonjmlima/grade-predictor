@@ -275,8 +275,12 @@ export default function RepositoryDetailsPage() {
               </Card>
               
               <div className="flex justify-end mt-6">
-                <Button variant="default" onClick={saveChanges} className="gap-2" disabled={!hasUnsavedChanges}>
-                  <Save className="h-4 w-4" />
+                <Button 
+                  onClick={saveChanges} 
+                  disabled={!hasUnsavedChanges}
+                  className="w-full md:w-auto"
+                >
+                  <Save className="mr-2 h-4 w-4" />
                   Save Changes
                 </Button>
               </div>
