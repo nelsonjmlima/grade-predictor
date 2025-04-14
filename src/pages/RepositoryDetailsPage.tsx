@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
@@ -195,22 +194,17 @@ export default function RepositoryDetailsPage() {
                   <CardTitle className="text-base font-medium">Repository Information</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Project ID</TableHead>
-                        <TableHead>ID/Group</TableHead>
-                        <TableHead>Number of Students</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell>{repository.projectId || 'N/A'}</TableCell>
-                        <TableCell>{repository.id || 'N/A'}</TableCell>
-                        <TableCell>{students.length}</TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
+                  <div className="flex flex-wrap items-center gap-4 text-sm">
+                    <div>
+                      <span className="font-medium">Project ID:</span> {repository.projectId || 'N/A'}
+                    </div>
+                    <div className="border-l border-border pl-4">
+                      <span className="font-medium">ID/Group:</span> {repository.id || 'N/A'}
+                    </div>
+                    <div className="border-l border-border pl-4">
+                      <span className="font-medium">Students:</span> {students.length}
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 
