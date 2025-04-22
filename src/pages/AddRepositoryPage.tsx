@@ -11,6 +11,8 @@ import { StudentIdManager } from "@/components/repository/StudentIdManager";
 import { addRepository } from "@/services/repositoryData";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+// --- Supabase client import ---
+import { supabase } from "@/integrations/supabase/client";
 
 export default function AddRepositoryPage() {
   const navigate = useNavigate();
@@ -87,11 +89,29 @@ export default function AddRepositoryPage() {
         })),
       };
       
+      // First, add to local storage.
       addRepository(newRepo as any);
-      
-      toast.success("Repository created successfully", {
-        description: `${repositoryData.projectName} has been created with ${selectedStudents.length} selected students.`,
-      });
+
+      // --- Supabase Insert ---
+      // Only inserting projectId and projectUrl (url) as per schema.
+      // API_Key column is also available but not in use here.
+      const { error } = await supabase.from('Repositorio').insert([
+        {
+          id: repositoryData.projectId, // your table expects bigint, so just use projectId
+          URL_Repositorio: repositoryData.projectUrl,
+          // API_Key: '' // could be added if you collect it
+        }
+      ]);
+      if (error) {
+        console.error("Error writing repository to Supabase:", error);
+        toast.error("Saved locally, but failed to save to Supabase", {
+          description: "Repository was saved in the app, but not remotely."
+        });
+      } else {
+        toast.success("Repository created successfully", {
+          description: `${repositoryData.projectName} has been added to both the app & Supabase with ${selectedStudents.length} students.`
+        });
+      }
       
       navigate("/dashboard");
     } catch (error) {
@@ -155,15 +175,7 @@ export default function AddRepositoryPage() {
               />
               
               <Card>
-                <CardFooter className="flex justify-between items-center pt-6">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => setStep("gitlab")} 
-                    disabled={isSubmitting}
-                  >
-                    <ArrowLeft className="h-6 w-6" />
-                  </Button>
+                <CardFooter className="pt-2">
                   <Button 
                     onClick={handleSubmit} 
                     disabled={isSubmitting || repositoryData.members.filter(m => m.selected !== false).length === 0}
