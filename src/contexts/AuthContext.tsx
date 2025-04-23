@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Fixed: Removed the dependency array that was causing the recursive type instantiation
   useEffect(() => {
     if (user) {
       const activityEvents = ["mousedown", "keydown", "mousemove", "wheel", "touchstart", "scroll"];
