@@ -1,54 +1,65 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { trackAuthEvent } from "@/utils/authMonitoring";
+import { Session, User, AuthError } from "@supabase/supabase-js";
 
-interface SignUpMetadata {
-  [key: string]: any;
+interface SignUpResponse {
+  user?: User | null;
+  session?: Session | null;
 }
+type SignUpFn = (
+  email: string,
+  password: string,
+  metadata: Record<string, unknown>
+) => Promise<{ error: AuthError | null; data?: SignUpResponse }>;
+type SignInFn = (
+  email: string,
+  password: string
+) => Promise<{ error: AuthError | null }>;
+type SignOutFn = () => Promise<void>;
+type ResetPasswordFn = (
+  email: string
+) => Promise<{ error: AuthError | null }>;
+type UpdatePasswordFn = (
+  password: string
+) => Promise<{ error: AuthError | null }>;
 
-export async function signUp(email: string, password: string, metadata: SignUpMetadata) {
+export const signUp: SignUpFn = async (email, password, metadata) => {
   try {
-    // First check if the email already exists by attempting a password reset
-    // This is a client-safe way to check if an email exists without revealing too much information
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: false // Don't create a new user, just check if email exists
-      }
-    });
-    
-    // If no error or specific error message about non-existent user, the email likely exists
+    const { data: signInData, error: signInError } =
+      await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false,
+        },
+      });
+
     if (!signInError || !signInError.message.includes("Email not found")) {
-      return { 
-        error: { 
-          message: "This email address is already registered. Please login instead." 
-        } 
-      };
-    }
-    
-    // Check for existing user in Repositorio table
-    const { data: existingUsers, error: queryError } = await supabase
-      .from('Repositorio')
-      .select('id, email')
-      .eq('email', email)
-      .maybeSingle();
-    
-    if (queryError) {
-      console.error("Error checking for existing user:", queryError);
-    }
-    
-    if (existingUsers) {
-      return { 
-        data: null,
-        error: { 
-          message: "An account with this email address already exists." 
-        } 
+      return {
+        error: {
+          message:
+            "This email address is already registered. Please login instead.",
+          name: "AuthError",
+          status: 400,
+        } as AuthError,
       };
     }
 
-    trackAuthEvent('signup_request_submit', { email });
-    const startTime = Date.now();
-    
+    const { data: existingUsers } = await supabase
+      .from("Repositorio")
+      .select("id, email")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (existingUsers) {
+      return {
+        error: {
+          message: "An account with this email address already exists.",
+          name: "AuthError",
+          status: 400,
+        } as AuthError,
+      };
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -58,107 +69,60 @@ export async function signUp(email: string, password: string, metadata: SignUpMe
       },
     });
 
-    const endTime = Date.now();
-    trackAuthEvent('signup_request_completed', { 
-      email, 
-      responseTimeMs: endTime - startTime,
-      success: !error
-    });
-
     if (error) {
       if (error.message.includes("already registered")) {
-        return { data: null, error: { message: "This email address is already registered. Please login instead." } };
+        return {
+          error: {
+            message:
+              "This email address is already registered. Please login instead.",
+            name: "AuthError",
+            status: 400,
+          } as AuthError,
+        };
       }
-      return { data: null, error: { message: error.message } };
+      return { error };
     }
-    
+
     return { data, error: null };
-  } catch (error) {
-    console.error("Error during signup:", error);
-    return { data: null, error: { message: (error as Error).message } };
+  } catch (error: unknown) {
+    return { error: error as AuthError };
   }
-}
+};
 
-export async function signIn(email: string, password: string) {
+export const signIn: SignInFn = async (email, password) => {
   try {
-    trackAuthEvent('signin_request_submit', { email });
-    const startTime = Date.now();
-    
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    
-    const endTime = Date.now();
-    trackAuthEvent('signin_request_completed', { 
-      email, 
-      responseTimeMs: endTime - startTime,
-      success: !error
-    });
-    
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error };
-  } catch (error) {
-    console.error("Error during signin:", error);
-    return { error };
+  } catch (error: unknown) {
+    return { error: error as AuthError };
   }
-}
+};
 
-export async function signOut() {
+export const signOut: SignOutFn = async () => {
   try {
     await supabase.auth.signOut();
-    return { error: null };
-  } catch (error) {
-    console.error("Error during signout:", error);
-    return { error };
+  } catch (error: unknown) {
+    throw error;
   }
-}
+};
 
-export async function resetPassword(email: string) {
+export const resetPassword: ResetPasswordFn = async (email) => {
   try {
     let baseUrl = window.location.origin;
-    console.log("Reset password base URL:", baseUrl);
-    
-    trackAuthEvent('reset_password_request_submit', { email });
-    const startTime = Date.now();
-    
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${baseUrl}/login`,
     });
-    
-    const endTime = Date.now();
-    trackAuthEvent('reset_password_request_completed', { 
-      email, 
-      responseTimeMs: endTime - startTime,
-      success: !error
-    });
-    
-    console.log("Reset password request sent, redirect URL:", `${baseUrl}/login`);
-    
     return { error };
-  } catch (error) {
-    console.error("Error during password reset:", error);
-    return { error };
+  } catch (error: unknown) {
+    return { error: error as AuthError };
   }
-}
+};
 
-export async function updatePassword(password: string) {
+export const updatePassword: UpdatePasswordFn = async (password) => {
   try {
-    trackAuthEvent('update_password_request_submit', {});
-    const startTime = Date.now();
-    
-    const { error } = await supabase.auth.updateUser({
-      password,
-    });
-    
-    const endTime = Date.now();
-    trackAuthEvent('update_password_request_completed', { 
-      responseTimeMs: endTime - startTime,
-      success: !error
-    });
-    
+    const { error } = await supabase.auth.updateUser({ password });
     return { error };
-  } catch (error) {
-    console.error("Error during password update:", error);
-    return { error };
+  } catch (error: unknown) {
+    return { error: error as AuthError };
   }
-}
+};
