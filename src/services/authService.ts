@@ -6,19 +6,24 @@ interface SignUpResponse {
   user?: User | null;
   session?: Session | null;
 }
+
 type SignUpFn = (
   email: string,
   password: string,
   metadata: Record<string, unknown>
 ) => Promise<{ error: AuthError | null; data?: SignUpResponse }>;
+
 type SignInFn = (
   email: string,
   password: string
 ) => Promise<{ error: AuthError | null }>;
+
 type SignOutFn = () => Promise<void>;
+
 type ResetPasswordFn = (
   email: string
 ) => Promise<{ error: AuthError | null }>;
+
 type UpdatePasswordFn = (
   password: string
 ) => Promise<{ error: AuthError | null }>;
@@ -44,6 +49,7 @@ export const signUp: SignUpFn = async (email, password, metadata) => {
       };
     }
 
+    // Use a more explicit type for the query
     const { data: existingUsers } = await supabase
       .from("Repositorio")
       .select("id, email")
