@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,6 @@ import { GitLabForm } from "@/components/repository/GitLabForm";
 import { addRepository } from "@/services/repositoryData";
 import { Repository } from "@/services/repositoryData";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 interface CreateRepositoryDialogProps {
   open: boolean;
@@ -48,14 +47,13 @@ export function CreateRepositoryDialog({
         students: selectedStudents
       };
       
-      // First ensure the repository is added to Supabase
+      console.log("Creating repository:", newRepo);
       await addRepository(newRepo);
       
-      // Log success
       console.log("Repository created successfully:", newRepo);
       
       toast.success("Repository created successfully", {
-        description: `${repositoryName} has been created with ${selectedStudents.length} selected students.`,
+        description: `${repositoryName} has been created${selectedStudents.length ? ` with ${selectedStudents.length} selected students.` : '.'}`,
       });
       
       // Reset form fields
@@ -63,11 +61,11 @@ export function CreateRepositoryDialog({
       setRepositoryDescription("");
       setSelectedStudents([]);
       
-      // First trigger the onRepositoryCreated callback to refresh the list
-      onRepositoryCreated();
-      
-      // Then close the dialog
+      // Close the dialog
       onOpenChange(false);
+      
+      // Then trigger the callback to refresh the list
+      onRepositoryCreated();
     } catch (error) {
       console.error("Error creating repository:", error);
       toast.error("Failed to create repository");
@@ -99,21 +97,20 @@ export function CreateRepositoryDialog({
         }))
       };
 
-      // First ensure the repository is added to Supabase
+      console.log("Creating GitLab repository:", newRepo);
       await addRepository(newRepo);
       
-      // Log success
       console.log("GitLab repository created successfully:", newRepo);
       
       toast.success("Repository created successfully", {
         description: `${data.projectName} has been created with ${data.members.length} GitLab members.`,
       });
       
-      // First trigger the onRepositoryCreated callback to refresh the list
-      onRepositoryCreated();
-      
-      // Then close the dialog
+      // Close the dialog
       onOpenChange(false);
+      
+      // Then trigger the callback to refresh the list
+      onRepositoryCreated();
     } catch (error) {
       console.error("Error creating repository from GitLab:", error);
       toast.error("Failed to create repository");

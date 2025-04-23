@@ -1,9 +1,11 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
 import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
 import { useNavigate } from "react-router-dom";
 import { getRepositories, Repository } from "@/services/repositoryData";
+import { toast } from "sonner";
 
 export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -36,6 +38,7 @@ export default function DashboardPage() {
       setRepositories(enhancedRepositories);
     } catch (error) {
       console.error("Error fetching repositories:", error);
+      toast.error("Failed to load repositories");
     } finally {
       setLoading(false);
     }
@@ -58,6 +61,7 @@ export default function DashboardPage() {
   const handleRepositoryCreated = () => {
     console.log("Repository created, refreshing list...");
     fetchRepositories();
+    toast.success("Repository added successfully");
   };
 
   return <div className="flex h-screen overflow-hidden bg-background">
