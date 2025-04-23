@@ -50,22 +50,22 @@ export const signUp: SignUpFn = async (email, password, metadata) => {
     }
 
     // Fix type instantiation issue by providing explicit type annotation
-   //  const { data: existingUsers } = await supabase
-  //     .from("Repositorio")
-//       .select("id, email")
-//       .eq("email", email)
-//       .maybeSingle<{ id: number; email: string | null }>();
+      const { data: existingUsers } = await supabase
+        .from("Repositorio")
+        .select("id, email")
+        .eq("email", email)
+        .maybeSingle<{ id: number; email: string | null }>();
 
- //    if (existingUsers) {
- //      return {
- //       error: {
-          message: "An account with this email address already exists.",
- //          name: "AuthError",
-//           status: 400,
-//         } as AuthError,
-//       };
-//     }
-// 
+      if (existingUsers) {
+       return {
+         error: {
+           message: "An account with this email address already exists.",
+           name: "AuthError",
+           status: 400,
+         } as AuthError,
+       };
+     }
+ 
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
