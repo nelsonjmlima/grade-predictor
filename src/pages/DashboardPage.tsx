@@ -1,21 +1,16 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
 import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
 import { useNavigate } from "react-router-dom";
-import { getRepositories, Repository, updateRepository } from "@/services/repositoryData";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { getRepositories, Repository } from "@/services/repositoryData";
 
 export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [repositories, setRepositories] = useState<Repository[]>([]);
-  const [viewMode] = useState<"grid">("grid");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Use a callback to fetch repositories to avoid creating a new function on every render
   const fetchRepositories = useCallback(async () => {
     try {
       setLoading(true);
@@ -23,7 +18,6 @@ export default function DashboardPage() {
       const fetchedRepositories = await getRepositories();
       console.log("Fetched repositories:", fetchedRepositories);
 
-      // Ensure repositories have the required fields for the updated table
       const enhancedRepositories = fetchedRepositories.map(repo => ({
         ...repo,
         projectId: repo.projectId || repo.id || `project-${Math.random().toString(36).substr(2, 9)}`,
@@ -46,19 +40,17 @@ export default function DashboardPage() {
       setLoading(false);
     }
   }, []);
-  
-  // Fetch repositories on mount and when dialogOpen changes (indicating a potential new repo)
+
   useEffect(() => {
     fetchRepositories();
     
-    // Add event listener for focus to refresh data when user comes back to the page
     window.addEventListener('focus', fetchRepositories);
     
     return () => {
       window.removeEventListener('focus', fetchRepositories);
     };
   }, [fetchRepositories]);
-  
+
   const handleRepositoryClick = (repoId: string) => {
     navigate(`/repositories/${repoId}`);
   };
@@ -85,14 +77,6 @@ export default function DashboardPage() {
             <p className="text-sm text-muted-foreground">
               {repositories.length > 0 ? `Managing ${repositories.length} repositories.` : ""}
             </p>
-            
-            <Button 
-              onClick={() => setDialogOpen(true)}
-              size="sm" 
-              className="flex items-center gap-1"
-            >
-              <Plus className="h-4 w-4" /> Add Repository
-            </Button>
           </div>
           
           <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -113,7 +97,7 @@ export default function DashboardPage() {
             )) : (
               <div className="col-span-full p-8 text-center">
                 <p className="text-muted-foreground">
-                  No repositories found. Click the "Add Repository" button to create your first repository.
+                  No repositories found. Use the side menu to add a new repository.
                 </p>
               </div>
             )}
