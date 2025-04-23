@@ -25,25 +25,21 @@ export default function RepositoryDetailsPage() {
   const [students, setStudents] = useState<Student[]>([]);
   
   useEffect(() => {
-    loadRepository();
+    fetchRepository();
   }, [id]);
 
-  const loadRepository = () => {
-    if (id) {
-      const allRepositories = getRepositories();
-      const foundRepo = allRepositories.find(repo => repo.id === id);
-      if (foundRepo) {
-        setRepository(foundRepo);
-        const repoStudents = getRepositoryStudents(id);
-        
-        const studentsWithTrend = repoStudents.map(student => ({
-          ...student,
-          commitTrend: student.commitTrend || 
-            ['up', 'down', 'stable'][Math.floor(Math.random() * 3)] as 'up' | 'down' | 'stable'
-        }));
-        
-        setStudents(studentsWithTrend);
+  const fetchRepository = async () => {
+    try {
+      const repositories = await getRepositories();
+      const repository = repositories.find(repo => repo.id === id);
+      if (repository) {
+        setRepository(repository);
+        const students = await getRepositoryStudents(id);
+        setStudents(students.map(student => ({ ...student })));
       }
+    } catch (error) {
+      console.error("Error fetching repository details:", error);
+    } finally {
       setLoading(false);
     }
   };

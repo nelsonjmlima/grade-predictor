@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -97,7 +96,7 @@ export function EditRepositoryDialog({
         updatedStudents = updatedStudents.slice(0, targetCount);
       }
       
-      const updatedRepo = updateRepository(repository.id, {
+      const updatedRepo = await updateRepository(repository.id, {
         name: values.name,
         description: repository.description, // Keep the existing description
         projectId: values.projectId,

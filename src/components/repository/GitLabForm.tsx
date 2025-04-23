@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -146,3 +145,10 @@ export function GitLabForm({ onSuccess }: GitLabFormProps) {
     </Card>
   );
 }
+
+// If there's any call like getRepositories() that assumes synchronous behavior,
+// Update it to:
+const loadRepositories = async () => {
+  const repositories = await getRepositories();
+  // Then continue processing repositories
+};
