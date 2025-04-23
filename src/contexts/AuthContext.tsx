@@ -56,32 +56,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Fixed: Removed the dependency array that was causing the recursive type instantiation
+  // Fixed: Completely restructured the useEffect to avoid circular dependencies
   useEffect(() => {
-    if (user) {
-      const activityEvents = ["mousedown", "keydown", "mousemove", "wheel", "touchstart", "scroll"];
-
-      const handleUserActivity = () => {
-        resetInactivityTimer();
-      };
-
-      activityEvents.forEach((event) => {
-        window.addEventListener(event, handleUserActivity);
-      });
-
-      resetInactivityTimer();
-
-      return () => {
-        activityEvents.forEach((event) => {
-          window.removeEventListener(event, handleUserActivity);
-        });
-
-        if (inactivityTimer) {
-          clearTimeout(inactivityTimer);
-        }
-      };
+    // Only set up inactivity monitoring if there's a user
+    if (!user) {
+      return;
     }
-  }, [user]);
+    
+    const activityEvents = ["mousedown", "keydown", "mousemove", "wheel", "touchstart", "scroll"];
+    
+    const handleUserActivity = () => {
+      resetInactivityTimer();
+    };
+    
+    // Add event listeners
+    activityEvents.forEach((event) => {
+      window.addEventListener(event, handleUserActivity);
+    });
+    
+    // Initial timer setup
+    resetInactivityTimer();
+    
+    // Cleanup function
+    return () => {
+      activityEvents.forEach((event) => {
+        window.removeEventListener(event, handleUserActivity);
+      });
+      
+      if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+      }
+    };
+  }, [user]); // Only depend on user, not on resetInactivityTimer or inactivityTimer
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
