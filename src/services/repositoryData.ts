@@ -45,20 +45,13 @@ export interface Repository {
 }
 
 const defaultRepositories: Repository[] = [];
+let inMemoryRepositories: Repository[] = [...defaultRepositories];
 
 export const getRepositories = (): Repository[] => {
-  const storedRepositories = localStorage.getItem('repositories');
-  if (storedRepositories) {
-    return JSON.parse(storedRepositories);
-  } else {
-    localStorage.setItem('repositories', JSON.stringify(defaultRepositories));
-    return defaultRepositories;
-  }
+  return [...inMemoryRepositories];
 };
 
 export const addRepository = (repository: Repository): void => {
-  const repositories = getRepositories();
-  
   if (!repository.createdAt) {
     repository.createdAt = new Date().toISOString();
   }
@@ -160,17 +153,14 @@ export const addRepository = (repository: Repository): void => {
     }
   }
   
-  repositories.unshift(repository);
-  localStorage.setItem('repositories', JSON.stringify(repositories));
+  inMemoryRepositories.unshift(repository);
 };
 
 export const updateRepository = (id: string, updatedRepo: Partial<Repository>): Repository | null => {
-  const repositories = getRepositories();
-  
-  let index = repositories.findIndex(repo => repo.id === id);
+  let index = inMemoryRepositories.findIndex(repo => repo.id === id);
   
   if (index === -1 && updatedRepo.projectId) {
-    index = repositories.findIndex(repo => 
+    index = inMemoryRepositories.findIndex(repo => 
       repo.projectId === updatedRepo.projectId
     );
   }
@@ -179,38 +169,29 @@ export const updateRepository = (id: string, updatedRepo: Partial<Repository>): 
     return null;
   }
   
-  if (updatedRepo.id && updatedRepo.id !== repositories[index].id) {
-    const oldId = repositories[index].id;
+  if (updatedRepo.id && updatedRepo.id !== inMemoryRepositories[index].id) {
+    const oldId = inMemoryRepositories[index].id;
     
-    repositories[index].id = updatedRepo.id;
+    inMemoryRepositories[index].id = updatedRepo.id;
     
     const { id: _, ...restOfUpdates } = updatedRepo;
     
-    repositories[index] = { ...repositories[index], ...restOfUpdates };
+    inMemoryRepositories[index] = { ...inMemoryRepositories[index], ...restOfUpdates };
   } else {
-    repositories[index] = { ...repositories[index], ...updatedRepo };
+    inMemoryRepositories[index] = { ...inMemoryRepositories[index], ...updatedRepo };
   }
   
-  localStorage.setItem('repositories', JSON.stringify(repositories));
-  
-  return repositories[index];
+  return inMemoryRepositories[index];
 };
 
 export const deleteRepository = (id: string): boolean => {
-  const repositories = getRepositories();
-  const newRepositories = repositories.filter(repo => repo.id !== id);
-  
-  if (newRepositories.length === repositories.length) {
-    return false;
-  }
-  
-  localStorage.setItem('repositories', JSON.stringify(newRepositories));
-  return true;
+  const prevLength = inMemoryRepositories.length;
+  inMemoryRepositories = inMemoryRepositories.filter(repo => repo.id !== id);
+  return inMemoryRepositories.length !== prevLength;
 };
 
 export const getRepositoryStudents = (repositoryId: string): Student[] => {
-  const repositories = getRepositories();
-  const repository = repositories.find(repo => repo.id === repositoryId);
+  const repository = inMemoryRepositories.find(repo => repo.id === repositoryId);
   
   if (repository && repository.students) {
     if (Array.isArray(repository.students)) {
@@ -224,20 +205,19 @@ export const getRepositoryStudents = (repositoryId: string): Student[] => {
 };
 
 export const saveRepositoryStudent = (repositoryId: string, student: Student): boolean => {
-  const repositories = getRepositories();
-  const index = repositories.findIndex(repo => repo.id === repositoryId);
+  const index = inMemoryRepositories.findIndex(repo => repo.id === repositoryId);
   
   if (index === -1) return false;
   
-  if (!repositories[index].students) {
-    repositories[index].students = [];
+  if (!inMemoryRepositories[index].students) {
+    inMemoryRepositories[index].students = [];
   }
   
-  if (typeof repositories[index].students === 'string') {
-    repositories[index].students = [];
+  if (typeof inMemoryRepositories[index].students === 'string') {
+    inMemoryRepositories[index].students = [];
   }
   
-  const studentArray = repositories[index].students as Student[];
+  const studentArray = inMemoryRepositories[index].students as Student[];
   const studentIndex = studentArray.findIndex(s => s.id === student.id);
   
   if (studentIndex >= 0) {
@@ -245,8 +225,6 @@ export const saveRepositoryStudent = (repositoryId: string, student: Student): b
   } else {
     studentArray.push(student);
   }
-  
-  localStorage.setItem('repositories', JSON.stringify(repositories));
   return true;
 };
 
@@ -299,6 +277,5 @@ export const sortRepositories = (repositories: Repository[], sortBy: string): Re
 };
 
 export const clearAllRepositories = (): void => {
-  localStorage.removeItem('repositories');
-  localStorage.setItem('repositories', JSON.stringify([]));
+  inMemoryRepositories = [];
 };
