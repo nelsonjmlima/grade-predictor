@@ -1,55 +1,71 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
 import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
 import { useNavigate } from "react-router-dom";
 import { getRepositories, Repository, updateRepository } from "@/services/repositoryData";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [repositories, setRepositories] = useState<Repository[]>([]);
-  // Always use grid mode now that we've removed the toggle
   const [viewMode] = useState<"grid">("grid");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Use a callback to fetch repositories to avoid creating a new function on every render
+  const fetchRepositories = useCallback(async () => {
+    try {
+      setLoading(true);
+      console.log("Fetching repositories...");
+      const fetchedRepositories = await getRepositories();
+      console.log("Fetched repositories:", fetchedRepositories);
+
+      // Ensure repositories have the required fields for the updated table
+      const enhancedRepositories = fetchedRepositories.map(repo => ({
+        ...repo,
+        projectId: repo.projectId || repo.id || `project-${Math.random().toString(36).substr(2, 9)}`,
+        author: repo.author || "Anonymous",
+        email: repo.email || "no-email@example.com",
+        date: repo.date || repo.lastActivity,
+        additions: repo.additions || Math.floor(Math.random() * 500),
+        deletions: repo.deletions || Math.floor(Math.random() * 200),
+        operations: repo.operations || (repo.additions && repo.deletions ? repo.additions + repo.deletions : repo.commitCount),
+        totalAdditions: repo.totalAdditions || Math.floor(Math.random() * 2000) + (repo.additions || 0),
+        totalDeletions: repo.totalDeletions || Math.floor(Math.random() * 1000) + (repo.deletions || 0),
+        totalOperations: repo.totalOperations || (repo.totalAdditions && repo.totalDeletions ? repo.totalAdditions + repo.totalDeletions : repo.additions && repo.deletions ? (repo.additions + repo.deletions) * 5 : 0),
+        averageOperationsPerCommit: repo.averageOperationsPerCommit || (repo.commitCount ? Math.round(((repo.additions || 0) + (repo.deletions || 0)) / repo.commitCount * 10) / 10 : Math.floor(Math.random() * 20) + 5),
+        averageCommitsPerWeek: repo.averageCommitsPerWeek || Math.floor(Math.random() * 20) + 1
+      }));
+      setRepositories(enhancedRepositories);
+    } catch (error) {
+      console.error("Error fetching repositories:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  
   // Fetch repositories on mount and when dialogOpen changes (indicating a potential new repo)
   useEffect(() => {
-    const fetchRepositories = async () => {
-      try {
-        setLoading(true);
-        const fetchedRepositories = await getRepositories();
-
-        // Ensure repositories have the required fields for the updated table
-        const enhancedRepositories = fetchedRepositories.map(repo => ({
-          ...repo,
-          projectId: repo.projectId || repo.id || `project-${Math.random().toString(36).substr(2, 9)}`,
-          author: repo.author || "Anonymous",
-          email: repo.email || "no-email@example.com",
-          date: repo.date || repo.lastActivity,
-          additions: repo.additions || Math.floor(Math.random() * 500),
-          deletions: repo.deletions || Math.floor(Math.random() * 200),
-          operations: repo.operations || (repo.additions && repo.deletions ? repo.additions + repo.deletions : repo.commitCount),
-          totalAdditions: repo.totalAdditions || Math.floor(Math.random() * 2000) + (repo.additions || 0),
-          totalDeletions: repo.totalDeletions || Math.floor(Math.random() * 1000) + (repo.deletions || 0),
-          totalOperations: repo.totalOperations || (repo.totalAdditions && repo.totalDeletions ? repo.totalAdditions + repo.totalDeletions : repo.additions && repo.deletions ? (repo.additions + repo.deletions) * 5 : 0),
-          averageOperationsPerCommit: repo.averageOperationsPerCommit || (repo.commitCount ? Math.round(((repo.additions || 0) + (repo.deletions || 0)) / repo.commitCount * 10) / 10 : Math.floor(Math.random() * 20) + 5),
-          averageCommitsPerWeek: repo.averageCommitsPerWeek || Math.floor(Math.random() * 20) + 1
-        }));
-        setRepositories(enhancedRepositories);
-      } catch (error) {
-        console.error("Error fetching repositories:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     fetchRepositories();
-  }, [dialogOpen]);
+    
+    // Add event listener for focus to refresh data when user comes back to the page
+    window.addEventListener('focus', fetchRepositories);
+    
+    return () => {
+      window.removeEventListener('focus', fetchRepositories);
+    };
+  }, [fetchRepositories]);
   
   const handleRepositoryClick = (repoId: string) => {
     navigate(`/repositories/${repoId}`);
+  };
+
+  const handleRepositoryCreated = () => {
+    console.log("Repository created, refreshing list...");
+    fetchRepositories();
   };
 
   return <div className="flex h-screen overflow-hidden bg-background">
@@ -65,10 +81,18 @@ export default function DashboardPage() {
             </p>
           </div>
           
-          <div className="mb-4">
+          <div className="flex justify-between items-center mb-4">
             <p className="text-sm text-muted-foreground">
               {repositories.length > 0 ? `Managing ${repositories.length} repositories.` : ""}
             </p>
+            
+            <Button 
+              onClick={() => setDialogOpen(true)}
+              size="sm" 
+              className="flex items-center gap-1"
+            >
+              <Plus className="h-4 w-4" /> Add Repository
+            </Button>
           </div>
           
           <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -89,7 +113,7 @@ export default function DashboardPage() {
             )) : (
               <div className="col-span-full p-8 text-center">
                 <p className="text-muted-foreground">
-                  No repositories found.
+                  No repositories found. Click the "Add Repository" button to create your first repository.
                 </p>
               </div>
             )}
@@ -100,9 +124,7 @@ export default function DashboardPage() {
       <CreateRepositoryDialog 
         open={dialogOpen} 
         onOpenChange={setDialogOpen} 
-        onRepositoryCreated={() => {
-          // Repository created callback just triggers a re-fetch via useEffect
-        }} 
+        onRepositoryCreated={handleRepositoryCreated}
       />
     </div>;
 }
