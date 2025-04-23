@@ -1,4 +1,5 @@
 import { Student } from "./studentData";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Repository {
   name: string;
@@ -21,7 +22,6 @@ export interface Repository {
   createdAt?: string;
   language?: string;
   technologies?: string[];
-  
   projectId?: string;
   author?: string;
   email?: string;
@@ -40,205 +40,156 @@ export interface Repository {
   gitlabUser?: string;
   weekOfPrediction?: string;
   finalGradePrediction?: string;
-  
   csvFileUrl?: string;
 }
 
-const defaultRepositories: Repository[] = [];
-let inMemoryRepositories: Repository[] = [...defaultRepositories];
+// No longer needed
+// const defaultRepositories: Repository[] = [];
+// let inMemoryRepositories: Repository[] = [...defaultRepositories];
 
-export const getRepositories = (): Repository[] => {
-  return [...inMemoryRepositories];
+export const getRepositories = async (): Promise<Repository[]> => {
+  const { data, error } = await supabase
+    .from("repositories")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) {
+    console.error("Error loading repositories:", error);
+    return [];
+  }
+  // Convert database rows to local objects:
+  return (data || []).map(repo => ({
+    ...repo,
+    id: repo.id,
+    name: repo.name,
+    description: repo.description,
+    lastActivity: repo.last_activity || repo.lastActivity,
+    commitCount: repo.commit_count || 0,
+    mergeRequestCount: repo.merge_request_count || 0,
+    branchCount: repo.branch_count || 1,
+    progress: repo.progress || 0,
+    createdAt: repo.created_at,
+    link: repo.link,
+    students: Array.isArray(repo.students) || typeof repo.students === "string" ? repo.students : undefined,
+    // Other fields as needed...
+  }));
 };
 
-export const addRepository = (repository: Repository): void => {
-  if (!repository.createdAt) {
-    repository.createdAt = new Date().toISOString();
-  }
-  
-  if (!repository.id) {
-    repository.id = `repo-${Math.random().toString(36).substr(2, 9)}`;
-  }
-  
-  if (!repository.projectId) {
-    repository.projectId = repository.id || `project-${Math.random().toString(36).substr(2, 9)}`;
-  }
-  
-  if (!repository.author) {
-    repository.author = "Anonymous";
-  }
-  
-  if (!repository.email) {
-    repository.email = "no-email@example.com";
-  }
-  
-  if (!repository.date) {
-    repository.date = repository.lastActivity || new Date().toISOString();
-  }
-  
-  if (!repository.additions) {
-    repository.additions = Math.floor(Math.random() * 500);
-  }
-  
-  if (!repository.deletions) {
-    repository.deletions = Math.floor(Math.random() * 200);
-  }
-  
-  if (!repository.operations) {
-    repository.operations = repository.additions + repository.deletions;
-  }
-  
-  if (!repository.totalAdditions) {
-    repository.totalAdditions = Math.floor(Math.random() * 2000) + repository.additions;
-  }
-  
-  if (!repository.totalDeletions) {
-    repository.totalDeletions = Math.floor(Math.random() * 1000) + repository.deletions;
-  }
-  
-  if (!repository.totalOperations) {
-    repository.totalOperations = repository.totalAdditions + repository.totalDeletions;
-  }
-  
-  if (!repository.averageOperationsPerCommit) {
-    const commitCount = repository.commitCount || Math.floor(Math.random() * 50) + 1;
-    repository.averageOperationsPerCommit = Math.round(repository.totalOperations / commitCount * 10) / 10;
-  }
-  
-  if (!repository.averageCommitsPerWeek) {
-    repository.averageCommitsPerWeek = Math.floor(Math.random() * 20) + 1;
-  }
-  
-  if (!repository.gitlabUser) {
-    repository.gitlabUser = "gitlab_" + repository.author?.toLowerCase().replace(/\s+/g, "_") || "gitlab_user";
-  }
-  
-  if (!repository.weekOfPrediction) {
-    const year = new Date().getFullYear();
-    const week = Math.floor(Math.random() * 52) + 1;
-    repository.weekOfPrediction = `Week ${week}, ${year}`;
-  }
-  
-  if (!repository.finalGradePrediction) {
-    const grades = ["A", "B", "C", "D", "F"];
-    const randomIndex = Math.floor(Math.random() * grades.length);
-    repository.finalGradePrediction = grades[randomIndex];
-  }
-  
-  if (repository.studentIds && repository.studentIds.length > 0) {
-    repository.students = repository.studentIds.map(id => ({
-      id: `student-${id}`,
-      name: `Student ${id}`,
-      email: `student${id}@example.com`,
-      commitCount: 0,
-      lastActivity: 'Never'
-    }));
-  } else if (repository.students && typeof repository.students === 'string') {
-    const emailsText = repository.students as string;
-    if (emailsText.trim()) {
-      const emails = emailsText
-        .split('\n')
-        .map(email => email.trim())
-        .filter(email => email.length > 0);
-        
-      repository.students = emails.map(email => ({
-        id: `student-${Math.random().toString(36).substr(2, 9)}`,
-        name: email.split('@')[0],
-        email: email,
-        commitCount: 0,
-        lastActivity: 'Never'
-      }));
-    } else {
-      repository.students = [];
-    }
-  }
-  
-  inMemoryRepositories.unshift(repository);
+export const addRepository = async (repository: Repository): Promise<void> => {
+  // Prepare fields for inserting (remove undefined to avoid Supabase errors):
+  const repoForInsert = {
+    ...repository,
+    id: repository.id,
+    project_id: repository.projectId || repository.id,
+    last_activity: repository.lastActivity,
+    commit_count: repository.commitCount,
+    merge_request_count: repository.mergeRequestCount,
+    branch_count: repository.branchCount,
+    predicted_grade: repository.predictedGrade,
+    created_at: repository.createdAt || new Date().toISOString(),
+    // Make sure students is a value serializable to JSON
+    students:
+      Array.isArray(repository.students) ? repository.students : [],
+    week_of_prediction: repository.weekOfPrediction,
+    final_grade_prediction: repository.finalGradePrediction,
+    // Map all other custom fields...
+  };
+  await supabase.from("repositories").insert([repoForInsert]);
 };
 
-export const updateRepository = (id: string, updatedRepo: Partial<Repository>): Repository | null => {
-  let index = inMemoryRepositories.findIndex(repo => repo.id === id);
-  
-  if (index === -1 && updatedRepo.projectId) {
-    index = inMemoryRepositories.findIndex(repo => 
-      repo.projectId === updatedRepo.projectId
-    );
-  }
-  
-  if (index === -1) {
+export const updateRepository = async (id: string, updatedRepo: Partial<Repository>): Promise<Repository | null> => {
+  const { data, error } = await supabase
+    .from("repositories")
+    .update({
+      ...updatedRepo,
+      last_activity: updatedRepo.lastActivity,
+      project_id: updatedRepo.projectId,
+      predicted_grade: updatedRepo.predictedGrade,
+      week_of_prediction: updatedRepo.weekOfPrediction,
+      final_grade_prediction: updatedRepo.finalGradePrediction,
+      students: Array.isArray(updatedRepo.students) ? updatedRepo.students : [],
+    })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating repository:", error);
     return null;
   }
-  
-  if (updatedRepo.id && updatedRepo.id !== inMemoryRepositories[index].id) {
-    const oldId = inMemoryRepositories[index].id;
-    
-    inMemoryRepositories[index].id = updatedRepo.id;
-    
-    const { id: _, ...restOfUpdates } = updatedRepo;
-    
-    inMemoryRepositories[index] = { ...inMemoryRepositories[index], ...restOfUpdates };
-  } else {
-    inMemoryRepositories[index] = { ...inMemoryRepositories[index], ...updatedRepo };
-  }
-  
-  return inMemoryRepositories[index];
+  return data ? { ...(data as Repository) } : null;
 };
 
-export const deleteRepository = (id: string): boolean => {
-  const prevLength = inMemoryRepositories.length;
-  inMemoryRepositories = inMemoryRepositories.filter(repo => repo.id !== id);
-  return inMemoryRepositories.length !== prevLength;
-};
-
-export const getRepositoryStudents = (repositoryId: string): Student[] => {
-  const repository = inMemoryRepositories.find(repo => repo.id === repositoryId);
-  
-  if (repository && repository.students) {
-    if (Array.isArray(repository.students)) {
-      return repository.students;
-    } else if (typeof repository.students === 'string') {
-      return [];
-    }
-  }
-  
-  return repositoryId === 'programming-fundamentals' ? [...programmingStudents] : [...sampleStudents];
-};
-
-export const saveRepositoryStudent = (repositoryId: string, student: Student): boolean => {
-  const index = inMemoryRepositories.findIndex(repo => repo.id === repositoryId);
-  
-  if (index === -1) return false;
-  
-  if (!inMemoryRepositories[index].students) {
-    inMemoryRepositories[index].students = [];
-  }
-  
-  if (typeof inMemoryRepositories[index].students === 'string') {
-    inMemoryRepositories[index].students = [];
-  }
-  
-  const studentArray = inMemoryRepositories[index].students as Student[];
-  const studentIndex = studentArray.findIndex(s => s.id === student.id);
-  
-  if (studentIndex >= 0) {
-    studentArray[studentIndex] = student;
-  } else {
-    studentArray.push(student);
+export const deleteRepository = async (id: string): Promise<boolean> => {
+  const { error } = await supabase.from("repositories").delete().eq("id", id);
+  if (error) {
+    console.error("Error deleting repository:", error);
+    return false;
   }
   return true;
 };
 
-export const allRepositories = getRepositories();
+export const getRepositoryStudents = async (repositoryId: string): Promise<Student[]> => {
+  const { data, error } = await supabase
+    .from("repositories")
+    .select("students")
+    .eq("id", repositoryId)
+    .single();
 
+  if (error || !data) return [];
+  const students = data.students;
+  if (Array.isArray(students)) {
+    return students;
+  }
+  return [];
+};
+
+export const saveRepositoryStudent = async (
+  repositoryId: string,
+  student: Student
+): Promise<boolean> => {
+  // Get current students
+  const { data, error } = await supabase
+    .from("repositories")
+    .select("students")
+    .eq("id", repositoryId)
+    .single();
+
+  if (error) {
+    console.error("Error loading repository for saving student:", error);
+    return false;
+  }
+
+  const students: Student[] = Array.isArray(data.students) ? data.students : [];
+  const idx = students.findIndex((s) => s.id === student.id);
+  if (idx >= 0) {
+    students[idx] = student;
+  } else {
+    students.push(student);
+  }
+
+  const { error: updateError } = await supabase
+    .from("repositories")
+    .update({ students })
+    .eq("id", repositoryId);
+
+  if (updateError) {
+    console.error("Error updating students in repository:", updateError);
+    return false;
+  }
+  return true;
+};
+
+
+/**
+ * In-memory sample students for legacy compatibility
+ */
 export const sampleStudents: Student[] = [];
-
 export const programmingStudents: Student[] = [];
 
 export const filterRepositories = (repositories: Repository[], searchTerm: string): Repository[] => {
   if (!searchTerm) {
     return repositories;
   }
-
   const lowerSearchTerm = searchTerm.toLowerCase();
   return repositories.filter(repo =>
     (repo.name?.toLowerCase().includes(lowerSearchTerm) || false) ||
@@ -253,8 +204,8 @@ export const sortRepositories = (repositories: Repository[], sortBy: string): Re
   switch (sortBy) {
     case 'recent':
       return repositories.sort((a, b) => {
-        const aTime = new Date(a.date || a.lastActivity);
-        const bTime = new Date(b.date || b.lastActivity);
+        const aTime = new Date(a.date || a.lastActivity || "");
+        const bTime = new Date(b.date || b.lastActivity || "");
         return bTime.getTime() - aTime.getTime();
       });
     case 'name':
@@ -276,6 +227,10 @@ export const sortRepositories = (repositories: Repository[], sortBy: string): Re
   }
 };
 
-export const clearAllRepositories = (): void => {
-  inMemoryRepositories = [];
+export const clearAllRepositories = async (): Promise<void> => {
+  // Not safe to bulk delete all remotely. Consider only for dev mode.
+  // await supabase.from("repositories").delete().neq('id', ''); // Or add other logic if needed
 };
+
+// Legacy direct reference, not used now:
+export const allRepositories = [];

@@ -9,6 +9,111 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      repositories: {
+        Row: {
+          additions: number | null
+          api_key: string | null
+          author: string | null
+          average_commits_per_week: number | null
+          average_operations_per_commit: number | null
+          branch_count: number | null
+          commit_count: number | null
+          created_at: string | null
+          csv_file_url: string | null
+          date: string | null
+          deletions: number | null
+          description: string | null
+          email: string | null
+          final_grade_prediction: string | null
+          gitlab_user: string | null
+          id: string
+          language: string | null
+          last_activity: string | null
+          link: string | null
+          merge_request_count: number | null
+          name: string
+          operations: number | null
+          predicted_grade: string | null
+          progress: number | null
+          project_id: string | null
+          students: Json | null
+          technologies: string[] | null
+          total_additions: number | null
+          total_deletions: number | null
+          total_operations: number | null
+          user_id: string | null
+          week_of_prediction: string | null
+        }
+        Insert: {
+          additions?: number | null
+          api_key?: string | null
+          author?: string | null
+          average_commits_per_week?: number | null
+          average_operations_per_commit?: number | null
+          branch_count?: number | null
+          commit_count?: number | null
+          created_at?: string | null
+          csv_file_url?: string | null
+          date?: string | null
+          deletions?: number | null
+          description?: string | null
+          email?: string | null
+          final_grade_prediction?: string | null
+          gitlab_user?: string | null
+          id?: string
+          language?: string | null
+          last_activity?: string | null
+          link?: string | null
+          merge_request_count?: number | null
+          name: string
+          operations?: number | null
+          predicted_grade?: string | null
+          progress?: number | null
+          project_id?: string | null
+          students?: Json | null
+          technologies?: string[] | null
+          total_additions?: number | null
+          total_deletions?: number | null
+          total_operations?: number | null
+          user_id?: string | null
+          week_of_prediction?: string | null
+        }
+        Update: {
+          additions?: number | null
+          api_key?: string | null
+          author?: string | null
+          average_commits_per_week?: number | null
+          average_operations_per_commit?: number | null
+          branch_count?: number | null
+          commit_count?: number | null
+          created_at?: string | null
+          csv_file_url?: string | null
+          date?: string | null
+          deletions?: number | null
+          description?: string | null
+          email?: string | null
+          final_grade_prediction?: string | null
+          gitlab_user?: string | null
+          id?: string
+          language?: string | null
+          last_activity?: string | null
+          link?: string | null
+          merge_request_count?: number | null
+          name?: string
+          operations?: number | null
+          predicted_grade?: string | null
+          progress?: number | null
+          project_id?: string | null
+          students?: Json | null
+          technologies?: string[] | null
+          total_additions?: number | null
+          total_deletions?: number | null
+          total_operations?: number | null
+          user_id?: string | null
+          week_of_prediction?: string | null
+        }
+        Relationships: []
+      }
       Repositorio: {
         Row: {
           API_Key: string | null
