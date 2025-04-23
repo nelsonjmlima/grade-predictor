@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -46,19 +45,13 @@ export function CreateRepositoryDialog({
         progress: Math.floor(Math.random() * 100),
         students: selectedStudents
       };
-
       await addRepository(newRepo);
-      
       toast.success("Repository created successfully", {
         description: `${repositoryName} has been created with ${selectedStudents.length} selected students.`,
       });
-      
-      // Reset form
       setRepositoryName("");
       setRepositoryDescription("");
       setSelectedStudents([]);
-      
-      // Close dialog and notify parent
       onOpenChange(false);
       onRepositoryCreated();
     } catch (error) {
@@ -93,11 +86,9 @@ export function CreateRepositoryDialog({
       };
 
       await addRepository(newRepo);
-      
       toast.success("Repository created successfully", {
         description: `${data.projectName} has been created with ${data.members.length} GitLab members.`,
       });
-      
       onOpenChange(false);
       onRepositoryCreated();
     } catch (error) {
