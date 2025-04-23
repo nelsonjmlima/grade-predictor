@@ -4,7 +4,7 @@ import { SideNav } from "@/components/dashboard/SideNav";
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
 import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
 import { useNavigate } from "react-router-dom";
-import { getRepositories, Repository } from "@/services/repositoryData";
+import { getRepositories, Repository, filterRepositories } from "@/services/repositoryData";
 import { toast } from "sonner";
 
 export default function DashboardPage() {
@@ -35,6 +35,8 @@ export default function DashboardPage() {
         averageOperationsPerCommit: repo.averageOperationsPerCommit || (repo.commitCount ? Math.round(((repo.additions || 0) + (repo.deletions || 0)) / repo.commitCount * 10) / 10 : Math.floor(Math.random() * 20) + 5),
         averageCommitsPerWeek: repo.averageCommitsPerWeek || Math.floor(Math.random() * 20) + 1
       }));
+      
+      console.log("Enhanced repositories:", enhancedRepositories);
       setRepositories(enhancedRepositories);
     } catch (error) {
       console.error("Error fetching repositories:", error);
