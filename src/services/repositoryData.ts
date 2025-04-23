@@ -67,7 +67,7 @@ export const getRepositories = async (): Promise<Repository[]> => {
     progress: repo.progress || 0,
     createdAt: repo.created_at,
     link: repo.link,
-    students: repo.students as Student[] | string,
+    students: parseStudents(repo.students),
     projectId: repo.project_id,
     author: repo.author,
     email: repo.email,
@@ -89,6 +89,97 @@ export const getRepositories = async (): Promise<Repository[]> => {
     finalGradePrediction: repo.final_grade_prediction,
     csvFileUrl: repo.csv_file_url,
   }));
+};
+
+// Helper function to parse students from Json
+const parseStudents = (studentsData: Json | null): Student[] | string => {
+  if (!studentsData) return [];
+  
+  if (typeof studentsData === 'string') {
+    return studentsData;
+  }
+  
+  if (Array.isArray(studentsData)) {
+    // Convert Json[] to Student[]
+    return studentsData.map(student => {
+      if (typeof student !== 'object' || student === null) {
+        return {
+          id: 'unknown',
+          name: 'Unknown Student',
+          email: 'unknown@example.com',
+          commitCount: 0,
+          lastActivity: new Date().toISOString()
+        };
+      }
+      
+      const s = student as any;
+      return {
+        id: s.id || 'unknown',
+        name: s.name || 'Unknown Student',
+        email: s.email || 'unknown@example.com',
+        commitCount: s.commitCount || s.commit_count || 0,
+        lastActivity: s.lastActivity || s.last_activity || new Date().toISOString(),
+        // Map other student properties as needed
+        commitTrend: s.commitTrend || s.commit_trend,
+        commitPercentChange: s.commitPercentChange || s.commit_percent_change,
+        currentGrade: s.currentGrade || s.current_grade,
+        activityScore: s.activityScore || s.activity_score,
+        studentNumber: s.studentNumber || s.student_number,
+        gitlabUsername: s.gitlabUsername || s.gitlab_username,
+        groupNumber: s.groupNumber || s.group_number,
+        grade: s.grade,
+        commits: s.commits,
+        fileChanges: s.fileChanges || s.file_changes,
+        codeQuality: s.codeQuality || s.code_quality,
+        codeReviews: s.codeReviews || s.code_reviews,
+        contributions: s.contributions,
+        projectId: s.projectId || s.project_id,
+        additions: s.additions,
+        deletions: s.deletions,
+        averageOperationsPerCommit: s.averageOperationsPerCommit || s.average_operations_per_commit,
+        averageCommitsPerWeek: s.averageCommitsPerWeek || s.average_commits_per_week,
+        activityTrend: s.activityTrend || s.activity_trend,
+      } as Student;
+    });
+  }
+  
+  return [];
+};
+
+// Helper function to prepare students for storage
+const prepareStudentsForStorage = (students: Student[] | string | undefined): Json => {
+  if (!students) return [];
+  if (typeof students === 'string') return students;
+  
+  return students.map(student => {
+    // Convert Student to Json-compatible object
+    return {
+      id: student.id,
+      name: student.name,
+      email: student.email,
+      commitCount: student.commitCount,
+      lastActivity: student.lastActivity,
+      commitTrend: student.commitTrend,
+      commitPercentChange: student.commitPercentChange,
+      currentGrade: student.currentGrade,
+      activityScore: student.activityScore,
+      studentNumber: student.studentNumber,
+      gitlabUsername: student.gitlabUsername,
+      groupNumber: student.groupNumber,
+      grade: student.grade,
+      commits: student.commits,
+      fileChanges: student.fileChanges,
+      codeQuality: student.codeQuality,
+      codeReviews: student.codeReviews,
+      contributions: student.contributions,
+      projectId: student.projectId,
+      additions: student.additions,
+      deletions: student.deletions,
+      averageOperationsPerCommit: student.averageOperationsPerCommit,
+      averageCommitsPerWeek: student.averageCommitsPerWeek,
+      activityTrend: student.activityTrend,
+    };
+  });
 };
 
 export const addRepository = async (repository: Repository): Promise<void> => {
@@ -123,7 +214,7 @@ export const addRepository = async (repository: Repository): Promise<void> => {
     created_at: repository.createdAt || new Date().toISOString(),
     language: repository.language,
     technologies: repository.technologies,
-    students: repository.students ? JSON.parse(JSON.stringify(repository.students)) : [],
+    students: prepareStudentsForStorage(repository.students),
     csv_file_url: repository.csvFileUrl
   };
 
@@ -132,7 +223,7 @@ export const addRepository = async (repository: Repository): Promise<void> => {
 
 export const updateRepository = async (id: string, updatedRepo: Partial<Repository>): Promise<Repository | null> => {
   // Map local Repository object to database field names
-  const repoForUpdate = {
+  const repoForUpdate: any = {
     name: updatedRepo.name,
     description: updatedRepo.description,
     last_activity: updatedRepo.lastActivity,
@@ -161,9 +252,13 @@ export const updateRepository = async (id: string, updatedRepo: Partial<Reposito
     final_grade_prediction: updatedRepo.finalGradePrediction,
     language: updatedRepo.language,
     technologies: updatedRepo.technologies,
-    students: updatedRepo.students ? JSON.parse(JSON.stringify(updatedRepo.students)) : undefined,
     csv_file_url: updatedRepo.csvFileUrl
   };
+
+  // Only add students if provided
+  if (updatedRepo.students !== undefined) {
+    repoForUpdate.students = prepareStudentsForStorage(updatedRepo.students);
+  }
 
   // Remove undefined properties to avoid setting null values
   Object.keys(repoForUpdate).forEach(key => {
@@ -199,7 +294,7 @@ export const updateRepository = async (id: string, updatedRepo: Partial<Reposito
     predictedGrade: data.predicted_grade,
     createdAt: data.created_at,
     link: data.link,
-    students: data.students as Student[] | string,
+    students: parseStudents(data.students),
     projectId: data.project_id,
     author: data.author,
     email: data.email,
@@ -240,11 +335,7 @@ export const getRepositoryStudents = async (repositoryId: string): Promise<Stude
 
   if (error || !data) return [];
   
-  const students = data.students;
-  if (Array.isArray(students)) {
-    return students as Student[];
-  }
-  return [];
+  return parseStudents(data.students) as Student[];
 };
 
 export const saveRepositoryStudent = async (
@@ -263,7 +354,10 @@ export const saveRepositoryStudent = async (
     return false;
   }
 
-  const students: Student[] = Array.isArray(data.students) ? data.students as Student[] : [];
+  // Parse students array from database
+  const students = parseStudents(data.students) as Student[];
+  
+  // Update or add the student
   const idx = students.findIndex((s) => s.id === student.id);
   if (idx >= 0) {
     students[idx] = student;
@@ -271,9 +365,10 @@ export const saveRepositoryStudent = async (
     students.push(student);
   }
 
+  // Prepare students for storage and update in database
   const { error: updateError } = await supabase
     .from("repositories")
-    .update({ students: JSON.parse(JSON.stringify(students)) })
+    .update({ students: prepareStudentsForStorage(students) })
     .eq("id", repositoryId);
 
   if (updateError) {
