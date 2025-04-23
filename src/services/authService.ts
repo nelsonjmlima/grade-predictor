@@ -49,12 +49,12 @@ export const signUp: SignUpFn = async (email, password, metadata) => {
       };
     }
 
-    // Use a more explicit type for the query
+    // Fix type instantiation issue by providing explicit type annotation
     const { data: existingUsers } = await supabase
       .from("Repositorio")
       .select("id, email")
       .eq("email", email)
-      .maybeSingle();
+      .maybeSingle<{ id: number; email: string | null }>();
 
     if (existingUsers) {
       return {
