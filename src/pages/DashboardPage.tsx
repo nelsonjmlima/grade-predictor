@@ -4,7 +4,7 @@ import { SideNav } from "@/components/dashboard/SideNav";
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
 import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
 import { useNavigate } from "react-router-dom";
-import { getRepositories, Repository, filterRepositories, sortRepositories, updateRepository, addRepository } from "@/services/repositoryData";
+import { getRepositories, Repository, updateRepository } from "@/services/repositoryData";
 
 export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -101,7 +101,7 @@ export default function DashboardPage() {
         open={dialogOpen} 
         onOpenChange={setDialogOpen} 
         onRepositoryCreated={() => {
-          // Repository created callback just triggers a re-fetch
+          // Repository created callback just triggers a re-fetch via useEffect
         }} 
       />
     </div>;

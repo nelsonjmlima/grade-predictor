@@ -146,9 +146,14 @@ export function GitLabForm({ onSuccess }: GitLabFormProps) {
   );
 }
 
-// If there's any call like getRepositories() that assumes synchronous behavior,
-// Update it to:
+// Updated to use async/await pattern
 const loadRepositories = async () => {
-  const repositories = await getRepositories();
-  // Then continue processing repositories
+  try {
+    const repositories = await getRepositories();
+    // Then continue processing repositories
+    return repositories;
+  } catch (error) {
+    console.error("Error loading repositories:", error);
+    return [];
+  }
 };
