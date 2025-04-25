@@ -67,13 +67,21 @@ export const getRepositories = async (): Promise<Repository[]> => {
 };
 
 export const getRepositoryStudents = async (repositoryId: string) => {
-  const { data, error } = await supabase
-    .from("repositories")
-    .select("students")
-    .eq("id", repositoryId)
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from("repositories")
+      .select("students")
+      .eq("id", repositoryId)
+      .single();
 
-  if (error || !data) return [];
-  
-  return parseStudents(data.students);
+    if (error) {
+      console.error("Error loading repository students:", error);
+      return [];
+    }
+    
+    return parseStudents(data.students);
+  } catch (error) {
+    console.error("Error in getRepositoryStudents:", error);
+    return [];
+  }
 };

@@ -4,9 +4,11 @@ import { SideNav } from "@/components/dashboard/SideNav";
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
 import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
 import { useNavigate } from "react-router-dom";
-import { getRepositories, Repository, filterRepositories } from "@/services/repositoryData";
+import { getRepositories, Repository } from "@/services/repositoryData";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -19,6 +21,12 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       console.log("Fetching repositories for user:", user?.id);
+      if (!user) {
+        console.log("No authenticated user found");
+        setRepositories([]);
+        return;
+      }
+      
       const fetchedRepositories = await getRepositories();
       console.log("Fetched repositories:", fetchedRepositories);
 
@@ -51,6 +59,7 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchRepositories();
     
+    // Refresh repositories when window gets focus (in case repositories were added elsewhere)
     window.addEventListener('focus', fetchRepositories);
     
     return () => {
@@ -85,6 +94,15 @@ export default function DashboardPage() {
             <p className="text-sm text-muted-foreground">
               {repositories.length > 0 ? `Managing ${repositories.length} repositories.` : ""}
             </p>
+            
+            <Button 
+              onClick={() => navigate('/repositories/add')} 
+              className="flex items-center"
+              variant="default"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Repository
+            </Button>
           </div>
           
           <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -105,7 +123,7 @@ export default function DashboardPage() {
             )) : (
               <div className="col-span-full p-8 text-center">
                 <p className="text-muted-foreground">
-                  No repositories found. Use the side menu to add a new repository.
+                  No repositories found. Click the "Add Repository" button to add your first repository.
                 </p>
               </div>
             )}

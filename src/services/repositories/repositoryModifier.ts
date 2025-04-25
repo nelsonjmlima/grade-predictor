@@ -15,6 +15,11 @@ export const addRepository = async (repository: Repository): Promise<void> => {
     
     console.log("Current user ID:", userId);
     
+    if (!userId) {
+      toast.error("You must be logged in to add a repository");
+      throw new Error("User not authenticated");
+    }
+    
     const repoForInsert = {
       name: repository.name,
       description: repository.description,
@@ -38,7 +43,7 @@ export const addRepository = async (repository: Repository): Promise<void> => {
       average_commits_per_week: repository.averageCommitsPerWeek,
       link: repository.link,
       api_key: repository.apiKey,
-      user_id: userId || repository.userId,
+      user_id: userId,
       gitlab_user: repository.gitlabUser,
       week_of_prediction: repository.weekOfPrediction,
       final_grade_prediction: repository.finalGradePrediction,

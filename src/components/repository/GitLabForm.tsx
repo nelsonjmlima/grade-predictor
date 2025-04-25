@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { getProjectInfo, getProjectMembers } from "@/services/gitlabService";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const formSchema = z.object({
   link: z.string().url({ message: "Please enter a valid GitLab URL" }),
@@ -35,6 +36,7 @@ interface GitLabFormProps {
 
 export function GitLabForm({ onSuccess }: GitLabFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
 
   const form = useForm<GitLabFormValues>({
     resolver: zodResolver(formSchema),
@@ -46,8 +48,7 @@ export function GitLabForm({ onSuccess }: GitLabFormProps) {
 
   const onSubmit = async (values: GitLabFormValues) => {
     // Check if user is authenticated
-    const { data: session } = await supabase.auth.getSession();
-    if (!session?.session?.user) {
+    if (!user) {
       toast.error("You must be logged in to connect to GitLab");
       return;
     }
@@ -63,20 +64,29 @@ export function GitLabForm({ onSuccess }: GitLabFormProps) {
       
       const members = await getProjectMembers(project.id, values.token);
       
-      // Also save the token to Supabase Repositorio table for future use
-      const { error: repoError } = await supabase.from('Repositorio').insert([
-        {
-          id: project.id, 
-          URL_Repositorio: project.web_url,
-          API_Key: values.token // Save token for future API calls
+      // Store the token in Supabase repositories table for future use
+      try {
+        const { error } = await supabase.from('repositories').insert([
+          {
+            project_id: project.id.toString(),
+            name: project.name,
+            description: project.description || `GitLab project #${project.id}`,
+            link: project.web_url,
+            api_key: values.token,
+            user_id: user.id,
+            created_at: new Date().toISOString()
+          }
+        ]);
+        
+        if (error) {
+          console.error("Error saving GitLab token to Supabase repositories table:", error);
+          // Continue anyway but log the error
+        } else {
+          console.log("GitLab token saved to Supabase repositories table successfully");
         }
-      ]);
-      
-      if (repoError) {
-        console.error("Error saving GitLab token to Supabase:", repoError);
+      } catch (error) {
+        console.error("Error saving to repositories table:", error);
         // Continue anyway but log the error
-      } else {
-        console.log("GitLab token saved to Supabase successfully");
       }
       
       onSuccess({
@@ -136,7 +146,6 @@ export function GitLabForm({ onSuccess }: GitLabFormProps) {
                       <Input 
                         placeholder="Enter GitLab token" 
                         type="password"
-                        showPasswordToggle 
                         {...field} 
                       />
                     </div>
@@ -153,7 +162,7 @@ export function GitLabForm({ onSuccess }: GitLabFormProps) {
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={isLoading}
+              disabled={isLoading || !user}
             >
               {isLoading ? (
                 <>
