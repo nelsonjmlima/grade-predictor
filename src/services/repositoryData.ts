@@ -1,7 +1,7 @@
-
 import { Student } from "./studentData";
 import { supabase } from "@/integrations/supabase/client";
 import { Json } from "@/integrations/supabase/types";
+import { toast } from "sonner";
 
 export interface Repository {
   name: string;
@@ -46,52 +46,67 @@ export interface Repository {
 }
 
 export const getRepositories = async (): Promise<Repository[]> => {
-  const { data, error } = await supabase
-    .from("repositories")
-    .select("*")
-    .order("created_at", { ascending: false });
-  if (error) {
-    console.error("Error loading repositories:", error);
+  try {
+    const { data: session } = await supabase.auth.getSession();
+    const userId = session?.session?.user?.id;
+    console.log("Getting repositories for user ID:", userId);
+    
+    let query = supabase.from("repositories").select("*");
+    
+    if (userId) {
+      query = query.eq("user_id", userId);
+    }
+    
+    const { data, error } = await query.order("created_at", { ascending: false });
+    
+    if (error) {
+      console.error("Error loading repositories:", error);
+      toast.error("Failed to load repositories");
+      return [];
+    }
+    
+    console.log("Fetched repositories from Supabase:", data);
+    
+    return (data || []).map(repo => ({
+      id: repo.id,
+      name: repo.name,
+      description: repo.description,
+      lastActivity: repo.last_activity || new Date().toISOString(),
+      commitCount: repo.commit_count || 0,
+      mergeRequestCount: repo.merge_request_count || 0,
+      branchCount: repo.branch_count || 1,
+      progress: repo.progress || 0,
+      createdAt: repo.created_at,
+      link: repo.link,
+      students: parseStudents(repo.students),
+      projectId: repo.project_id,
+      author: repo.author,
+      email: repo.email,
+      date: repo.date,
+      additions: repo.additions,
+      deletions: repo.deletions,
+      operations: repo.operations,
+      totalAdditions: repo.total_additions,
+      totalDeletions: repo.total_deletions,
+      totalOperations: repo.total_operations,
+      averageOperationsPerCommit: repo.average_operations_per_commit,
+      averageCommitsPerWeek: repo.average_commits_per_week,
+      language: repo.language,
+      technologies: repo.technologies,
+      predictedGrade: repo.predicted_grade,
+      userId: repo.user_id,
+      gitlabUser: repo.gitlab_user,
+      weekOfPrediction: repo.week_of_prediction,
+      finalGradePrediction: repo.final_grade_prediction,
+      csvFileUrl: repo.csv_file_url,
+    }));
+  } catch (error) {
+    console.error("Error in getRepositories:", error);
+    toast.error("Failed to load repositories");
     return [];
   }
-  
-  // Convert database rows to local Repository objects with matching field names
-  return (data || []).map(repo => ({
-    id: repo.id,
-    name: repo.name,
-    description: repo.description,
-    lastActivity: repo.last_activity || new Date().toISOString(),
-    commitCount: repo.commit_count || 0,
-    mergeRequestCount: repo.merge_request_count || 0,
-    branchCount: repo.branch_count || 1,
-    progress: repo.progress || 0,
-    createdAt: repo.created_at,
-    link: repo.link,
-    students: parseStudents(repo.students),
-    projectId: repo.project_id,
-    author: repo.author,
-    email: repo.email,
-    date: repo.date,
-    additions: repo.additions,
-    deletions: repo.deletions,
-    operations: repo.operations,
-    totalAdditions: repo.total_additions,
-    totalDeletions: repo.total_deletions,
-    totalOperations: repo.total_operations,
-    averageOperationsPerCommit: repo.average_operations_per_commit,
-    averageCommitsPerWeek: repo.average_commits_per_week,
-    language: repo.language,
-    technologies: repo.technologies,
-    predictedGrade: repo.predicted_grade,
-    userId: repo.user_id,
-    gitlabUser: repo.gitlab_user,
-    weekOfPrediction: repo.week_of_prediction,
-    finalGradePrediction: repo.final_grade_prediction,
-    csvFileUrl: repo.csv_file_url,
-  }));
 };
 
-// Helper function to parse students from Json
 const parseStudents = (studentsData: Json | null): Student[] | string => {
   if (!studentsData) return [];
   
@@ -100,7 +115,6 @@ const parseStudents = (studentsData: Json | null): Student[] | string => {
   }
   
   if (Array.isArray(studentsData)) {
-    // Convert Json[] to Student[]
     return studentsData.map(student => {
       if (typeof student !== 'object' || student === null) {
         return {
@@ -119,7 +133,6 @@ const parseStudents = (studentsData: Json | null): Student[] | string => {
         email: s.email || 'unknown@example.com',
         commitCount: s.commitCount || s.commit_count || 0,
         lastActivity: s.lastActivity || s.last_activity || new Date().toISOString(),
-        // Map other student properties as needed
         commitTrend: s.commitTrend || s.commit_trend,
         commitPercentChange: s.commitPercentChange || s.commit_percent_change,
         currentGrade: s.currentGrade || s.current_grade,
@@ -146,13 +159,11 @@ const parseStudents = (studentsData: Json | null): Student[] | string => {
   return [];
 };
 
-// Helper function to prepare students for storage
 const prepareStudentsForStorage = (students: Student[] | string | undefined): Json => {
   if (!students) return [];
   if (typeof students === 'string') return students;
   
   return students.map(student => {
-    // Convert Student to Json-compatible object
     return {
       id: student.id,
       name: student.name,
@@ -183,46 +194,66 @@ const prepareStudentsForStorage = (students: Student[] | string | undefined): Js
 };
 
 export const addRepository = async (repository: Repository): Promise<void> => {
-  // Map local Repository object to database field names
-  const repoForInsert = {
-    name: repository.name,
-    description: repository.description,
-    last_activity: repository.lastActivity,
-    commit_count: repository.commitCount,
-    merge_request_count: repository.mergeRequestCount,
-    branch_count: repository.branchCount,
-    progress: repository.progress,
-    predicted_grade: repository.predictedGrade,
-    project_id: repository.projectId || repository.id,
-    author: repository.author,
-    email: repository.email,
-    date: repository.date,
-    additions: repository.additions,
-    deletions: repository.deletions,
-    operations: repository.operations,
-    total_additions: repository.totalAdditions,
-    total_deletions: repository.totalDeletions,
-    total_operations: repository.totalOperations,
-    average_operations_per_commit: repository.averageOperationsPerCommit,
-    average_commits_per_week: repository.averageCommitsPerWeek,
-    link: repository.link,
-    api_key: repository.apiKey,
-    user_id: repository.userId,
-    gitlab_user: repository.gitlabUser,
-    week_of_prediction: repository.weekOfPrediction,
-    final_grade_prediction: repository.finalGradePrediction,
-    created_at: repository.createdAt || new Date().toISOString(),
-    language: repository.language,
-    technologies: repository.technologies,
-    students: prepareStudentsForStorage(repository.students),
-    csv_file_url: repository.csvFileUrl
-  };
+  try {
+    console.log("Adding repository to Supabase:", repository);
+    
+    const { data: session } = await supabase.auth.getSession();
+    const userId = session?.session?.user?.id;
+    
+    console.log("Current user ID:", userId);
+    
+    const repoForInsert = {
+      name: repository.name,
+      description: repository.description,
+      last_activity: repository.lastActivity,
+      commit_count: repository.commitCount,
+      merge_request_count: repository.mergeRequestCount,
+      branch_count: repository.branchCount,
+      progress: repository.progress,
+      predicted_grade: repository.predictedGrade,
+      project_id: repository.projectId || repository.id,
+      author: repository.author,
+      email: repository.email,
+      date: repository.date,
+      additions: repository.additions,
+      deletions: repository.deletions,
+      operations: repository.operations,
+      total_additions: repository.totalAdditions,
+      total_deletions: repository.totalDeletions,
+      total_operations: repository.totalOperations,
+      average_operations_per_commit: repository.averageOperationsPerCommit,
+      average_commits_per_week: repository.averageCommitsPerWeek,
+      link: repository.link,
+      api_key: repository.apiKey,
+      user_id: userId || repository.userId,
+      gitlab_user: repository.gitlabUser,
+      week_of_prediction: repository.weekOfPrediction,
+      final_grade_prediction: repository.finalGradePrediction,
+      created_at: repository.createdAt || new Date().toISOString(),
+      language: repository.language,
+      technologies: repository.technologies,
+      students: prepareStudentsForStorage(repository.students),
+      csv_file_url: repository.csvFileUrl
+    };
 
-  await supabase.from("repositories").insert([repoForInsert]);
+    const { error } = await supabase.from("repositories").insert([repoForInsert]);
+    
+    if (error) {
+      console.error("Error inserting repository:", error);
+      toast.error("Failed to add repository to Supabase");
+      throw error;
+    }
+    
+    console.log("Repository added successfully to Supabase");
+    toast.success("Repository added to Supabase");
+  } catch (error) {
+    console.error("Error in addRepository:", error);
+    toast.error("Failed to add repository");
+    throw error;
+  }
 };
 
 export const updateRepository = async (id: string, updatedRepo: Partial<Repository>): Promise<Repository | null> => {
-  // Map local Repository object to database field names
   const repoForUpdate: any = {
     name: updatedRepo.name,
     description: updatedRepo.description,
@@ -255,12 +286,10 @@ export const updateRepository = async (id: string, updatedRepo: Partial<Reposito
     csv_file_url: updatedRepo.csvFileUrl
   };
 
-  // Only add students if provided
   if (updatedRepo.students !== undefined) {
     repoForUpdate.students = prepareStudentsForStorage(updatedRepo.students);
   }
 
-  // Remove undefined properties to avoid setting null values
   Object.keys(repoForUpdate).forEach(key => {
     if (repoForUpdate[key] === undefined) {
       delete repoForUpdate[key];
@@ -281,7 +310,6 @@ export const updateRepository = async (id: string, updatedRepo: Partial<Reposito
 
   if (!data) return null;
   
-  // Map back to our Repository interface
   return {
     id: data.id,
     name: data.name,
@@ -321,6 +349,7 @@ export const deleteRepository = async (id: string): Promise<boolean> => {
   const { error } = await supabase.from("repositories").delete().eq("id", id);
   if (error) {
     console.error("Error deleting repository:", error);
+    toast.error("Failed to delete repository");
     return false;
   }
   return true;
@@ -342,7 +371,6 @@ export const saveRepositoryStudent = async (
   repositoryId: string,
   student: Student
 ): Promise<boolean> => {
-  // Get current students
   const { data, error } = await supabase
     .from("repositories")
     .select("students")
@@ -351,13 +379,12 @@ export const saveRepositoryStudent = async (
 
   if (error) {
     console.error("Error loading repository for saving student:", error);
+    toast.error("Failed to load repository for saving student");
     return false;
   }
 
-  // Parse students array from database
   const students = parseStudents(data.students) as Student[];
   
-  // Update or add the student
   const idx = students.findIndex((s) => s.id === student.id);
   if (idx >= 0) {
     students[idx] = student;
@@ -365,7 +392,6 @@ export const saveRepositoryStudent = async (
     students.push(student);
   }
 
-  // Prepare students for storage and update in database
   const { error: updateError } = await supabase
     .from("repositories")
     .update({ students: prepareStudentsForStorage(students) })
@@ -373,15 +399,12 @@ export const saveRepositoryStudent = async (
 
   if (updateError) {
     console.error("Error updating students in repository:", updateError);
+    toast.error("Failed to update students in repository");
     return false;
   }
   return true;
 };
 
-
-/**
- * In-memory sample students for legacy compatibility
- */
 export const sampleStudents: Student[] = [];
 export const programmingStudents: Student[] = [];
 
@@ -428,8 +451,6 @@ export const sortRepositories = (repositories: Repository[], sortBy: string): Re
 
 export const clearAllRepositories = async (): Promise<void> => {
   // Not safe to bulk delete all remotely. Consider only for dev mode.
-  // await supabase.from("repositories").delete().neq('id', ''); // Or add other logic if needed
 };
 
-// Legacy direct reference, not used now:
 export const allRepositories = [];

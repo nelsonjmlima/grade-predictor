@@ -6,17 +6,19 @@ import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryD
 import { useNavigate } from "react-router-dom";
 import { getRepositories, Repository, filterRepositories } from "@/services/repositoryData";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function DashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const fetchRepositories = useCallback(async () => {
     try {
       setLoading(true);
-      console.log("Fetching repositories...");
+      console.log("Fetching repositories for user:", user?.id);
       const fetchedRepositories = await getRepositories();
       console.log("Fetched repositories:", fetchedRepositories);
 
@@ -44,7 +46,7 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     fetchRepositories();
@@ -54,7 +56,7 @@ export default function DashboardPage() {
     return () => {
       window.removeEventListener('focus', fetchRepositories);
     };
-  }, [fetchRepositories]);
+  }, [fetchRepositories, dialogOpen]);
 
   const handleRepositoryClick = (repoId: string) => {
     navigate(`/repositories/${repoId}`);
@@ -75,7 +77,7 @@ export default function DashboardPage() {
             <h1 className="font-semibold tracking-tight text-2xl">Dashboard</h1>
             <p className="text-muted-foreground font-normal text-base">Manage your repositories</p>
             <p className="text-base text-primary mt-1 font-semibold">
-              Bem-vindo Sr. Professor
+              {user ? `Bem-vindo ${user.email}` : "Bem-vindo Sr. Professor"}
             </p>
           </div>
           

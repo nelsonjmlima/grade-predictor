@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { getProjectInfo, getProjectMembers } from "@/services/gitlabService";
+import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
   link: z.string().url({ message: "Please enter a valid GitLab URL" }),
@@ -44,6 +45,13 @@ export function GitLabForm({ onSuccess }: GitLabFormProps) {
   });
 
   const onSubmit = async (values: GitLabFormValues) => {
+    // Check if user is authenticated
+    const { data: session } = await supabase.auth.getSession();
+    if (!session?.session?.user) {
+      toast.error("You must be logged in to connect to GitLab");
+      return;
+    }
+
     setIsLoading(true);
     try {
       const project = await getProjectInfo(values.link, values.token);
@@ -54,6 +62,22 @@ export function GitLabForm({ onSuccess }: GitLabFormProps) {
       }
       
       const members = await getProjectMembers(project.id, values.token);
+      
+      // Also save the token to Supabase Repositorio table for future use
+      const { error: repoError } = await supabase.from('Repositorio').insert([
+        {
+          id: project.id, 
+          URL_Repositorio: project.web_url,
+          API_Key: values.token // Save token for future API calls
+        }
+      ]);
+      
+      if (repoError) {
+        console.error("Error saving GitLab token to Supabase:", repoError);
+        // Continue anyway but log the error
+      } else {
+        console.log("GitLab token saved to Supabase successfully");
+      }
       
       onSuccess({
         projectId: project.id,

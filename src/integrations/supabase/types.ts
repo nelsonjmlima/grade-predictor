@@ -9,6 +9,233 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      aluno: {
+        Row: {
+          idaluno: number
+          nomealuno: string
+          notasfinais_idnotasfinais: number
+        }
+        Insert: {
+          idaluno?: number
+          nomealuno: string
+          notasfinais_idnotasfinais: number
+        }
+        Update: {
+          idaluno?: number
+          nomealuno?: string
+          notasfinais_idnotasfinais?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_aluno_notasfinais"
+            columns: ["notasfinais_idnotasfinais"]
+            isOneToOne: false
+            referencedRelation: "notasfinais"
+            referencedColumns: ["idnotasfinais"]
+          },
+        ]
+      }
+      aluno_has_momento: {
+        Row: {
+          aluno_idaluno: number
+          momento_idmomento: number
+        }
+        Insert: {
+          aluno_idaluno: number
+          momento_idmomento: number
+        }
+        Update: {
+          aluno_idaluno?: number
+          momento_idmomento?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_aluno_has_momento_aluno"
+            columns: ["aluno_idaluno"]
+            isOneToOne: false
+            referencedRelation: "aluno"
+            referencedColumns: ["idaluno"]
+          },
+          {
+            foreignKeyName: "fk_aluno_has_momento_momento"
+            columns: ["momento_idmomento"]
+            isOneToOne: false
+            referencedRelation: "momento"
+            referencedColumns: ["idmomento"]
+          },
+        ]
+      }
+      grupo: {
+        Row: {
+          idgrupo: number
+          nomegrupo: string
+          repositorio_idrepobd: number
+        }
+        Insert: {
+          idgrupo?: number
+          nomegrupo: string
+          repositorio_idrepobd: number
+        }
+        Update: {
+          idgrupo?: number
+          nomegrupo?: string
+          repositorio_idrepobd?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_grupo_repositorio"
+            columns: ["repositorio_idrepobd"]
+            isOneToOne: false
+            referencedRelation: "repositorio"
+            referencedColumns: ["idrepobd"]
+          },
+        ]
+      }
+      grupo_has_aluno: {
+        Row: {
+          aluno_idaluno: number
+          grupo_idgrupo: number
+        }
+        Insert: {
+          aluno_idaluno: number
+          grupo_idgrupo: number
+        }
+        Update: {
+          aluno_idaluno?: number
+          grupo_idgrupo?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_grupo_has_aluno_aluno"
+            columns: ["aluno_idaluno"]
+            isOneToOne: false
+            referencedRelation: "aluno"
+            referencedColumns: ["idaluno"]
+          },
+          {
+            foreignKeyName: "fk_grupo_has_aluno_grupo"
+            columns: ["grupo_idgrupo"]
+            isOneToOne: false
+            referencedRelation: "grupo"
+            referencedColumns: ["idgrupo"]
+          },
+        ]
+      }
+      metrica: {
+        Row: {
+          aluno_idaluno: number
+          datametrica: string
+          idmetrica: number
+          tipometrica: string
+          valormetrica: number
+        }
+        Insert: {
+          aluno_idaluno: number
+          datametrica: string
+          idmetrica?: number
+          tipometrica: string
+          valormetrica: number
+        }
+        Update: {
+          aluno_idaluno?: number
+          datametrica?: string
+          idmetrica?: number
+          tipometrica?: string
+          valormetrica?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_metrica_aluno"
+            columns: ["aluno_idaluno"]
+            isOneToOne: false
+            referencedRelation: "aluno"
+            referencedColumns: ["idaluno"]
+          },
+        ]
+      }
+      momento: {
+        Row: {
+          datamomento: string
+          idmomento: number
+        }
+        Insert: {
+          datamomento: string
+          idmomento?: number
+        }
+        Update: {
+          datamomento?: string
+          idmomento?: number
+        }
+        Relationships: []
+      }
+      notasfinais: {
+        Row: {
+          idnotasfinais: number
+          notafinal: string
+        }
+        Insert: {
+          idnotasfinais?: number
+          notafinal: string
+        }
+        Update: {
+          idnotasfinais?: number
+          notafinal?: string
+        }
+        Relationships: []
+      }
+      previsoes: {
+        Row: {
+          aluno_idaluno: number
+          dataprevisao: string
+          idprevisoes: number
+          previsaonota: number
+        }
+        Insert: {
+          aluno_idaluno: number
+          dataprevisao: string
+          idprevisoes?: number
+          previsaonota: number
+        }
+        Update: {
+          aluno_idaluno?: number
+          dataprevisao?: string
+          idprevisoes?: number
+          previsaonota?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_previsoes_aluno"
+            columns: ["aluno_idaluno"]
+            isOneToOne: false
+            referencedRelation: "aluno"
+            referencedColumns: ["idaluno"]
+          },
+        ]
+      }
+      professor: {
+        Row: {
+          apelido: string
+          email: string
+          idutilizador: number
+          nome: string
+          senha: string
+        }
+        Insert: {
+          apelido: string
+          email: string
+          idutilizador?: number
+          nome: string
+          senha: string
+        }
+        Update: {
+          apelido?: string
+          email?: string
+          idutilizador?: number
+          nome?: string
+          senha?: string
+        }
+        Relationships: []
+      }
       repositories: {
         Row: {
           additions: number | null
@@ -111,6 +338,24 @@ export type Database = {
           total_operations?: number | null
           user_id?: string | null
           week_of_prediction?: string | null
+        }
+        Relationships: []
+      }
+      repositorio: {
+        Row: {
+          api_key: number
+          idrepobd: number
+          urlrepositorio: string
+        }
+        Insert: {
+          api_key: number
+          idrepobd?: number
+          urlrepositorio: string
+        }
+        Update: {
+          api_key?: number
+          idrepobd?: number
+          urlrepositorio?: string
         }
         Relationships: []
       }
