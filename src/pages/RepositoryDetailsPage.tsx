@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { SideNav } from "@/components/dashboard/SideNav";
@@ -26,6 +27,10 @@ export default function RepositoryDetailsPage() {
   const [csvDialogOpen, setCsvDialogOpen] = useState(false);
   const [metricsDialogOpen, setMetricsDialogOpen] = useState(false);
   const [gradeDialogOpen, setGradeDialogOpen] = useState(false);
+  
+  // Add state for chart props
+  const [allRepositories, setAllRepositories] = useState<Repository[]>([]);
+  
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -41,6 +46,8 @@ export default function RepositoryDetailsPage() {
 
         // Fetch repository data
         const repositories = await getRepositories();
+        setAllRepositories(repositories);
+        
         const repo = repositories.find(r => r.id === id);
         
         if (!repo) {
@@ -84,6 +91,24 @@ export default function RepositoryDetailsPage() {
 
   const handleGradeAnalytics = () => {
     setGradeDialogOpen(true);
+  };
+  
+  // Add handlers for dialog events
+  const handleRepositoryDeleted = () => {
+    toast.success("Repository deleted successfully");
+    navigate("/dashboard");
+  };
+  
+  const handleRepositoryUpdated = (updatedRepo: Repository) => {
+    setRepository(updatedRepo);
+    toast.success("Repository updated successfully");
+  };
+  
+  const handleDataImported = (data: Partial<Repository>) => {
+    if (repository) {
+      setRepository({...repository, ...data});
+    }
+    toast.success("Data imported successfully");
   };
 
   if (loading) {
@@ -217,7 +242,13 @@ export default function RepositoryDetailsPage() {
             <TabsContent value="analytics" className="space-y-4">
                <Card>
                 <CardContent>
-                   <RepositoryComparisonChart />
+                  <RepositoryComparisonChart 
+                    selectedRepos={[repository.id || '']} 
+                    repositories={allRepositories}
+                    selectedMetric="commit_frequency"
+                    viewType="line"
+                    timePeriod="semester"
+                  />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -230,30 +261,32 @@ export default function RepositoryDetailsPage() {
         onOpenChange={setDeleteDialogOpen} 
         repositoryId={id || ''} 
         repositoryName={repository.name}
+        onRepositoryDeleted={handleRepositoryDeleted}
       />
 
       <EditRepositoryDialog 
         open={editDialogOpen} 
         onOpenChange={setEditDialogOpen} 
         repository={repository}
+        onRepositoryUpdated={handleRepositoryUpdated}
       />
 
       <CSVImportDialog 
         open={csvDialogOpen} 
-        onOpenChange={setCsvDialogOpen} 
-        repositoryId={id || ''}
+        onOpenChange={setCsvDialogOpen}
+        onDataImported={handleDataImported}
       />
 
       <MetricsImportDialog 
         open={metricsDialogOpen} 
         onOpenChange={setMetricsDialogOpen}
-        repositoryId={id || ''}
+        onDataImported={handleDataImported}
       />
 
       <GradeAnalyticsDialog 
         open={gradeDialogOpen}
         onOpenChange={setGradeDialogOpen}
-        repositoryId={id || ''}
+        repositoryName={repository.name}
       />
     </div>;
 }
