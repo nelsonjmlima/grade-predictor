@@ -1,6 +1,6 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Session, User, AuthError } from "@supabase/supabase-js";
 import { signUp, signIn, signOut, resetPassword, updatePassword } from "@/services/authService";
 import { useInactivityLogout } from "@/hooks/useInactivityLogout";
@@ -28,16 +28,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [initialCheckDone, setInitialCheckDone] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Effect to watch auth changes and route accordingly
+  // Effect to watch auth changes and route accordingly on sign in/out events only
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      console.log("Auth state change event:", event);
+      setSession(newSession);
+      setUser(newSession?.user ?? null);
 
+      // Only redirect on specific auth events, not every state check
       if (event === "SIGNED_IN") {
-        if (session?.user?.email_confirmed_at) {
+        if (newSession?.user?.email_confirmed_at) {
           navigate("/dashboard");
         } else {
           navigate("/verification");
@@ -51,18 +55,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    // Initial session check - only redirect if not already on an appropriate page
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      setSession(initialSession);
+      setUser(initialSession?.user ?? null);
       setIsLoading(false);
+      setInitialCheckDone(true);
 
-      if (session?.user && !session.user.email_confirmed_at) {
-        navigate("/verification");
+      // Only redirect on initial load if we're on an inappropriate page
+      if (initialSession?.user) {
+        if (!initialSession.user.email_confirmed_at && 
+            location.pathname !== "/verification" && 
+            !location.pathname.startsWith("/reset-password")) {
+          navigate("/verification");
+        }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   // Inactivity logout
   useInactivityLogout({
