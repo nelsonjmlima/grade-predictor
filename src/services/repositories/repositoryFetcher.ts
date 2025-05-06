@@ -1,7 +1,7 @@
 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Repository } from "../types/repositoryTypes";
+import { Repository, RepositoryDB } from "../types/repositoryTypes";
 import { parseStudents } from "./dataHelpers";
 
 export const getRepositories = async (): Promise<Repository[]> => {
@@ -26,38 +26,41 @@ export const getRepositories = async (): Promise<Repository[]> => {
     
     console.log("Fetched repositories from Supabase:", data);
     
-    return (data || []).map(repo => ({
+    // Map the database fields to our Repository interface, providing default values for missing fields
+    return (data || []).map((repo: RepositoryDB) => ({
       id: repo.id,
       name: repo.name,
-      description: repo.description,
-      lastActivity: repo.last_activity || new Date().toISOString(),
-      commitCount: repo.commit_count || 0,
-      mergeRequestCount: repo.merge_request_count || 0,
-      branchCount: repo.branch_count || 1,
-      progress: repo.progress || 0,
+      description: repo.description || "",
+      lastActivity: new Date(repo.created_at || new Date()).toISOString(),
+      commitCount: 0,
+      mergeRequestCount: 0,
+      branchCount: 1,
+      progress: 0,
       createdAt: repo.created_at,
       link: repo.link,
-      students: parseStudents(repo.students),
+      students: parseStudents(repo.students || null),
       projectId: repo.project_id,
-      author: repo.author,
-      email: repo.email,
-      date: repo.date,
-      additions: repo.additions,
-      deletions: repo.deletions,
-      operations: repo.operations,
-      totalAdditions: repo.total_additions,
-      totalDeletions: repo.total_deletions,
-      totalOperations: repo.total_operations,
-      averageOperationsPerCommit: repo.average_operations_per_commit,
-      averageCommitsPerWeek: repo.average_commits_per_week,
-      language: repo.language,
-      technologies: repo.technologies,
-      predictedGrade: repo.predicted_grade,
       userId: repo.user_id,
-      gitlabUser: repo.gitlab_user,
-      weekOfPrediction: repo.week_of_prediction,
-      finalGradePrediction: repo.final_grade_prediction,
-      csvFileUrl: repo.csv_file_url,
+      // Add default values for properties that might be used by UI components
+      apiKey: repo.api_key,
+      author: "",
+      email: "",
+      date: repo.created_at || new Date().toISOString(),
+      additions: 0,
+      deletions: 0,
+      operations: 0,
+      totalAdditions: 0,
+      totalDeletions: 0,
+      totalOperations: 0,
+      averageOperationsPerCommit: 0,
+      averageCommitsPerWeek: 0,
+      language: "",
+      technologies: [],
+      predictedGrade: "",
+      gitlabUser: "",
+      weekOfPrediction: "",
+      finalGradePrediction: "",
+      csvFileUrl: "",
     }));
   } catch (error) {
     console.error("Error in getRepositories:", error);
@@ -70,7 +73,7 @@ export const getRepositoryStudents = async (repositoryId: string) => {
   try {
     const { data, error } = await supabase
       .from("repositories")
-      .select("students")
+      .select("*")
       .eq("id", repositoryId)
       .single();
 
@@ -79,7 +82,8 @@ export const getRepositoryStudents = async (repositoryId: string) => {
       return [];
     }
     
-    return parseStudents(data.students);
+    // If the students column doesn't exist, return an empty array
+    return parseStudents(data.students || null);
   } catch (error) {
     console.error("Error in getRepositoryStudents:", error);
     return [];
