@@ -9,371 +9,282 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      aluno: {
+      activity_metrics: {
         Row: {
-          idaluno: number
-          nomealuno: string
-          notasfinais_idnotasfinais: number
+          active_days: number | null
+          assigned_issues: number | null
+          avg_branches_per_day: number | null
+          avg_lines_added: number | null
+          avg_lines_deleted: number | null
+          comments_given: number | null
+          comments_received: number | null
+          commit_count: number | null
+          created_issues: number | null
+          created_merges: number | null
+          group_id: string | null
+          id: string
+          late_commits: number | null
+          merged_merges: number | null
+          number_comments: number | null
+          student_id: string | null
+          total_branches: number | null
+          updated_at: string | null
         }
         Insert: {
-          idaluno?: number
-          nomealuno: string
-          notasfinais_idnotasfinais: number
+          active_days?: number | null
+          assigned_issues?: number | null
+          avg_branches_per_day?: number | null
+          avg_lines_added?: number | null
+          avg_lines_deleted?: number | null
+          comments_given?: number | null
+          comments_received?: number | null
+          commit_count?: number | null
+          created_issues?: number | null
+          created_merges?: number | null
+          group_id?: string | null
+          id?: string
+          late_commits?: number | null
+          merged_merges?: number | null
+          number_comments?: number | null
+          student_id?: string | null
+          total_branches?: number | null
+          updated_at?: string | null
         }
         Update: {
-          idaluno?: number
-          nomealuno?: string
-          notasfinais_idnotasfinais?: number
+          active_days?: number | null
+          assigned_issues?: number | null
+          avg_branches_per_day?: number | null
+          avg_lines_added?: number | null
+          avg_lines_deleted?: number | null
+          comments_given?: number | null
+          comments_received?: number | null
+          commit_count?: number | null
+          created_issues?: number | null
+          created_merges?: number | null
+          group_id?: string | null
+          id?: string
+          late_commits?: number | null
+          merged_merges?: number | null
+          number_comments?: number | null
+          student_id?: string | null
+          total_branches?: number | null
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "fk_aluno_notasfinais"
-            columns: ["notasfinais_idnotasfinais"]
+            foreignKeyName: "activity_metrics_group_id_fkey"
+            columns: ["group_id"]
             isOneToOne: false
-            referencedRelation: "notasfinais"
-            referencedColumns: ["idnotasfinais"]
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_metrics_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
           },
         ]
       }
-      aluno_has_momento: {
+      group_students: {
         Row: {
-          aluno_idaluno: number
-          momento_idmomento: number
+          added_at: string | null
+          group_id: string | null
+          id: string
+          student_id: string | null
         }
         Insert: {
-          aluno_idaluno: number
-          momento_idmomento: number
+          added_at?: string | null
+          group_id?: string | null
+          id?: string
+          student_id?: string | null
         }
         Update: {
-          aluno_idaluno?: number
-          momento_idmomento?: number
+          added_at?: string | null
+          group_id?: string | null
+          id?: string
+          student_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "fk_aluno_has_momento_aluno"
-            columns: ["aluno_idaluno"]
+            foreignKeyName: "group_students_group_id_fkey"
+            columns: ["group_id"]
             isOneToOne: false
-            referencedRelation: "aluno"
-            referencedColumns: ["idaluno"]
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fk_aluno_has_momento_momento"
-            columns: ["momento_idmomento"]
+            foreignKeyName: "group_students_student_id_fkey"
+            columns: ["student_id"]
             isOneToOne: false
-            referencedRelation: "momento"
-            referencedColumns: ["idmomento"]
+            referencedRelation: "students"
+            referencedColumns: ["id"]
           },
         ]
       }
-      grupo: {
+      groups: {
         Row: {
-          idgrupo: number
-          nomegrupo: string
-          repositorio_idrepobd: number
+          created_at: string | null
+          id: string
+          name: string
+          repository_id: string | null
         }
         Insert: {
-          idgrupo?: number
-          nomegrupo: string
-          repositorio_idrepobd: number
+          created_at?: string | null
+          id?: string
+          name: string
+          repository_id?: string | null
         }
         Update: {
-          idgrupo?: number
-          nomegrupo?: string
-          repositorio_idrepobd?: number
+          created_at?: string | null
+          id?: string
+          name?: string
+          repository_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "fk_grupo_repositorio"
-            columns: ["repositorio_idrepobd"]
+            foreignKeyName: "groups_repository_id_fkey"
+            columns: ["repository_id"]
             isOneToOne: false
-            referencedRelation: "repositorio"
-            referencedColumns: ["idrepobd"]
+            referencedRelation: "repositories"
+            referencedColumns: ["id"]
           },
         ]
       }
-      grupo_has_aluno: {
+      predictions: {
         Row: {
-          aluno_idaluno: number
-          grupo_idgrupo: number
+          group_id: string | null
+          id: string
+          predicted_grade: number | null
+          prediction_date: string | null
+          student_id: string | null
         }
         Insert: {
-          aluno_idaluno: number
-          grupo_idgrupo: number
+          group_id?: string | null
+          id?: string
+          predicted_grade?: number | null
+          prediction_date?: string | null
+          student_id?: string | null
         }
         Update: {
-          aluno_idaluno?: number
-          grupo_idgrupo?: number
+          group_id?: string | null
+          id?: string
+          predicted_grade?: number | null
+          prediction_date?: string | null
+          student_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "fk_grupo_has_aluno_aluno"
-            columns: ["aluno_idaluno"]
+            foreignKeyName: "predictions_group_id_fkey"
+            columns: ["group_id"]
             isOneToOne: false
-            referencedRelation: "aluno"
-            referencedColumns: ["idaluno"]
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fk_grupo_has_aluno_grupo"
-            columns: ["grupo_idgrupo"]
+            foreignKeyName: "predictions_student_id_fkey"
+            columns: ["student_id"]
             isOneToOne: false
-            referencedRelation: "grupo"
-            referencedColumns: ["idgrupo"]
+            referencedRelation: "students"
+            referencedColumns: ["id"]
           },
         ]
-      }
-      metrica: {
-        Row: {
-          aluno_idaluno: number
-          datametrica: string
-          idmetrica: number
-          tipometrica: string
-          valormetrica: number
-        }
-        Insert: {
-          aluno_idaluno: number
-          datametrica: string
-          idmetrica?: number
-          tipometrica: string
-          valormetrica: number
-        }
-        Update: {
-          aluno_idaluno?: number
-          datametrica?: string
-          idmetrica?: number
-          tipometrica?: string
-          valormetrica?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_metrica_aluno"
-            columns: ["aluno_idaluno"]
-            isOneToOne: false
-            referencedRelation: "aluno"
-            referencedColumns: ["idaluno"]
-          },
-        ]
-      }
-      momento: {
-        Row: {
-          datamomento: string
-          idmomento: number
-        }
-        Insert: {
-          datamomento: string
-          idmomento?: number
-        }
-        Update: {
-          datamomento?: string
-          idmomento?: number
-        }
-        Relationships: []
-      }
-      notasfinais: {
-        Row: {
-          idnotasfinais: number
-          notafinal: string
-        }
-        Insert: {
-          idnotasfinais?: number
-          notafinal: string
-        }
-        Update: {
-          idnotasfinais?: number
-          notafinal?: string
-        }
-        Relationships: []
-      }
-      previsoes: {
-        Row: {
-          aluno_idaluno: number
-          dataprevisao: string
-          idprevisoes: number
-          previsaonota: number
-        }
-        Insert: {
-          aluno_idaluno: number
-          dataprevisao: string
-          idprevisoes?: number
-          previsaonota: number
-        }
-        Update: {
-          aluno_idaluno?: number
-          dataprevisao?: string
-          idprevisoes?: number
-          previsaonota?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_previsoes_aluno"
-            columns: ["aluno_idaluno"]
-            isOneToOne: false
-            referencedRelation: "aluno"
-            referencedColumns: ["idaluno"]
-          },
-        ]
-      }
-      professor: {
-        Row: {
-          apelido: string
-          email: string
-          idutilizador: number
-          nome: string
-          senha: string
-        }
-        Insert: {
-          apelido: string
-          email: string
-          idutilizador?: number
-          nome: string
-          senha: string
-        }
-        Update: {
-          apelido?: string
-          email?: string
-          idutilizador?: number
-          nome?: string
-          senha?: string
-        }
-        Relationships: []
       }
       repositories: {
         Row: {
-          additions: number | null
-          api_key: string | null
-          author: string | null
-          average_commits_per_week: number | null
-          average_operations_per_commit: number | null
-          branch_count: number | null
-          commit_count: number | null
           created_at: string | null
-          csv_file_url: string | null
-          date: string | null
-          deletions: number | null
-          description: string | null
-          email: string | null
-          final_grade_prediction: string | null
-          gitlab_user: string | null
           id: string
-          language: string | null
-          last_activity: string | null
-          link: string | null
-          merge_request_count: number | null
+          link: string
           name: string
-          operations: number | null
-          predicted_grade: string | null
-          progress: number | null
-          project_id: string | null
-          students: Json | null
-          technologies: string[] | null
-          total_additions: number | null
-          total_deletions: number | null
-          total_operations: number | null
+          project_id: string
           user_id: string | null
-          week_of_prediction: string | null
         }
         Insert: {
-          additions?: number | null
-          api_key?: string | null
-          author?: string | null
-          average_commits_per_week?: number | null
-          average_operations_per_commit?: number | null
-          branch_count?: number | null
-          commit_count?: number | null
           created_at?: string | null
-          csv_file_url?: string | null
-          date?: string | null
-          deletions?: number | null
-          description?: string | null
-          email?: string | null
-          final_grade_prediction?: string | null
-          gitlab_user?: string | null
           id?: string
-          language?: string | null
-          last_activity?: string | null
-          link?: string | null
-          merge_request_count?: number | null
+          link: string
           name: string
-          operations?: number | null
-          predicted_grade?: string | null
-          progress?: number | null
-          project_id?: string | null
-          students?: Json | null
-          technologies?: string[] | null
-          total_additions?: number | null
-          total_deletions?: number | null
-          total_operations?: number | null
+          project_id: string
           user_id?: string | null
-          week_of_prediction?: string | null
         }
         Update: {
-          additions?: number | null
-          api_key?: string | null
-          author?: string | null
-          average_commits_per_week?: number | null
-          average_operations_per_commit?: number | null
-          branch_count?: number | null
-          commit_count?: number | null
           created_at?: string | null
-          csv_file_url?: string | null
-          date?: string | null
-          deletions?: number | null
-          description?: string | null
-          email?: string | null
-          final_grade_prediction?: string | null
-          gitlab_user?: string | null
           id?: string
-          language?: string | null
-          last_activity?: string | null
-          link?: string | null
-          merge_request_count?: number | null
+          link?: string
           name?: string
-          operations?: number | null
-          predicted_grade?: string | null
-          progress?: number | null
-          project_id?: string | null
-          students?: Json | null
-          technologies?: string[] | null
-          total_additions?: number | null
-          total_deletions?: number | null
-          total_operations?: number | null
+          project_id?: string
           user_id?: string | null
-          week_of_prediction?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "repositories_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      repositorio: {
+      students: {
         Row: {
-          api_key: number
-          idrepobd: number
-          urlrepositorio: string
+          email: string
+          gitlab_member_id: number | null
+          gitlab_username: string | null
+          id: string
+          name: string
+          repository_id: string | null
         }
         Insert: {
-          api_key: number
-          idrepobd?: number
-          urlrepositorio: string
+          email: string
+          gitlab_member_id?: number | null
+          gitlab_username?: string | null
+          id?: string
+          name: string
+          repository_id?: string | null
         }
         Update: {
-          api_key?: number
-          idrepobd?: number
-          urlrepositorio?: string
+          email?: string
+          gitlab_member_id?: number | null
+          gitlab_username?: string | null
+          id?: string
+          name?: string
+          repository_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "students_repository_id_fkey"
+            columns: ["repository_id"]
+            isOneToOne: false
+            referencedRelation: "repositories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      Repositorio: {
+      users: {
         Row: {
-          API_Key: string | null
-          id: number
-          URL_Repositorio: string | null
+          created_at: string | null
+          email: string
+          first_name: string | null
+          id: string
+          institution: string | null
+          last_name: string | null
         }
         Insert: {
-          API_Key?: string | null
-          id?: number
-          URL_Repositorio?: string | null
+          created_at?: string | null
+          email: string
+          first_name?: string | null
+          id?: string
+          institution?: string | null
+          last_name?: string | null
         }
         Update: {
-          API_Key?: string | null
-          id?: number
-          URL_Repositorio?: string | null
+          created_at?: string | null
+          email?: string
+          first_name?: string | null
+          id?: string
+          institution?: string | null
+          last_name?: string | null
         }
         Relationships: []
       }

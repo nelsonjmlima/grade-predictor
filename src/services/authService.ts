@@ -30,6 +30,7 @@ type UpdatePasswordFn = (
 
 export const signUp: SignUpFn = async (email, password, metadata) => {
   try {
+    // First check if the email already exists by trying to sign in
     const { data: signInData, error: signInError } =
       await supabase.auth.signInWithOtp({
         email,
@@ -49,23 +50,8 @@ export const signUp: SignUpFn = async (email, password, metadata) => {
       };
     }
 
-    // Fix type instantiation issue by providing explicit type annotation
-    // const { data: existingUsers } = await supabase
-    //   .from("Repositorio")
-    //   .select("id, email")
-    //   .eq("email", email)
-    //   .maybeSingle<{ id: number; email: string | null }>();
-    //
-    // if (existingUsers) {
-    //   return {
-    //     error: {
-    //       message: "An account with this email address already exists.",
-    //       name: "AuthError",
-    //       status: 400,
-    //     } as AuthError,
-    //   };
-    // }
-
+    // Skip the repository check to avoid potential issues with table structure changes
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -97,9 +83,16 @@ export const signUp: SignUpFn = async (email, password, metadata) => {
 
 export const signIn: SignInFn = async (email, password) => {
   try {
+    console.log("Attempting to sign in with email:", email);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      console.error("Sign in error:", error);
+    } else {
+      console.log("Sign in successful");
+    }
     return { error };
   } catch (error: unknown) {
+    console.error("Sign in catch error:", error);
     return { error: error as AuthError };
   }
 };
@@ -116,7 +109,7 @@ export const resetPassword: ResetPasswordFn = async (email) => {
   try {
     let baseUrl = window.location.origin;
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${baseUrl}/login`,
+      redirectTo: `${baseUrl}/reset-password?type=update`,
     });
     return { error };
   } catch (error: unknown) {

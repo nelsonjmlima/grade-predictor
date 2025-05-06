@@ -32,6 +32,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Check for verification path parameter
+  const isVerificationPage = location.pathname === "/verification";
+  const isResetPasswordPage = location.pathname.startsWith("/reset-password");
+  const isLoginPage = location.pathname === "/" || location.pathname === "/login";
+
   // Effect to watch auth changes and route accordingly on sign in/out events only
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
@@ -62,18 +67,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
       setInitialCheckDone(true);
 
-      // Only redirect on initial load if we're on an inappropriate page
+      // Only redirect on initial load if on an inappropriate page
       if (initialSession?.user) {
+        // If user is logged in but not on dashboard, verification or reset password pages
         if (!initialSession.user.email_confirmed_at && 
-            location.pathname !== "/verification" && 
-            !location.pathname.startsWith("/reset-password")) {
+            !isVerificationPage && 
+            !isResetPasswordPage) {
           navigate("/verification");
+        } else if (initialSession.user.email_confirmed_at && isLoginPage) {
+          // If user is logged in with verified email and on login page, redirect to dashboard
+          navigate("/dashboard");
         }
+      } else if (!initialSession?.user && !isLoginPage && !isResetPasswordPage) {
+        // If no user and not on login or reset password page, redirect to login
+        navigate("/");
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, location.pathname]);
+  }, [navigate, isVerificationPage, isResetPasswordPage, isLoginPage]);
 
   // Inactivity logout
   useInactivityLogout({
