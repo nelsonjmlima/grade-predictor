@@ -25,8 +25,8 @@ import { ThemeProvider } from '@/components/ui/theme-provider'
 function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-      <AuthProvider>
-        <BrowserRouter>
+      <BrowserRouter>
+        <AuthProvider>
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/login" element={<LoginPage />} />
@@ -117,10 +117,10 @@ function App() {
             
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
-        <Toaster />
-        <SonnerToaster position="top-right" expand={true} closeButton richColors />
-      </AuthProvider>
+          <Toaster />
+          <SonnerToaster position="top-right" expand={true} closeButton richColors />
+        </AuthProvider>
+      </BrowserRouter>
     </ThemeProvider>
   );
 }
