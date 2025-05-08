@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -8,8 +7,8 @@ import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Student } from "@/services/studentData";
-import { getStudentData, saveStudentData } from "@/services/studentData";
+import { Student } from "@/services/types/repositoryTypes";
+import { saveStudentData } from "@/services/studentData";
 
 // Define the form schema
 const studentFormSchema = z.object({
@@ -65,10 +64,13 @@ export function StudentFormDialog({
     try {
       // Create the new student by combining form values
       const newStudent: Student = {
-        ...values as Student,
+        ...values as any, // Using any temporarily to bridge type differences
         // Add any missing required fields
         id: values.id || `student-${Date.now()}`,
         grade: values.grade || undefined,
+        // Make sure required fields are set
+        commitCount: values.commitCount,
+        lastActivity: values.lastActivity
       };
       
       // Save detailed student data to studentData service
@@ -83,7 +85,8 @@ export function StudentFormDialog({
         activityScore: 5.0,
         studentNumber: newStudent.studentNumber,
         gitlabUsername: newStudent.gitlabUsername,
-        groupNumber: newStudent.groupNumber
+        groupNumber: newStudent.groupNumber,
+        lastActivity: newStudent.lastActivity
       });
       
       // Pass the student data back to the parent component

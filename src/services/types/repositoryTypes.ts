@@ -6,7 +6,7 @@ export interface Student {
   id: string;
   name: string;
   email: string;
-  commitCount?: number;
+  commitCount: number; // Changed from optional to required to match studentData.ts
   commitTrend?: "up" | "down" | "stable";
   commitPercentChange?: number;
   currentGrade?: string;
@@ -15,7 +15,7 @@ export interface Student {
   gitlabUsername?: string;
   gitlabMemberId?: number;
   groupNumber?: number;
-  lastActivity?: string;
+  lastActivity: string; // Changed from optional to required to match studentData.ts
   grade?: string;
   commits?: { date: string; count: number }[];
   fileChanges?: { type: string; count: number; color: string }[];
@@ -42,11 +42,11 @@ export interface Repository {
   id?: string;
   name: string;
   description?: string;
-  lastActivity?: string;
-  commitCount?: number;
-  mergeRequestCount?: number;
-  branchCount?: number;
-  progress?: number;
+  lastActivity: string; // Changed from optional to required to match expected types
+  commitCount: number; // Changed from optional to required to match expected types
+  mergeRequestCount: number; // Changed from optional to required to match expected types
+  branchCount: number; // Changed from optional to required to match expected types
+  progress: number; // Changed from optional to required to match expected types
   predictedGrade?: string;
   students?: Student[] | string;
   studentIds?: string[];
