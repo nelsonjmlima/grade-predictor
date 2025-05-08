@@ -15,11 +15,11 @@ import {
 } from 'lucide-react';
 import { Logo } from '../logo/Logo';
 import { useAuth } from '@/contexts/AuthContext';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export function SideNav() {
   const location = useLocation();
-  const { isMobile } = useMobile();
+  const isMobile = useIsMobile();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(!isMobile);
 
