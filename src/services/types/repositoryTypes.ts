@@ -4,15 +4,15 @@ import { Json } from "@/integrations/supabase/types";
 
 // This interface represents the complete repository with all client-side fields
 export interface Repository {
-  name: string;
-  description: string;
-  lastActivity: string;
-  commitCount: number;
-  mergeRequestCount: number;
-  branchCount: number;
-  progress: number;
-  predictedGrade?: string;
   id?: string;
+  name: string;
+  description?: string;
+  lastActivity?: string;
+  commitCount?: number;
+  mergeRequestCount?: number;
+  branchCount?: number;
+  progress?: number;
+  predictedGrade?: string;
   students?: Student[] | string;
   studentIds?: string[];
   contributorsCount?: number;
@@ -53,11 +53,6 @@ export interface RepositoryDB {
   project_id: string;
   name: string;
   link: string;
-  // Fields added via SQL but not in the DB schema definition
-  description?: string;
-  students?: Json;
-  api_key?: string;
-  // Add any other fields that might be added via SQL but not in the schema definition
 }
 
 export const sampleStudents: Student[] = [];

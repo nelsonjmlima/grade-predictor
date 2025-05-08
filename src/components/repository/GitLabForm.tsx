@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -63,30 +62,52 @@ export function GitLabForm({ onSuccess }: GitLabFormProps) {
       }
       
       const members = await getProjectMembers(project.id, values.token);
-      
-      // Store the token in Supabase repositories table for future use
+
+      // Create repository entry
       try {
-        const { error } = await supabase.from('repositories').insert([
-          {
+        const { data: repositoryData, error: repositoryError } = await supabase
+          .from('repositories')
+          .insert([{
             project_id: project.id.toString(),
             name: project.name,
-            description: project.description || `GitLab project #${project.id}`,
             link: project.web_url,
-            api_key: values.token,
-            user_id: user.id,
-            created_at: new Date().toISOString()
-          }
-        ]);
-        
-        if (error) {
-          console.error("Error saving GitLab token to Supabase repositories table:", error);
-          // Continue anyway but log the error
-        } else {
-          console.log("GitLab token saved to Supabase repositories table successfully");
+            user_id: user.id
+          }])
+          .select();
+
+        if (repositoryError) {
+          console.error("Error saving GitLab repository to Supabase:", repositoryError);
+          toast.error("Failed to save repository information");
+          setIsLoading(false);
+          return;
         }
+
+        const repositoryId = repositoryData[0].id;
+
+        // Insert students/members as needed
+        if (members && members.length > 0) {
+          const studentInserts = members.map(member => ({
+            repository_id: repositoryId,
+            name: member.name || member.username,
+            email: `${member.username}@example.com`, // Placeholder email
+            gitlab_username: member.username,
+            gitlab_member_id: member.id
+          }));
+
+          const { error: studentsError } = await supabase
+            .from('students')
+            .insert(studentInserts);
+
+          if (studentsError) {
+            console.error("Error saving GitLab members as students:", studentsError);
+            // Continue anyway but log the error
+          }
+        }
+
+        toast.success("Repository connected successfully");
       } catch (error) {
         console.error("Error saving to repositories table:", error);
-        // Continue anyway but log the error
+        toast.error("Failed to save repository information");
       }
       
       onSuccess({
@@ -99,8 +120,6 @@ export function GitLabForm({ onSuccess }: GitLabFormProps) {
           username: member.username,
         })),
       });
-      
-      toast.success("GitLab project information retrieved successfully");
     } catch (error) {
       console.error("Error in GitLab form:", error);
       toast.error("Failed to connect to GitLab");

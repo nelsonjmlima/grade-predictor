@@ -1,4 +1,3 @@
-
 import { Student } from "../studentData";
 import { Json } from "@/integrations/supabase/types";
 
@@ -28,12 +27,13 @@ export const parseStudents = (studentsData: Json | null): Student[] | string => 
         email: s.email || 'unknown@example.com',
         commitCount: s.commitCount || s.commit_count || 0,
         lastActivity: s.lastActivity || s.last_activity || new Date().toISOString(),
+        gitlabUsername: s.gitlabUsername || s.gitlab_username,
+        gitlabMemberId: s.gitlabMemberId || s.gitlab_member_id,
         commitTrend: s.commitTrend || s.commit_trend,
         commitPercentChange: s.commitPercentChange || s.commit_percent_change,
         currentGrade: s.currentGrade || s.current_grade,
         activityScore: s.activityScore || s.activity_score,
         studentNumber: s.studentNumber || s.student_number,
-        gitlabUsername: s.gitlabUsername || s.gitlab_username,
         groupNumber: s.groupNumber || s.group_number,
         grade: s.grade,
         commits: s.commits,
@@ -63,6 +63,8 @@ export const prepareStudentsForStorage = (students: Student[] | string | undefin
       id: student.id,
       name: student.name,
       email: student.email,
+      gitlabUsername: student.gitlabUsername,
+      gitlabMemberId: student.gitlabMemberId,
       commitCount: student.commitCount,
       lastActivity: student.lastActivity,
       commitTrend: student.commitTrend,
@@ -70,7 +72,6 @@ export const prepareStudentsForStorage = (students: Student[] | string | undefin
       currentGrade: student.currentGrade,
       activityScore: student.activityScore,
       studentNumber: student.studentNumber,
-      gitlabUsername: student.gitlabUsername,
       groupNumber: student.groupNumber,
       grade: student.grade,
       commits: student.commits,

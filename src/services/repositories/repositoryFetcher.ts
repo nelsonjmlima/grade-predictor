@@ -2,7 +2,6 @@
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Repository, RepositoryDB } from "../types/repositoryTypes";
-import { parseStudents } from "./dataHelpers";
 
 export const getRepositories = async (): Promise<Repository[]> => {
   try {
@@ -30,19 +29,18 @@ export const getRepositories = async (): Promise<Repository[]> => {
     return (data || []).map((repo: RepositoryDB) => ({
       id: repo.id,
       name: repo.name,
-      description: repo.description || "",
-      lastActivity: new Date(repo.created_at || new Date()).toISOString(),
-      commitCount: 0,
-      mergeRequestCount: 0,
-      branchCount: 1,
-      progress: 0,
+      description: "", // Default value for description
+      lastActivity: repo.created_at || new Date().toISOString(),
+      commitCount: 0, // Default value
+      mergeRequestCount: 0, // Default value
+      branchCount: 1, // Default value
+      progress: 0, // Default value
       createdAt: repo.created_at,
       link: repo.link,
-      students: parseStudents(repo.students || null),
+      students: [], // Since students are now in a separate table
       projectId: repo.project_id,
       userId: repo.user_id,
       // Add default values for properties that might be used by UI components
-      apiKey: repo.api_key,
       author: "",
       email: "",
       date: repo.created_at || new Date().toISOString(),
@@ -61,6 +59,7 @@ export const getRepositories = async (): Promise<Repository[]> => {
       weekOfPrediction: "",
       finalGradePrediction: "",
       csvFileUrl: "",
+      apiKey: "", // Default value for API key
     }));
   } catch (error) {
     console.error("Error in getRepositories:", error);
@@ -71,19 +70,27 @@ export const getRepositories = async (): Promise<Repository[]> => {
 
 export const getRepositoryStudents = async (repositoryId: string) => {
   try {
+    // Now students are in a separate table
     const { data, error } = await supabase
-      .from("repositories")
+      .from("students")
       .select("*")
-      .eq("id", repositoryId)
-      .single();
+      .eq("repository_id", repositoryId);
 
     if (error) {
       console.error("Error loading repository students:", error);
       return [];
     }
     
-    // If the students column doesn't exist, return an empty array
-    return parseStudents(data.students || null);
+    // Map the students from the database to our Student model
+    return data.map(student => ({
+      id: student.id,
+      name: student.name,
+      email: student.email,
+      gitlabUsername: student.gitlab_username,
+      gitlabMemberId: student.gitlab_member_id,
+      commitCount: 0,
+      lastActivity: new Date().toISOString()
+    }));
   } catch (error) {
     console.error("Error in getRepositoryStudents:", error);
     return [];
