@@ -18,7 +18,7 @@ import RepositoryComparisonPage from './pages/RepositoryComparisonPage'
 import RepositoryRankingPage from './pages/RepositoryRankingPage'
 import AddGroupPage from './pages/AddGroupPage'
 import GroupDetailsPage from './pages/GroupDetailsPage'
-import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import ProtectedRoute from './components/auth/ProtectedRoute'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from '@/components/ui/theme-provider'
 
