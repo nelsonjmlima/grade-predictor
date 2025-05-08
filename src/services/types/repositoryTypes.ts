@@ -55,6 +55,49 @@ export interface RepositoryDB {
   link: string;
 }
 
+export interface Student {
+  id: string;
+  name: string;
+  email: string;
+  commitCount: number;
+  commitTrend?: "up" | "down" | "stable";
+  commitPercentChange?: number;
+  currentGrade?: string;
+  activityScore?: number;
+  studentNumber?: string;
+  gitlabUsername?: string; // Changed from gitlabMemberId
+  gitlabMemberId?: number; // Added to match database
+  groupNumber?: number;
+  lastActivity: string;
+  grade?: string;
+  commits?: { date: string; count: number }[];
+  fileChanges?: { type: string; count: number; color: string }[];
+  codeQuality?: { category: string; score: number; maxScore: number }[];
+  codeReviews?: {
+    title: string;
+    type: "positive" | "negative" | "improvement";
+    message: string;
+    reviewer: string;
+    date: string;
+  }[];
+  contributions?: { date: string; count: number }[];
+  projectId?: string;
+  additions?: number;
+  deletions?: number;
+  averageOperationsPerCommit?: number;
+  averageCommitsPerWeek?: number;
+  activityTrend?: "up" | "down" | "stable";
+}
+
+// Define types for groups
+export interface Group {
+  id: string;
+  name: string;
+  repositoryId: string;
+  createdAt: string;
+  studentCount?: number;
+}
+
 export const sampleStudents: Student[] = [];
 export const programmingStudents: Student[] = [];
 export const allRepositories: Repository[] = [];

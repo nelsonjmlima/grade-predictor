@@ -1,4 +1,5 @@
-import { Student } from "../studentData";
+
+import { Student } from "../types/repositoryTypes";
 import { Json } from "@/integrations/supabase/types";
 
 export const parseStudents = (studentsData: Json | null): Student[] | string => {

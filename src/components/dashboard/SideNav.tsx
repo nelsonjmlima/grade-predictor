@@ -1,117 +1,154 @@
 
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { ChevronRight, Home, LogOut, Lock, FolderPlus } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useAuth } from "@/contexts/AuthContext";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-
-interface NavItemProps {
-  icon: React.ElementType;
-  label: string;
-  to: string;
-  active?: boolean;
-  collapsed?: boolean;
-  onClick?: () => void;
-}
-
-function NavItem({
-  icon: Icon,
-  label,
-  to,
-  active,
-  collapsed,
-  onClick
-}: NavItemProps) {
-  return <Tooltip delayDuration={0}>
-      <TooltipTrigger asChild>
-        <Link to={to} className={cn("flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 group hover:bg-primary/10", active && "bg-primary/10 text-primary font-medium")} onClick={onClick}>
-          <Icon className={cn("h-5 w-5", active ? "text-primary" : "text-muted-foreground")} />
-          {!collapsed && <span className={cn("text-sm transition-opacity duration-200", collapsed ? "opacity-0 w-0" : "opacity-100")}>
-              {label}
-            </span>}
-        </Link>
-      </TooltipTrigger>
-      {collapsed && <TooltipContent side="right">{label}</TooltipContent>}
-    </Tooltip>;
-}
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  LayoutDashboard,
+  FolderGit2,
+  Settings,
+  Lock,
+  GitBranch,
+  PlusCircle,
+  Users
+} from 'lucide-react';
+import { Logo } from '../logo/Logo';
+import { useAuth } from '@/contexts/AuthContext';
+import { useMobile } from '@/hooks/use-mobile';
 
 export function SideNav() {
-  const [collapsed, setCollapsed] = useState(false);
-  const [activeItem, setActiveItem] = useState("Dashboard");
-  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
-  const navigate = useNavigate();
-  const {
-    signOut,
-    user
-  } = useAuth();
+  const location = useLocation();
+  const { isMobile } = useMobile();
+  const { user } = useAuth();
+  const [isOpen, setIsOpen] = useState(!isMobile);
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      setShowSignOutDialog(false);
-      navigate("/");
-    } catch (error) {
-      console.error("Error signing out:", error);
+  // Close the sidebar on mobile when the route changes
+  useEffect(() => {
+    if (isMobile) {
+      setIsOpen(false);
     }
+  }, [location.pathname, isMobile]);
+
+  // Ensure sidebar is open on desktop
+  useEffect(() => {
+    if (!isMobile) {
+      setIsOpen(true);
+    }
+  }, [isMobile]);
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
   };
 
-  const handleAddRepository = () => {
-    navigate("/repositories/add");
-  };
+  return (
+    <>
+      {/* Mobile overlay */}
+      {isMobile && isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/80"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
 
-  return <div className={cn("flex flex-col h-screen bg-card border-r border-border transition-all duration-300 ease-in-out", collapsed ? "w-[52px]" : "w-[157px]")}>
-      <div className="p-4 flex items-center justify-between border-b border-border">
-        <div className="flex items-center gap-2 overflow-hidden">
-          {!collapsed && <span className="font-semibold truncate animate-fade-in text-base">Grade Predictor</span>}
+      {/* Mobile toggle button */}
+      {isMobile && (
+        <button
+          className="fixed bottom-4 right-4 z-50 rounded-full bg-primary p-3 text-white shadow-lg"
+          onClick={toggleSidebar}
+        >
+          <LayoutDashboard className="h-6 w-6" />
+        </button>
+      )}
+
+      {/* Sidebar */}
+      <div
+        className={cn(
+          'fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r bg-white transition-transform dark:bg-gray-950',
+          isMobile && !isOpen && '-translate-x-full'
+        )}
+      >
+        <div className="border-b p-4">
+          <Logo className="h-8" />
+          <h1 className="text-lg font-semibold">Grade Predictor</h1>
+        </div>
+        <ScrollArea className="flex-1">
+          <nav className="flex flex-col gap-1 p-2">
+            <Link to="/dashboard">
+              <Button
+                variant={location.pathname === '/dashboard' ? 'secondary' : 'ghost'}
+                className="w-full justify-start gap-2"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Dashboard
+              </Button>
+            </Link>
+
+            <Link to="/repositories">
+              <Button
+                variant={location.pathname === '/repositories' ? 'secondary' : 'ghost'}
+                className="w-full justify-start gap-2"
+              >
+                <FolderGit2 className="h-4 w-4" />
+                All Repositories
+              </Button>
+            </Link>
+
+            <Link to="/repositories/add">
+              <Button
+                variant={location.pathname === '/repositories/add' ? 'secondary' : 'ghost'}
+                className="w-full justify-start gap-2"
+              >
+                <PlusCircle className="h-4 w-4" />
+                Add Repository
+              </Button>
+            </Link>
+
+            <Link to="/groups/add">
+              <Button
+                variant={location.pathname === '/groups/add' ? 'secondary' : 'ghost'}
+                className="w-full justify-start gap-2"
+              >
+                <Users className="h-4 w-4" />
+                Add Group
+              </Button>
+            </Link>
+            
+            <Link to="/repositories/ranking">
+              <Button
+                variant={location.pathname === '/repositories/ranking' ? 'secondary' : 'ghost'}
+                className="w-full justify-start gap-2"
+              >
+                <GitBranch className="h-4 w-4" />
+                Repository Ranking
+              </Button>
+            </Link>
+
+            <Link to="/settings">
+              <Button
+                variant={location.pathname === '/settings' ? 'secondary' : 'ghost'}
+                className="w-full justify-start gap-2"
+              >
+                <Settings className="h-4 w-4" />
+                Settings
+              </Button>
+            </Link>
+          </nav>
+        </ScrollArea>
+        <div className="border-t p-2">
+          <Link to="/password">
+            <Button variant="ghost" className="w-full justify-start gap-2">
+              <Lock className="h-4 w-4" />
+              Password
+            </Button>
+          </Link>
+          <Link to="/login?logout=true">
+            <Button variant="ghost" className="w-full justify-start gap-2">
+              Sign Out
+            </Button>
+          </Link>
         </div>
       </div>
-      
-      <div className="flex-1 py-6 overflow-y-auto scrollbar-none">
-        <nav className="space-y-2 px-2">
-          <NavItem icon={Home} label="Dashboard" to="/dashboard" active={activeItem === "Dashboard"} collapsed={collapsed} onClick={() => setActiveItem("Dashboard")} />
-          <NavItem 
-            icon={FolderPlus} 
-            label="Add Repository" 
-            to="/repositories/add" 
-            active={activeItem === "Add Repository"} 
-            collapsed={collapsed} 
-            onClick={() => {
-              setActiveItem("Add Repository");
-              handleAddRepository();
-            }} 
-          />
-        </nav>
-      </div>
-      
-      <div className="p-3 border-t border-border">
-        <nav className="space-y-2 px-2 mb-4">
-          <NavItem icon={Lock} label="Password" to="/password" active={activeItem === "Password"} collapsed={collapsed} onClick={() => setActiveItem("Password")} />
-        </nav>
-        
-        <div className="flex justify-start">
-          <Button variant="ghost" size="sm" onClick={() => setShowSignOutDialog(true)} className="flex items-center gap-2 text-center text-sm mx-0 px-[30px] rounded-none">
-            <span className="text-sm font-light">Sign Out</span>
-            <LogOut className="h-4 w-4 text-muted-foreground" />
-          </Button>
-        </div>
-      </div>
-
-      <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Sign Out</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to sign out of your account?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleSignOut}>Sign Out</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>;
+    </>
+  );
 }

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 
 interface RepositoryCardProps {
   name: string;
-  description: string;
+  description?: string; // Changed from required to optional
   lastActivity: string;
   commitCount: number;
   mergeRequestCount: number;
@@ -22,7 +22,7 @@ interface RepositoryCardProps {
 
 export function RepositoryCard({
   name,
-  description,
+  description = "", // Added default value
   lastActivity,
   commitCount,
   branchCount,

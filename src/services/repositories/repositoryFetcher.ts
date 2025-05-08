@@ -1,7 +1,7 @@
 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Repository, RepositoryDB } from "../types/repositoryTypes";
+import { Repository, RepositoryDB, Student } from "../types/repositoryTypes";
 
 export const getRepositories = async (): Promise<Repository[]> => {
   try {
@@ -37,7 +37,6 @@ export const getRepositories = async (): Promise<Repository[]> => {
       progress: 0, // Default value
       createdAt: repo.created_at,
       link: repo.link,
-      students: [], // Since students are now in a separate table
       projectId: repo.project_id,
       userId: repo.user_id,
       // Add default values for properties that might be used by UI components
@@ -68,7 +67,7 @@ export const getRepositories = async (): Promise<Repository[]> => {
   }
 };
 
-export const getRepositoryStudents = async (repositoryId: string) => {
+export const getRepositoryStudents = async (repositoryId: string): Promise<Student[]> => {
   try {
     // Now students are in a separate table
     const { data, error } = await supabase
@@ -93,6 +92,68 @@ export const getRepositoryStudents = async (repositoryId: string) => {
     }));
   } catch (error) {
     console.error("Error in getRepositoryStudents:", error);
+    return [];
+  }
+};
+
+// Group related functions
+export const getGroups = async (repositoryId?: string): Promise<any[]> => {
+  try {
+    let query = supabase.from("groups").select(`
+      *,
+      group_students(count)
+    `);
+    
+    if (repositoryId) {
+      query = query.eq("repository_id", repositoryId);
+    }
+    
+    const { data, error } = await query.order("created_at", { ascending: false });
+    
+    if (error) {
+      console.error("Error loading groups:", error);
+      toast.error("Failed to load groups");
+      return [];
+    }
+    
+    return data.map(group => ({
+      id: group.id,
+      name: group.name,
+      repositoryId: group.repository_id,
+      createdAt: group.created_at,
+      studentCount: group.group_students?.[0]?.count || 0
+    }));
+  } catch (error) {
+    console.error("Error in getGroups:", error);
+    toast.error("Failed to load groups");
+    return [];
+  }
+};
+
+export const getGroupStudents = async (groupId: string): Promise<any[]> => {
+  try {
+    const { data, error } = await supabase
+      .from("group_students")
+      .select(`
+        *,
+        students(*)
+      `)
+      .eq("group_id", groupId);
+      
+    if (error) {
+      console.error("Error loading group students:", error);
+      return [];
+    }
+    
+    return data.map(entry => ({
+      id: entry.students.id,
+      name: entry.students.name,
+      email: entry.students.email,
+      gitlabUsername: entry.students.gitlab_username,
+      gitlabMemberId: entry.students.gitlab_member_id
+    }));
+  } catch (error) {
+    console.error("Error in getGroupStudents:", error);
     return [];
   }
 };

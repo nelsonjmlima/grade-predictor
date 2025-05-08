@@ -1,14 +1,15 @@
+
 import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
 import { RepositoryGradesView } from "@/components/dashboard/RepositoryGradesView";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Student } from "@/services/studentData";
+import { Student } from "@/services/types/repositoryTypes";
 
 interface Repository {
   name: string;
-  description: string;
+  description?: string;
   lastActivity: string;
   commitCount: number;
   mergeRequestCount: number;

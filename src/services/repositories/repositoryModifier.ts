@@ -2,7 +2,7 @@
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Repository } from "../types/repositoryTypes";
-import { Student } from "../studentData";
+import { Student } from "../types/repositoryTypes";
 
 export const addRepository = async (repository: Repository): Promise<void> => {
   try {
@@ -133,12 +133,6 @@ export const updateRepository = async (id: string, updatedRepo: Partial<Reposito
     apiKey: "",
   };
 
-  // If students were updated, handle them separately
-  if (updatedRepo.students) {
-    // Update students - for simplicity, we'll leave this implementation
-    // until we're ready to properly implement the student management
-  }
-
   return repository;
 };
 
@@ -207,6 +201,99 @@ export const saveRepositoryStudent = async (
   } catch (error) {
     console.error("Error in saveRepositoryStudent:", error);
     toast.error("Failed to save student");
+    return false;
+  }
+};
+
+// Group management functions
+export const addGroup = async (name: string, repositoryId: string): Promise<any> => {
+  try {
+    const { data, error } = await supabase
+      .from("groups")
+      .insert({ 
+        name,
+        repository_id: repositoryId,
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+      
+    if (error) {
+      console.error("Error creating group:", error);
+      toast.error("Failed to create group");
+      throw error;
+    }
+    
+    toast.success("Group created successfully");
+    return data;
+  } catch (error) {
+    console.error("Error in addGroup:", error);
+    throw error;
+  }
+};
+
+export const addStudentToGroup = async (groupId: string, studentId: string): Promise<any> => {
+  try {
+    const { data, error } = await supabase
+      .from("group_students")
+      .insert({
+        group_id: groupId,
+        student_id: studentId
+      })
+      .select()
+      .single();
+      
+    if (error) {
+      console.error("Error adding student to group:", error);
+      toast.error("Failed to add student to group");
+      throw error;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error("Error in addStudentToGroup:", error);
+    throw error;
+  }
+};
+
+export const removeStudentFromGroup = async (groupId: string, studentId: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from("group_students")
+      .delete()
+      .eq("group_id", groupId)
+      .eq("student_id", studentId);
+      
+    if (error) {
+      console.error("Error removing student from group:", error);
+      toast.error("Failed to remove student from group");
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error in removeStudentFromGroup:", error);
+    return false;
+  }
+};
+
+export const deleteGroup = async (groupId: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from("groups")
+      .delete()
+      .eq("id", groupId);
+      
+    if (error) {
+      console.error("Error deleting group:", error);
+      toast.error("Failed to delete group");
+      return false;
+    }
+    
+    toast.success("Group deleted successfully");
+    return true;
+  } catch (error) {
+    console.error("Error in deleteGroup:", error);
     return false;
   }
 };
