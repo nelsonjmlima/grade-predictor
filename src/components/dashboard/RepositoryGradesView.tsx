@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useNavigate } from "react-router-dom";
 import { StudentFormDialog } from "@/components/dashboard/StudentFormDialog";
 import { toast } from "sonner";
-import { Student } from "@/services/types/repositoryTypes"; // Changed import to use consistent Student type
+import { Student } from "@/services/studentData";
 
 export interface RepositoryGradesViewProps {
   repositoryName: string;
@@ -103,7 +103,7 @@ export function RepositoryGradesView({
                 <TableCell>
                   <div className="flex items-center space-x-1">
                     <GitBranch className="h-3.5 w-3.5 mr-1 text-blue-500" />
-                    <span>{student.commitCount}</span>
+                    <span>{student.commitCount || 0}</span>
                   </div>
                 </TableCell>
                 <TableCell>

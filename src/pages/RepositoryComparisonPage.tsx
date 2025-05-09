@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
 import { RepositoriesHeader } from "@/components/dashboard/RepositoriesHeader";
@@ -16,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { getRepositories, Repository } from "@/services/repositoryData";
 
+// Sample metrics data
 const metrics = [
   { id: "commit_frequency", name: "Commit Frequency" },
   { id: "code_quality", name: "Code Quality" },
@@ -24,6 +26,7 @@ const metrics = [
   { id: "collaboration", name: "Collaboration Score" },
 ];
 
+// Sample time periods
 const timePeriods = [
   { id: "week", name: "Weekly" },
   { id: "month", name: "Monthly" },
@@ -39,6 +42,7 @@ export default function RepositoryComparisonPage() {
   const [loading, setLoading] = useState(true);
   const [animatedItems, setAnimatedItems] = useState<string[]>([]);
 
+  // Animation sequence function
   const animateSequentially = () => {
     const itemsToAnimate = [
       "header", "controls", "repositories", 
@@ -56,28 +60,26 @@ export default function RepositoryComparisonPage() {
     });
   };
 
+  // Load repositories
   useEffect(() => {
-    const fetchRepositories = async () => {
-      try {
-        setLoading(true);
-        const repos = await getRepositories();
-        setRepositories(repos);
-        
-        if (repos.length > 0) {
-          const repoIds = repos.slice(0, Math.min(2, repos.length)).map(repo => repo.id || "");
-          setSelectedRepos(repoIds.filter(id => id !== ""));
-        }
-      } catch (error) {
-        console.error("Error loading repositories:", error);
-        toast.error("Failed to load repositories");
-      } finally {
-        setLoading(false);
-        
-        setTimeout(animateSequentially, 300);
+    try {
+      const repos = getRepositories();
+      setRepositories(repos);
+      
+      // Default to selecting first two repositories if available
+      if (repos.length > 0) {
+        const repoIds = repos.slice(0, Math.min(2, repos.length)).map(repo => repo.id || "");
+        setSelectedRepos(repoIds.filter(id => id !== ""));
       }
-    };
-    
-    fetchRepositories();
+    } catch (error) {
+      console.error("Error loading repositories:", error);
+      toast.error("Failed to load repositories");
+    } finally {
+      setLoading(false);
+      
+      // Start animation sequence after loading
+      setTimeout(animateSequentially, 300);
+    }
   }, []);
 
   const toggleRepository = (repoId: string) => {
@@ -90,6 +92,7 @@ export default function RepositoryComparisonPage() {
 
   const handleExport = () => {
     try {
+      // Generate a CSV export of the comparison data
       const headers = ["Time Point", ...selectedRepos.map(repoId => {
         const repo = repositories.find(r => r.id === repoId);
         return repo?.name || "Unknown";
@@ -106,9 +109,11 @@ export default function RepositoryComparisonPage() {
         ...timePoints.map((timePoint, index) => {
           const values = [timePoint];
           
+          // Add data for each selected repository
           selectedRepos.forEach(repoId => {
             const repo = repositories.find(r => r.id === repoId);
             if (repo) {
+              // Generate a sample value
               const baseValue = repo.progress;
               const variance = Math.sin(index * 0.5) * 10;
               const value = Math.round(Math.max(0, Math.min(100, baseValue + variance)));
@@ -140,6 +145,7 @@ export default function RepositoryComparisonPage() {
     }
   };
 
+  // Calculate average performance
   const calculateAveragePerformance = () => {
     if (selectedRepos.length === 0) return 0;
     
@@ -151,6 +157,7 @@ export default function RepositoryComparisonPage() {
     return (sum / selectedRepositories.length).toFixed(1);
   };
 
+  // Find top repository
   const findTopRepository = () => {
     if (selectedRepos.length === 0) return null;
     
@@ -165,6 +172,7 @@ export default function RepositoryComparisonPage() {
     );
   };
 
+  // Calculate performance gap
   const calculatePerformanceGap = () => {
     if (selectedRepos.length < 2) return 0;
     

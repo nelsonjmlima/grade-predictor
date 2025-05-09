@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -70,15 +71,10 @@ export function CSVImportDialog({
     }
   }, [open, currentStep]);
 
-  const loadRepositories = async () => {
-    try {
-      const repos = await getRepositories();
-      setRepositories(repos);
-      console.log("Loaded repositories:", repos.length);
-    } catch (error) {
-      console.error("Error loading repositories:", error);
-      setError("Failed to load repositories");
-    }
+  const loadRepositories = () => {
+    const repos = getRepositories();
+    setRepositories(repos);
+    console.log("Loaded repositories:", repos.length);
   };
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,6 +95,7 @@ export function CSVImportDialog({
     setError(null);
     
     try {
+      // Try to list files in the bucket to check if it exists and is accessible
       const { data, error: listError } = await supabase
         .storage
         .from('csvfiles')
@@ -110,6 +107,7 @@ export function CSVImportDialog({
         return false;
       }
       
+      // If we can list files, the bucket exists and is accessible
       return true;
     } catch (err: any) {
       console.error("Bucket check error:", err);
@@ -123,6 +121,7 @@ export function CSVImportDialog({
     setError(null);
     
     try {
+      // Check if bucket exists and is accessible
       const bucketReady = await checkBucketExists();
       if (!bucketReady) {
         throw new Error("Storage bucket is not available. Please check your Supabase configuration.");
@@ -178,9 +177,11 @@ export function CSVImportDialog({
   const parseCSVData = (csvText: string) => {
     const lines = csvText.split('\n');
     
+    // Extract headers (first line)
     const headers = lines[0].split(',').map(h => h.trim());
     setHeaders(headers);
     
+    // Process data rows
     const parsedData: CSVRecord[] = [];
     
     for (let i = 1; i < lines.length; i++) {
@@ -195,6 +196,7 @@ export function CSVImportDialog({
         }
       });
       
+      // Only include records that have projectId, author, or email
       if (record.projectid || record.author || record.email) {
         parsedData.push({
           projectId: record.projectid,
@@ -213,6 +215,7 @@ export function CSVImportDialog({
       setError("No valid records found in CSV file");
     }
 
+    // Extract unique project IDs
     const uniqueProjectIds = Array.from(new Set(
       parsedData
         .filter(record => record.projectId)
@@ -232,14 +235,17 @@ export function CSVImportDialog({
     setError(null);
     
     try {
+      // Check if bucket exists and is accessible
       const bucketReady = await checkBucketExists();
       if (!bucketReady) {
         throw new Error("Storage bucket is not available. Please check your Supabase configuration.");
       }
       
+      // Upload the CSV file to Supabase storage
       const timestamp = new Date().getTime();
       const fileName = `data_${timestamp}_${file.name.replace(/\s+/g, '_')}`;
       
+      // Upload to Supabase storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('csvfiles')
         .upload(fileName, file, {
@@ -254,12 +260,14 @@ export function CSVImportDialog({
       
       console.log("CSV file uploaded successfully:", uploadData);
       
+      // Get public URL to pass back
       const { data: publicUrlData } = supabase.storage
         .from('csvfiles')
         .getPublicUrl(fileName);
       
       setSelectedFileUrl(publicUrlData?.publicUrl || null);
       
+      // Load the CSV data from the file we just uploaded
       const response = await fetch(publicUrlData?.publicUrl || '');
       const csvText = await response.text();
       parseCSVData(csvText);
@@ -303,6 +311,7 @@ export function CSVImportDialog({
   const handleProjectIdSelect = (projectId: string) => {
     setSelectedProjectId(projectId);
     
+    // Get all authors for the selected project ID
     const authorsForProject = Array.from(new Set(
       csvData
         .filter(record => record.projectId === projectId && record.author)
@@ -316,6 +325,7 @@ export function CSVImportDialog({
   const handleAuthorSelect = (author: string) => {
     setSelectedAuthor(author);
     
+    // Find the record for the selected project ID and author
     const record = csvData.find(
       record => record.projectId === selectedProjectId && record.author === author
     );
@@ -330,18 +340,21 @@ export function CSVImportDialog({
     }
     
     try {
+      // Find the selected repository to get its ID
       const selectedRepo = repositories.find(repo => repo.id === selectedRepositoryId);
       
       if (!selectedRepo) {
         throw new Error("Selected repository not found");
       }
 
+      // Create data object with file URL and selected record data
       const data: Partial<Repository> = {
-        id: selectedRepo.id,
+        id: selectedRepo.id, // Use the ID of the selected repository
         csvFileUrl: selectedFileUrl,
         projectId: selectedRecord.projectId,
         author: selectedRecord.author,
         email: selectedRecord.email,
+        // Add other fields as needed
         additions: selectedRecord.additions ? parseInt(selectedRecord.additions) : undefined,
         deletions: selectedRecord.deletions ? parseInt(selectedRecord.deletions) : undefined,
         operations: selectedRecord.operations ? parseInt(selectedRecord.operations) : undefined,
@@ -387,12 +400,14 @@ export function CSVImportDialog({
     onOpenChange(false);
   };
 
+  // Filter repositories based on search term
   const filteredRepositories = repositories.filter(repo => 
     repo.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     repo.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     repo.projectId?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Sort repositories based on sort criteria
   const sortedRepositories = [...filteredRepositories].sort((a, b) => {
     if (sortBy === 'name') return a.name.localeCompare(b.name);
     if (sortBy === 'recent') {

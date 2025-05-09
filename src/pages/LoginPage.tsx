@@ -22,7 +22,6 @@ export default function LoginPage() {
 
   // If user is already logged in, redirect to dashboard
   if (!isLoading && user) {
-    console.log("User already logged in, redirecting to dashboard");
     return <Navigate to="/dashboard" />;
   }
 

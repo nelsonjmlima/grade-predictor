@@ -11,14 +11,13 @@ import { StudentIdManager } from "@/components/repository/StudentIdManager";
 import { addRepository } from "@/services/repositoryData";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+// --- Supabase client import ---
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 
 export default function AddRepositoryPage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<"gitlab" | "details">("gitlab");
-  const { user } = useAuth();
   
   const [repositoryData, setRepositoryData] = useState({
     projectId: 0,
@@ -63,12 +62,6 @@ export default function AddRepositoryPage() {
   };
 
   const handleSubmit = async () => {
-    // Check if user is authenticated
-    if (!user) {
-      toast.error("You must be logged in to create a repository");
-      return;
-    }
-    
     setIsSubmitting(true);
     try {
       // Filter only selected students
@@ -79,7 +72,7 @@ export default function AddRepositoryPage() {
         name: repositoryData.projectName,
         projectId: repositoryData.projectId.toString(),
         description: `GitLab project #${repositoryData.projectId}`,
-        lastActivity: new Date().toISOString(),
+        lastActivity: "Just now",
         commitCount: 0,
         mergeRequestCount: 0,
         branchCount: 1,
@@ -94,15 +87,31 @@ export default function AddRepositoryPage() {
           commitCount: 0,
           lastActivity: 'Never'
         })),
-        userId: user.id, // Store current user's ID
       };
       
-      // Add to Supabase via the addRepository function
-      await addRepository(newRepo as any);
-      
-      toast.success("Repository created successfully", {
-        description: `${repositoryData.projectName} has been added to Supabase with ${selectedStudents.length} students.`
-      });
+      // First, add to local storage.
+      addRepository(newRepo as any);
+
+      // --- Supabase Insert ---
+      // Only inserting projectId and projectUrl (url) as per schema.
+      // API_Key column is also available but not in use here.
+      const { error } = await supabase.from('Repositorio').insert([
+        {
+          id: repositoryData.projectId, // your table expects bigint, so just use projectId
+          URL_Repositorio: repositoryData.projectUrl,
+          // API_Key: '' // could be added if you collect it
+        }
+      ]);
+      if (error) {
+        console.error("Error writing repository to Supabase:", error);
+        toast.error("Saved locally, but failed to save to Supabase", {
+          description: "Repository was saved in the app, but not remotely."
+        });
+      } else {
+        toast.success("Repository created successfully", {
+          description: `${repositoryData.projectName} has been added to both the app & Supabase with ${selectedStudents.length} students.`
+        });
+      }
       
       navigate("/dashboard");
     } catch (error) {

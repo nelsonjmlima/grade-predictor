@@ -1,195 +1,202 @@
 
 import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { GitLabForm } from "@/components/repository/GitLabForm";
-import { addRepository } from "@/services/repositoryData";
-import { Repository } from "@/services/repositoryData";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { addRepository } from "@/services/repositoryData";
+import { GitLabForm } from "@/components/repository/GitLabForm";
+import { StudentIdManager } from "@/components/repository/StudentIdManager";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label"; 
 
 interface CreateRepositoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onRepositoryCreated: () => void;
+  onRepositoryCreated?: () => void;
 }
 
-export function CreateRepositoryDialog({
-  open,
-  onOpenChange,
-  onRepositoryCreated,
+export function CreateRepositoryDialog({ 
+  open, 
+  onOpenChange, 
+  onRepositoryCreated 
 }: CreateRepositoryDialogProps) {
-  const [repositoryName, setRepositoryName] = useState("");
-  const [repositoryDescription, setRepositoryDescription] = useState("");
-  const [selectedTab, setSelectedTab] = useState("manual");
-  const [selectedStudents, setSelectedStudents] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [step, setStep] = useState<"gitlab" | "details">("gitlab");
+  const navigate = useNavigate();
+  
+  const [repositoryData, setRepositoryData] = useState({
+    projectId: 0,
+    projectName: "",
+    projectUrl: "",
+    members: [] as Array<{
+      id: number;
+      name: string;
+      username: string;
+      selected?: boolean;
+    }>,
+  });
 
-  const handleCreateRepository = async () => {
-    if (!repositoryName.trim()) {
-      toast.error("Repository name is required");
-      return;
-    }
-
-    // Check if user is authenticated
-    const { data: session } = await supabase.auth.getSession();
-    if (!session?.session?.user) {
-      toast.error("You must be logged in to create a repository");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const newRepo: Repository = {
-        name: repositoryName,
-        description: repositoryDescription,
-        lastActivity: new Date().toISOString(),
-        commitCount: Math.floor(Math.random() * 100),
-        mergeRequestCount: Math.floor(Math.random() * 20),
-        branchCount: Math.floor(Math.random() * 5) + 1,
-        progress: Math.floor(Math.random() * 100),
-        students: selectedStudents,
-        userId: session.session.user.id, // Store current user's ID
-      };
-      
-      console.log("Creating repository:", newRepo);
-      await addRepository(newRepo);
-      
-      console.log("Repository created successfully:", newRepo);
-      
-      toast.success("Repository created successfully", {
-        description: `${repositoryName} has been created${selectedStudents.length ? ` with ${selectedStudents.length} selected students.` : '.'}`,
-      });
-      
-      // Reset form fields
-      setRepositoryName("");
-      setRepositoryDescription("");
-      setSelectedStudents([]);
-      
-      // Close the dialog
-      onOpenChange(false);
-      
-      // Then trigger the callback to refresh the list
-      onRepositoryCreated();
-    } catch (error) {
-      console.error("Error creating repository:", error);
-      toast.error("Failed to create repository");
-    } finally {
-      setIsLoading(false);
-    }
+  const handleGitLabSuccess = (data: {
+    projectId: number;
+    projectName: string;
+    projectUrl: string;
+    members: Array<{
+      id: number;
+      name: string;
+      username: string;
+      selected?: boolean;
+    }>;
+  }) => {
+    setRepositoryData({
+      ...data,
+      members: data.members.map(member => ({...member, selected: true}))
+    });
+    setStep("details");
   };
 
-  const handleGitLabSuccess = async (data: any) => {
+  const handleStudentsChange = (students: Array<{
+    id: number;
+    name: string;
+    username: string;
+    selected?: boolean;
+  }>) => {
+    setRepositoryData({
+      ...repositoryData,
+      members: students,
+    });
+  };
+
+  const handleDialogClose = () => {
+    // Reset form state when dialog is closed
+    setStep("gitlab");
+    setRepositoryData({
+      projectId: 0,
+      projectName: "",
+      projectUrl: "",
+      members: [],
+    });
+    onOpenChange(false);
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    
     try {
-      // Check if user is authenticated
-      const { data: session } = await supabase.auth.getSession();
-      if (!session?.session?.user) {
-        toast.error("You must be logged in to create a repository");
-        return;
-      }
-
-      setIsLoading(true);
-      const newRepo: Repository = {
-        name: data.projectName,
-        description: `GitLab project #${data.projectId}`,
-        lastActivity: new Date().toISOString(),
-        commitCount: Math.floor(Math.random() * 100),
-        mergeRequestCount: Math.floor(Math.random() * 20),
-        branchCount: Math.floor(Math.random() * 5) + 1,
-        progress: Math.floor(Math.random() * 100),
-        link: data.projectUrl,
-        projectId: String(data.projectId),
-        students: data.members.map(member => ({
-          id: String(member.id),
-          name: member.name,
-          email: `${member.username}@example.com`,
-          gitlabUsername: member.username,
-          commitCount: Math.floor(Math.random() * 50),
-          lastActivity: new Date().toISOString()
-        })),
-        userId: session.session.user.id, // Store current user's ID
-      };
-
-      console.log("Creating GitLab repository:", newRepo);
-      await addRepository(newRepo);
+      // Filter only selected students
+      const selectedStudents = repositoryData.members.filter(member => member.selected !== false);
       
-      console.log("GitLab repository created successfully:", newRepo);
+      const newRepo = {
+        id: `gitlab-${repositoryData.projectId}`,
+        name: repositoryData.projectName,
+        projectId: repositoryData.projectId.toString(),
+        description: `GitLab project #${repositoryData.projectId}`,
+        lastActivity: "Just now",
+        commitCount: 0,
+        mergeRequestCount: 0,
+        branchCount: 1,
+        progress: 0,
+        createdAt: new Date().toISOString(),
+        link: repositoryData.projectUrl,
+        students: selectedStudents.map(member => ({
+          id: `student-${member.id}`,
+          name: member.name,
+          email: `${member.username}@gitlab.com`,
+          gitlabUsername: member.username,
+          commitCount: 0,
+          lastActivity: 'Never'
+        })),
+      };
+      
+      addRepository(newRepo as any);
       
       toast.success("Repository created successfully", {
-        description: `${data.projectName} has been created with ${data.members.length} GitLab members.`,
+        description: `${repositoryData.projectName} has been created with ${selectedStudents.length} selected students.`,
       });
       
-      // Close the dialog
-      onOpenChange(false);
+      setIsSubmitting(false);
+      handleDialogClose();
       
-      // Then trigger the callback to refresh the list
-      onRepositoryCreated();
+      if (onRepositoryCreated) {
+        onRepositoryCreated();
+      }
+      
+      navigate("/dashboard");
     } catch (error) {
-      console.error("Error creating repository from GitLab:", error);
-      toast.error("Failed to create repository");
-    } finally {
-      setIsLoading(false);
+      console.error("Error creating repository:", error);
+      toast.error("Failed to create repository", {
+        description: "An error occurred while creating the repository. Please try again.",
+      });
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+    <Dialog open={open} onOpenChange={handleDialogClose}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add new repository</DialogTitle>
+          <DialogTitle>
+            {step === "gitlab" ? "Connect GitLab Repository" : "Configure Repository"}
+          </DialogTitle>
           <DialogDescription>
-            Create a new repository or connect to an existing one
+            {step === "gitlab" 
+              ? "Connect to your GitLab repository to track student progress and performance."
+              : "Configure your repository settings and add student information."
+            }
           </DialogDescription>
         </DialogHeader>
-        
-        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="manual">Manual Entry</TabsTrigger>
-            <TabsTrigger value="gitlab">GitLab Connect</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="manual" className="space-y-4">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Repository Name</Label>
-                <Input
-                  id="name"
-                  placeholder="Enter repository name"
-                  value={repositoryName}
-                  onChange={(e) => setRepositoryName(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Enter repository description"
-                  value={repositoryDescription}
-                  onChange={(e) => setRepositoryDescription(e.target.value)}
-                  rows={3}
-                />
-              </div>
-            </div>
+
+        {step === "gitlab" ? (
+          <GitLabForm onSuccess={handleGitLabSuccess} />
+        ) : (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">GitLab Project Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="dialog-projectName">Project Name</Label>
+                    <Input id="dialog-projectName" value={repositoryData.projectName} readOnly />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="dialog-projectId">Project ID</Label>
+                    <Input id="dialog-projectId" value={repositoryData.projectId} readOnly />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dialog-projectUrl">Project URL</Label>
+                  <Input id="dialog-projectUrl" value={repositoryData.projectUrl} readOnly />
+                </div>
+              </CardContent>
+            </Card>
             
-            <DialogFooter>
+            <StudentIdManager 
+              initialStudents={repositoryData.members}
+              onChange={handleStudentsChange}
+            />
+            
+            <div className="flex justify-end space-x-4 pt-2">
               <Button 
-                onClick={handleCreateRepository} 
-                disabled={isLoading || !repositoryName.trim()}
+                variant="outline" 
+                onClick={() => setStep("gitlab")}
+                disabled={isSubmitting}
               >
-                {isLoading ? "Creating..." : "Create Repository"}
+                Back
               </Button>
-            </DialogFooter>
-          </TabsContent>
-          
-          <TabsContent value="gitlab">
-            <GitLabForm onSuccess={handleGitLabSuccess} />
-          </TabsContent>
-        </Tabs>
+              <Button 
+                onClick={handleSubmit} 
+                disabled={isSubmitting || repositoryData.members.filter(m => m.selected !== false).length === 0}
+                className="w-full sm:w-auto"
+              >
+                {isSubmitting ? "Creating..." : "Create Repository"}
+              </Button>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

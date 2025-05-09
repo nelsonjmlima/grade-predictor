@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -10,8 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { getProjectInfo, getProjectMembers } from "@/services/gitlabService";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 
 const formSchema = z.object({
   link: z.string().url({ message: "Please enter a valid GitLab URL" }),
@@ -35,7 +34,6 @@ interface GitLabFormProps {
 
 export function GitLabForm({ onSuccess }: GitLabFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const { user } = useAuth();
 
   const form = useForm<GitLabFormValues>({
     resolver: zodResolver(formSchema),
@@ -46,12 +44,6 @@ export function GitLabForm({ onSuccess }: GitLabFormProps) {
   });
 
   const onSubmit = async (values: GitLabFormValues) => {
-    // Check if user is authenticated
-    if (!user) {
-      toast.error("You must be logged in to connect to GitLab");
-      return;
-    }
-
     setIsLoading(true);
     try {
       const project = await getProjectInfo(values.link, values.token);
@@ -62,53 +54,6 @@ export function GitLabForm({ onSuccess }: GitLabFormProps) {
       }
       
       const members = await getProjectMembers(project.id, values.token);
-
-      // Create repository entry
-      try {
-        const { data: repositoryData, error: repositoryError } = await supabase
-          .from('repositories')
-          .insert([{
-            project_id: project.id.toString(),
-            name: project.name,
-            link: project.web_url,
-            user_id: user.id
-          }])
-          .select();
-
-        if (repositoryError) {
-          console.error("Error saving GitLab repository to Supabase:", repositoryError);
-          toast.error("Failed to save repository information");
-          setIsLoading(false);
-          return;
-        }
-
-        const repositoryId = repositoryData[0].id;
-
-        // Insert students/members as needed
-        if (members && members.length > 0) {
-          const studentInserts = members.map(member => ({
-            repository_id: repositoryId,
-            name: member.name || member.username,
-            email: `${member.username}@example.com`, // Placeholder email
-            gitlab_username: member.username,
-            gitlab_member_id: member.id
-          }));
-
-          const { error: studentsError } = await supabase
-            .from('students')
-            .insert(studentInserts);
-
-          if (studentsError) {
-            console.error("Error saving GitLab members as students:", studentsError);
-            // Continue anyway but log the error
-          }
-        }
-
-        toast.success("Repository connected successfully");
-      } catch (error) {
-        console.error("Error saving to repositories table:", error);
-        toast.error("Failed to save repository information");
-      }
       
       onSuccess({
         projectId: project.id,
@@ -120,6 +65,8 @@ export function GitLabForm({ onSuccess }: GitLabFormProps) {
           username: member.username,
         })),
       });
+      
+      toast.success("GitLab project information retrieved successfully");
     } catch (error) {
       console.error("Error in GitLab form:", error);
       toast.error("Failed to connect to GitLab");
@@ -165,6 +112,7 @@ export function GitLabForm({ onSuccess }: GitLabFormProps) {
                       <Input 
                         placeholder="Enter GitLab token" 
                         type="password"
+                        showPasswordToggle 
                         {...field} 
                       />
                     </div>
@@ -181,7 +129,7 @@ export function GitLabForm({ onSuccess }: GitLabFormProps) {
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={isLoading || !user}
+              disabled={isLoading}
             >
               {isLoading ? (
                 <>

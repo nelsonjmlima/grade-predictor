@@ -1,125 +1,90 @@
-
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { SideNav } from "@/components/dashboard/SideNav";
+import { RepositoryCard } from "@/components/dashboard/RepositoryCard";
+import { CreateRepositoryDialog } from "@/components/dashboard/CreateRepositoryDialog";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Plus, PenSquare, Trash2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getGroups } from "@/services/repositories/repositoryFetcher";
+import { getRepositories, Repository, filterRepositories, sortRepositories, updateRepository, addRepository } from "@/services/repositoryData";
 
 export default function DashboardPage() {
-  const [groups, setGroups] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [repositories, setRepositories] = useState<Repository[]>([]);
+  // Always use grid mode now that we've removed the toggle
+  const [viewMode] = useState<"grid">("grid");
   const navigate = useNavigate();
-  const { user } = useAuth();
 
-  const fetchGroups = useCallback(async () => {
-    try {
-      setLoading(true);
-      console.log("Fetching groups for user:", user?.id);
-      if (!user) {
-        console.log("No authenticated user found");
-        setGroups([]);
-        return;
-      }
-      
-      const fetchedGroups = await getGroups();
-      console.log("Fetched groups:", fetchedGroups);
-      setGroups(fetchedGroups);
-    } catch (error) {
-      console.error("Error fetching groups:", error);
-      toast.error("Failed to load groups");
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.id]);
-
+  // Fetch repositories on mount and when dialogOpen changes (indicating a potential new repo)
   useEffect(() => {
-    fetchGroups();
-    
-    // Refresh groups when window gets focus (in case groups were added elsewhere)
-    window.addEventListener('focus', fetchGroups);
-    
-    return () => {
-      window.removeEventListener('focus', fetchGroups);
-    };
-  }, [fetchGroups]);
+    const fetchedRepositories = getRepositories();
 
-  const handleGroupClick = (groupId: string) => {
-    navigate(`/groups/${groupId}`);
+    // Ensure repositories have the required fields for the updated table
+    const enhancedRepositories = fetchedRepositories.map(repo => ({
+      ...repo,
+      projectId: repo.projectId || repo.id || `project-${Math.random().toString(36).substr(2, 9)}`,
+      author: repo.author || "Anonymous",
+      email: repo.email || "no-email@example.com",
+      date: repo.date || repo.lastActivity,
+      additions: repo.additions || Math.floor(Math.random() * 500),
+      deletions: repo.deletions || Math.floor(Math.random() * 200),
+      operations: repo.operations || (repo.additions && repo.deletions ? repo.additions + repo.deletions : repo.commitCount),
+      totalAdditions: repo.totalAdditions || Math.floor(Math.random() * 2000) + (repo.additions || 0),
+      totalDeletions: repo.totalDeletions || Math.floor(Math.random() * 1000) + (repo.deletions || 0),
+      totalOperations: repo.totalOperations || (repo.totalAdditions && repo.totalDeletions ? repo.totalAdditions + repo.totalDeletions : repo.additions && repo.deletions ? (repo.additions + repo.deletions) * 5 : 0),
+      averageOperationsPerCommit: repo.averageOperationsPerCommit || (repo.commitCount ? Math.round(((repo.additions || 0) + (repo.deletions || 0)) / repo.commitCount * 10) / 10 : Math.floor(Math.random() * 20) + 5),
+      averageCommitsPerWeek: repo.averageCommitsPerWeek || Math.floor(Math.random() * 20) + 1
+    }));
+    setRepositories(enhancedRepositories);
+  }, [dialogOpen]);
+  
+  const handleRepositoryClick = (repoId: string) => {
+    navigate(`/repositories/${repoId}`);
   };
 
-  return (
-    <div className="flex h-screen overflow-hidden bg-background">
+  return <div className="flex h-screen overflow-hidden bg-background">
       <SideNav />
       
       <main className="flex-1 overflow-y-auto">
         <div className="p-4">
           <div className="flex flex-col mb-4">
             <h1 className="font-semibold tracking-tight text-2xl">Dashboard</h1>
-            <p className="text-muted-foreground font-normal text-base">Manage your groups</p>
+            <p className="text-muted-foreground font-normal text-base">Manage your repositories</p>
             <p className="text-base text-primary mt-1 font-semibold">
-              {user ? `Welcome ${user.email?.split('@')[0]}` : "Welcome"}
+              Bem-vindo Sr. Professor
             </p>
           </div>
           
-          <div className="flex justify-between items-center mb-4">
+          <div className="mb-4">
             <p className="text-sm text-muted-foreground">
-              {groups.length > 0 ? `Managing ${groups.length} groups.` : ""}
+              {repositories.length > 0 ? `Managing ${repositories.length} repositories.` : ""}
             </p>
-            
-            <Button 
-              onClick={() => navigate('/groups/add')} 
-              className="flex items-center"
-              variant="default"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Group
-            </Button>
           </div>
           
           <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {loading ? (
-              <div className="col-span-full p-8 text-center">
-                <p className="text-muted-foreground">
-                  Loading groups...
-                </p>
-              </div>
-            ) : groups.length > 0 ? groups.map(group => (
+            {repositories.length > 0 ? repositories.map(repo => (
               <div 
-                key={group.id} 
+                key={repo.id || repo.name} 
                 className="cursor-pointer transform transition-transform hover:scale-[1.01]" 
-                onClick={() => handleGroupClick(group.id)}
+                onClick={() => handleRepositoryClick(repo.id || '')}
               >
-                <Card className="overflow-hidden transition-all duration-300 hover:shadow-md">
-                  <CardHeader className="pb-2 pt-3">
-                    <CardTitle className="font-medium text-base flex items-center justify-between">
-                      <span className="truncate mr-2">{group.name}</span>
-                    </CardTitle>
-                  </CardHeader>
-                  
-                  <CardContent className="pb-3">
-                    <p className="text-sm mb-2">
-                      Number of students: {group.studentCount}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Created On: {new Date(group.createdAt).toLocaleDateString()}
-                    </p>
-                  </CardContent>
-                </Card>
+                <RepositoryCard {...repo} />
               </div>
             )) : (
               <div className="col-span-full p-8 text-center">
                 <p className="text-muted-foreground">
-                  No groups found. Click the "Add Group" button to add your first group.
+                  No repositories found.
                 </p>
               </div>
             )}
           </div>
         </div>
       </main>
-    </div>
-  );
+
+      <CreateRepositoryDialog 
+        open={dialogOpen} 
+        onOpenChange={setDialogOpen} 
+        onRepositoryCreated={() => {
+          const updatedRepositories = getRepositories();
+          setRepositories(updatedRepositories);
+        }} 
+      />
+    </div>;
 }

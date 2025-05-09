@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -8,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { updateRepository, Repository } from "@/services/repositoryData";
-import { Student } from "@/services/types/repositoryTypes"; // Changed import to use consistent Student type
+import { Student } from "@/services/studentData";
 import { useNavigate } from "react-router-dom";
 
 const formSchema = z.object({
@@ -82,13 +83,12 @@ export function EditRepositoryDialog({
       // If the studentsCount has increased, add dummy students
       if (targetCount > currentCount) {
         for (let i = currentCount; i < targetCount; i++) {
-          const currentDate = new Date().toISOString().split('T')[0]; // Format as YYYY-MM-DD
           updatedStudents.push({
             id: `student-${Math.random().toString(36).substr(2, 9)}`,
             name: `Student ${i + 1}`,
             email: `student${i + 1}@example.com`,
-            commitCount: 0, // Required field
-            lastActivity: 'Never' // Required field
+            commitCount: 0,
+            lastActivity: 'Never'
           });
         }
       } 
@@ -97,7 +97,7 @@ export function EditRepositoryDialog({
         updatedStudents = updatedStudents.slice(0, targetCount);
       }
       
-      const updatedRepo = await updateRepository(repository.id, {
+      const updatedRepo = updateRepository(repository.id, {
         name: values.name,
         description: repository.description, // Keep the existing description
         projectId: values.projectId,
